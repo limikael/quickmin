@@ -1,0 +1,15 @@
+#
+# This is only for testing.
+#
+
+dsn: "sqlite:backroom.db"
+collections:
+  posts:
+    fields:
+      title: text
+      published: text
+      content: text
+  pages:
+    fields:
+      title: text
+      content: text

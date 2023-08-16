@@ -1,0 +1,28 @@
+{
+  "name": "backroom",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently npm:dev:client npm:dev:server",
+    "dev:client": "vite",
+    "dev:server": "nodemon ./src/server/backroom-cli.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ra-data-simple-rest": "^4.13.0",
+    "sequelize": "^6.32.1",
+    "yaml": "^2.3.1",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.5.0",
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1",
+    "preact": "^10.16.0",
+    "react-admin": "^4.13.0",
+    "sqlite3": "^5.1.6",
+    "vite": "^4.4.5"
+  }
+}
