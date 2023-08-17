@@ -1,5 +1,5 @@
 import {Admin, Resource, ListGuesser, EditGuesser, List, Datagrid, TextField,
-        Edit, SimpleForm, TextInput} from 'react-admin';
+        Edit, SimpleForm, TextInput, Create} from 'react-admin';
 import simpleRestProvider from 'ra-data-simple-rest';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
@@ -24,7 +24,7 @@ function createListComponent(collection) {
 
 function createEditComponent(collection) {
     return (
-        <Edit>
+        <Edit mutationMode="pessimistic">
             <SimpleForm>
                 {Object.keys(collection.fields).map(fid=>{
                     let f=collection.fields[fid];
@@ -40,10 +40,29 @@ function createEditComponent(collection) {
     );
 }
 
-function createCollectionComponents(collection) {
+function createCreateComponent(collection) {
+    return (
+        <Create redirect="list">
+            <SimpleForm>
+                {Object.keys(collection.fields).map(fid=>{
+                    let f=collection.fields[fid];
+                    switch (f.type) {
+                        default:
+                            return (
+                                <TextInput source={fid} />
+                            )
+                    }
+                })}
+            </SimpleForm>
+        </Create>
+    );
+}
+
+function createCollectionComponents(cid, collection) {
     return {
         list: createListComponent(collection),
-        edit: createEditComponent(collection)
+        edit: createEditComponent(collection),
+        create: createCreateComponent(collection)
     }
 }
 
@@ -63,10 +82,12 @@ export function App() {
 
     let dataProvider=simpleRestProvider('http://localhost:3000');
 
+//                <CollectionResource cid={c} collection={schema.collections[c]} />
+
     return (
         <Admin dataProvider={dataProvider}>
             {Object.keys(schema.collections).map(c=>
-                <Resource name={c}
+                <Resource name={c} key={c}
                     {...createCollectionComponents(schema.collections[c])} />
             )}
         </Admin>

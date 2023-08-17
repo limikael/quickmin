@@ -1,47 +1,80 @@
-import {getRequestOpts} from "./js-util.js";
+import {netTry, trimChar} from "./js-util.js";
+import express from "express";
+import bodyParser from "body-parser";
 
 export default class SequelizeRest {
 	constructor(conf={}) {
 		this.sequelize=conf.sequelize;
 		this.path=conf.path;
+		this.middleware=express();
+
+		this.middleware.use(bodyParser.json());
+
+		let apiRoot=trimChar(conf.apiRoot,"/");
+		if (apiRoot)
+			apiRoot="/"+apiRoot;
+
+		this.middleware.get(`${apiRoot}/:model`,(req, res, next)=>{
+			if (!this.isModel(req.params.model))
+				return next();
+
+			netTry(res,async ()=>{
+				res.setHeader("Content-Range","0-2/2");
+				let model=this.sequelize.models[req.params.model];
+				res.json(await model.findAll());
+			});
+		});
+
+		this.middleware.get(`${apiRoot}/:model/:id`,(req, res, next)=>{
+			if (!this.isModel(req.params.model))
+				return next();
+
+			netTry(res,async ()=>{
+				let model=this.sequelize.models[req.params.model];
+				res.json(await model.findByPk(req.params.id));
+			});
+		});
+
+		this.middleware.put(`${apiRoot}/:model/:id`,(req, res, next)=>{
+			if (!this.isModel(req.params.model))
+				return next();
+
+			netTry(res,async ()=>{
+				let model=this.sequelize.models[req.params.model];
+				let instance=await model.findByPk(req.params.id);
+				instance.set(req.body);
+				await instance.save();
+				res.json(instance);
+			});
+		});
+
+		this.middleware.post(`${apiRoot}/:model`,(req, res, next)=>{
+			if (!this.isModel(req.params.model))
+				return next();
+
+			netTry(res,async ()=>{
+				let model=this.sequelize.models[req.params.model];
+				let instance=await model.build(req.body);
+				await instance.save();
+				res.json(instance);
+			});
+		});
+
+		this.middleware.delete(`${apiRoot}/:model/:id`,(req, res, next)=>{
+			if (!this.isModel(req.params.model))
+				return next();
+
+			netTry(res,async ()=>{
+				let model=this.sequelize.models[req.params.model];
+				let instance=await model.findByPk(req.params.id);
+				await instance.destroy();
+				res.json(instance);
+			});
+		});
+
 	}
 
-	handle=async (req, res)=>{
-		let opts=getRequestOpts(req);
-		//console.log(opts);
-
-		if (this.path) {
-			if (this.path!=opts._[0]) {
-				res.end("error");
-				return;
-			}
-
-			opts._.shift();
-		}
-
-		let modelName=opts._[0];
-		let param=opts._[1];
-		if (!this.sequelize.models[modelName]) {
-			res.end("error");
-			return;
-		}
-
-		let model=this.sequelize.models[modelName];
-		let result;
-
-		// Get many / list
-		if (req.method=="GET" && !param) {
-			res.setHeader("Content-Range","0-2/2");
-			result=await this.sequelize.models[modelName].findAll();
-		}
-
-		// Get one
-		else if (req.method=="GET" && param) {
-			result=await this.sequelize.models[modelName].findByPk(param);
-		}
-
-		// Create
-
-		res.end(JSON.stringify(result));
+	isModel(cand) {
+		return this.sequelize.models.hasOwnProperty(cand);
 	}
 }

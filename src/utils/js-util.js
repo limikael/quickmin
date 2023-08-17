@@ -1,23 +1,3 @@
-export function getRequestOrigin(req) {
-	let protocol="http";
-	if (req.headers["x-forwarded-proto"])
-		protocol=req.headers["x-forwarded-proto"].split(",")[0];
-
-	return protocol+"://"+req.headers.host;
-}
-
-export function getRequestOpts(req) {
-	//console.log(getRequestOrigin(req));
-
-	let url=new URL(req.url,getRequestOrigin(req));
-	let opts=Object.fromEntries(url.searchParams);
-
-	//console.log(url.pathname);
-	opts._=url.pathname.split("/").filter(s=>s.length>0);
-
-	return opts;
-}
-
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);
@@ -37,4 +17,33 @@ export async function fetchEx(url, options={}) {
 	}
 
 	return result;
+}
+
+export function netTry(res, fn) {
+	fn().catch(e=>{
+		res.status(500);
+		if (e instanceof Error)
+			res.json({
+				message: e.message,
+				stack: e.stack
+			});
+
+		else
+			res.end(e);
+	});
+}
+
+export function trimChar(string, charToRemove) {
+	if (!string)
+		return "";
+
+    while(string.charAt(0)==charToRemove) {
+        string = string.substring(1);
+    }
+
+    while(string.charAt(string.length-1)==charToRemove) {
+        string = string.substring(0,string.length-1);
+    }
+
+    return string;
 }

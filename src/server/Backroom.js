@@ -1,6 +1,7 @@
 import {Sequelize, DataTypes} from "sequelize";
-import {getRequestOpts} from "../utils/js-util.js";
 import SequelizeRest from "../utils/SequelizeRest.js";
+import {trimChar} from "../utils/js-util.js";
+import express from "express";
 
 let SEQUELIZE_TYPES={
     "text": DataTypes.STRING,
@@ -40,28 +41,31 @@ export default class Backroom {
         this.sequelizeRest=new SequelizeRest({
             sequelize: this.sequelize
         });
-    }
 
-    async sync() {
-        await this.sequelize.sync({alter: true});
-    }
+        let apiRoot=trimChar(conf.apiRoot,"/");
+        if (apiRoot)
+            apiRoot="/"+apiRoot;
 
-    middleware=async (req, res, next)=>{
-        let opts=getRequestOpts(req);
-
-        if (opts._.length==1 && opts._[0]=="_schema") {
-            res.setHeader('Access-Control-Allow-Origin', '*');
-
-            res.end(JSON.stringify({
-                collections: this.collections
-            }));
-        }
-
-        else {
+        this.middleware=express();
+        this.middleware.use((req,res,next)=>{
+            res.setHeader("Access-Control-Allow-Methods", "*");
             res.setHeader("Access-Control-Allow-Origin", "*");
             res.setHeader("Access-Control-Allow-Headers", "*");
             res.setHeader("Access-Control-Expose-Headers", "*");
-            this.sequelizeRest.handle(req,res,next);
-        }
+            next();
+        });
+
+        this.middleware.get(`${apiRoot}/_schema`,(req, res, next)=>{
+            res.json({
+                collections: this.collections
+            });
+        });
+
+        this.middleware.use(this.sequelizeRest.middleware);
+    }
+
+    async sync() {
+        //await this.sequelize.sync({alter: true});
+        await this.sequelize.sync();
     }
 }
