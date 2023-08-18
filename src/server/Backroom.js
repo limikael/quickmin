@@ -18,12 +18,18 @@ export default class Backroom {
             if (!this.collections[c].title)
                 this.collections[c].title=c.charAt(0).toUpperCase()+c.slice(1);
 
+            if (!this.collections[c].listFields)
+                this.collections[c].listFields=Object.keys(this.collections[c].fields);
+
             for (let f in this.collections[c].fields) {
                 if (typeof this.collections[c].fields[f]=="string") {
                     this.collections[c].fields[f]={
                         type: this.collections[c].fields[f]
                     }
                 }
+
+                if (!SEQUELIZE_TYPES[this.collections[c].fields[f].type])
+                    throw new Error("Unknown field type: "+this.collections[c].fields[f].type);
             }
         }
 

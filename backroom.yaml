@@ -5,10 +5,16 @@
 dsn: "sqlite:backroom.db"
 collections:
   posts:
+    listFields: [title,published]
     fields:
-      title: text
+      title:
+        type: text
+        fullWidth: true
+        helperText: "This is the title"
       published: text
-      content: text
+      content:
+        type: richtext
+        fullWidth: true
   pages:
     fields:
       title: text
