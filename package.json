@@ -6,21 +6,25 @@
   "scripts": {
     "dev": "concurrently npm:dev:client npm:dev:server",
     "dev:client": "vite",
-    "dev:server": "nodemon ./src/server/backroom-cli.js",
+    "dev:server": "nodemon ./src/server/backroom-cli.js --sync=none",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
     "express": "^4.18.2",
+    "ra-data-fakerest": "^4.13.0",
     "ra-data-simple-rest": "^4.13.0",
-    "ra-input-rich-text": "^4.13.0",
     "sequelize": "^6.32.1",
     "yaml": "^2.3.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",
+    "@tiptap/extension-text-align": "^2.1.6",
+    "@tiptap/pm": "^2.1.6",
+    "@tiptap/react": "^2.1.6",
+    "@tiptap/starter-kit": "^2.1.2",
     "concurrently": "^8.2.0",
     "nodemon": "^3.0.1",
     "preact": "^10.16.0",

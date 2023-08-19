@@ -1,6 +1,7 @@
 import {Admin, Resource, ListGuesser, EditGuesser, List, Datagrid, TextField,
-        Edit, SimpleForm, TextInput, Create} from 'react-admin';
-import {RichTextInput} from 'ra-input-rich-text';
+        Edit, SimpleForm, TextInput, Create, DateField, DateInput, DateTimeInput,
+        SelectField, SelectInput} from 'react-admin';
+import {FrugalTextInput} from './FrugalTextInput.jsx';
 import simpleRestProvider from 'ra-data-simple-rest';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
@@ -8,7 +9,10 @@ import {fetchEx} from "../utils/js-util.js";
 function collectionList(collection) {
     let REACT_LIST_TYPES={
         "text": TextField,
-        "richtext": TextField
+        "richtext": TextField,
+        "date": DateField,
+        "datetime": DateField,
+        "select": SelectField
     };
 
     return (
@@ -29,7 +33,10 @@ function collectionList(collection) {
 function collectionEditor(collection, mode) {
     let REACT_EDIT_TYPES={
         "text": TextInput,
-        "richtext": RichTextInput
+        "richtext": FrugalTextInput,
+        "date": DateInput,
+        "datetime": DateTimeInput,
+        "select": SelectInput
     };
 
     let content=(
@@ -73,10 +80,42 @@ function collectionResource(collection) {
 }
 
 export function App() {
+    let FIELD_CONF_PROCESSORS={
+        select(field) {
+            if ((typeof field.choices)=="object") {
+                let choices=field.choices;
+                field.choices=[];
+                for (let k in choices)
+                    field.choices.push({
+                        id: k,
+                        name: choices[k]
+                    });
+            }
+
+            else if ((typeof field.choices[0])=="string") {
+                field.choices=field.choices.map(s=>{
+                    return ({
+                        id: s,
+                        name: s.charAt(0).toUpperCase()+s.slice(1)
+                    })
+                });
+            }
+        }
+    }
+
     let schema=useAsyncMemo(async()=>{
         let response=await fetchEx("http://localhost:3000/_schema",{
             dataType: "json"
         });
+
+        for (let cid in response.data.collections) {
+            for (let fid in response.data.collections[cid].fields) {
+                let type=response.data.collections[cid].fields[fid].type;
+                let p=FIELD_CONF_PROCESSORS[type];
+                if (p) 
+                    p(response.data.collections[cid].fields[fid]);
+            }
+        }
 
         return response.data;
     },[]);
@@ -84,7 +123,7 @@ export function App() {
     if (!schema)
         return "Loading...";
 
-    console.log("render...");
+    //console.log("render...");
 
     let dataProvider=simpleRestProvider('http://localhost:3000');
 
@@ -95,11 +134,4 @@ export function App() {
             )}
         </Admin>
     );
-
-/*    return (
-        <Admin dataProvider={dataProvider}>
-            <Resource name="posts" list={PostsList}>
-            </Resource>
-        </Admin>
-    );*/
 }

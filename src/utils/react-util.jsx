@@ -1,4 +1,4 @@
-import {useEffect, useState, useMemo, useRef} from "preact/compat";
+import {useEffect, useState, useMemo, useRef, useCallback} from "preact/compat";
 import {fetchEx} from "./js-util.js";
 
 export function useAsyncMemo(fn, deps) {
@@ -37,4 +37,25 @@ export function useAsyncMemo(fn, deps) {
 	},deps);
 
 	return val;
+}
+
+export function useEventListener(target, event, func) {
+	useEffect(()=>{
+		function onEvent(...params) {
+			func(...params);
+		}
+
+		target.addEventListener(event,onEvent);
+
+		return (()=>{
+			target.removeEventListener(event,onEvent);
+		});
+	},[target,event]);
+}
+
+export function useForceUpdate() {
+    const [, setValue]=useState({});
+    return useCallback(()=>{
+        setValue({});
+    },[]);
 }

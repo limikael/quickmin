@@ -11,18 +11,37 @@ let options=yargs(hideBin(process.argv))
     .option("port",{
         type: "number",
         default: 3000,
-        description: "Port to listen to",
+        description: "Port to listen to.",
     })
     .option("conf",{
         default: "backroom.yaml",
-        description: "Config file",
+        description: "Config file.",
+    })
+    .option("sync",{
+        default: true,
+        description: "Sync database schema on startup.",
+        choices: ["none","safe","alter","force"],
+        default: "alter"
     })
     .parse();
 
 let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
 let backroom=new Backroom(conf);
 
-await backroom.sync();
+switch (options.sync) {
+    case "safe":
+        await backroom.sync({});
+        break;
+
+    case "alter":
+        console.log("running alter!");
+        await backroom.sync({alter: true});
+        break;
+
+    case "force":
+        await backroom.sync({force: true});
+        break;
+}
 
 let server=http.createServer(backroom.middleware);
 

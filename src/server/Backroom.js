@@ -5,7 +5,10 @@ import express from "express";
 
 let SEQUELIZE_TYPES={
     "text": DataTypes.STRING,
-    "richtext": DataTypes.TEXT
+    "richtext": DataTypes.TEXT,
+    "date": DataTypes.DATEONLY,
+    "datetime": DataTypes.DATE,
+    "select": DataTypes.STRING
 }
 
 export default class Backroom {
@@ -70,8 +73,7 @@ export default class Backroom {
         this.middleware.use(this.sequelizeRest.middleware);
     }
 
-    async sync() {
-        //await this.sequelize.sync({alter: true});
-        await this.sequelize.sync();
+    async sync(options) {
+        await this.sequelize.sync(options);
     }
 }
