@@ -82,7 +82,17 @@ function collectionResource(collection) {
 export function App() {
     let FIELD_CONF_PROCESSORS={
         select(field) {
-            if ((typeof field.choices)=="object") {
+            if (Array.isArray(field.choices)
+                    && (typeof field.choices[0])=="string") {
+                field.choices=field.choices.map(s=>{
+                    return ({
+                        id: s,
+                        name: s.charAt(0).toUpperCase()+s.slice(1)
+                    })
+                });
+            }
+
+            else if ((typeof field.choices)=="object") {
                 let choices=field.choices;
                 field.choices=[];
                 for (let k in choices)
@@ -90,15 +100,6 @@ export function App() {
                         id: k,
                         name: choices[k]
                     });
-            }
-
-            else if ((typeof field.choices[0])=="string") {
-                field.choices=field.choices.map(s=>{
-                    return ({
-                        id: s,
-                        name: s.charAt(0).toUpperCase()+s.slice(1)
-                    })
-                });
             }
         }
     }
