@@ -7,7 +7,7 @@ import http from "http";
 import yaml from "yaml";
 import fs from "fs";
 
-let options=yargs(hideBin(process.argv))
+let yargsConf=yargs(hideBin(process.argv))
     .option("port",{
         type: "number",
         default: 3000,
@@ -23,7 +23,16 @@ let options=yargs(hideBin(process.argv))
         choices: ["none","safe","alter","force"],
         default: "alter"
     })
-    .parse();
+    .usage("backroom -- Backend as an app.")
+
+let options=yargsConf.parse();
+
+if (!fs.existsSync(options.conf)) {
+    console.log("Can't find config file:",options.conf);
+    console.log();
+    yargsConf.showHelp();
+    process.exit(1);
+}
 
 let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
 let backroom=new Backroom(conf);
@@ -34,7 +43,6 @@ switch (options.sync) {
         break;
 
     case "alter":
-        console.log("running alter!");
         await backroom.sync({alter: true});
         break;
 

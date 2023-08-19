@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "backroom": "src/server/backroom-cli.js"
+  },
   "scripts": {
     "dev": "concurrently npm:dev:client npm:dev:server",
     "dev:client": "vite",

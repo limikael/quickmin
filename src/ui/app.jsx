@@ -1,26 +1,17 @@
-import {Admin, Resource, ListGuesser, EditGuesser, List, Datagrid, TextField,
-        Edit, SimpleForm, TextInput, Create, DateField, DateInput, DateTimeInput,
-        SelectField, SelectInput} from 'react-admin';
-import {FrugalTextInput} from './FrugalTextInput.jsx';
+import {Admin, Resource, List, Datagrid, 
+        Edit, SimpleForm, Create, } from 'react-admin';
 import simpleRestProvider from 'ra-data-simple-rest';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
+import FIELD_TYPES from "./field-types.js";
 
 function collectionList(collection) {
-    let REACT_LIST_TYPES={
-        "text": TextField,
-        "richtext": TextField,
-        "date": DateField,
-        "datetime": DateField,
-        "select": SelectField
-    };
-
     return (
         <List hasCreate={true} exporter={false}>
             <Datagrid rowClick="edit" size="medium">
                 {collection.listFields.map(fid=>{
                     let f=collection.fields[fid];
-                    let Comp=REACT_LIST_TYPES[f.type];
+                    let Comp=FIELD_TYPES[f.type].list;
                     return (
                         <Comp source={fid} {...f}/>
                     );
@@ -31,19 +22,11 @@ function collectionList(collection) {
 }
 
 function collectionEditor(collection, mode) {
-    let REACT_EDIT_TYPES={
-        "text": TextInput,
-        "richtext": FrugalTextInput,
-        "date": DateInput,
-        "datetime": DateTimeInput,
-        "select": SelectInput
-    };
-
     let content=(
         <SimpleForm>
             {Object.keys(collection.fields).map(fid=>{
                 let f=collection.fields[fid];
-                let Comp=REACT_EDIT_TYPES[f.type];
+                let Comp=FIELD_TYPES[f.type].edit;
                 return (
                     <Comp source={fid} key={fid} {...f}/>
                 );
@@ -79,46 +62,27 @@ function collectionResource(collection) {
     );
 }
 
-export function App() {
-    let FIELD_CONF_PROCESSORS={
-        select(field) {
-            if (Array.isArray(field.choices)
-                    && (typeof field.choices[0])=="string") {
-                field.choices=field.choices.map(s=>{
-                    return ({
-                        id: s,
-                        name: s.charAt(0).toUpperCase()+s.slice(1)
-                    })
-                });
-            }
+async function fetchSchema(url) {
+    let response=await fetchEx("http://localhost:3000/_schema",{
+        dataType: "json"
+    });
 
-            else if ((typeof field.choices)=="object") {
-                let choices=field.choices;
-                field.choices=[];
-                for (let k in choices)
-                    field.choices.push({
-                        id: k,
-                        name: choices[k]
-                    });
-            }
+    let schema=response.data;
+    for (let cid in schema.collections) {
+        for (let fid in schema.collections[cid].fields) {
+            let type=schema.collections[cid].fields[fid].type;
+            let processor=FIELD_TYPES[type].confProcessor;
+            if (processor) 
+                processor(schema.collections[cid].fields[fid]);
         }
     }
 
+    return schema;
+}
+
+export function App() {
     let schema=useAsyncMemo(async()=>{
-        let response=await fetchEx("http://localhost:3000/_schema",{
-            dataType: "json"
-        });
-
-        for (let cid in response.data.collections) {
-            for (let fid in response.data.collections[cid].fields) {
-                let type=response.data.collections[cid].fields[fid].type;
-                let p=FIELD_CONF_PROCESSORS[type];
-                if (p) 
-                    p(response.data.collections[cid].fields[fid]);
-            }
-        }
-
-        return response.data;
+        return await fetchSchema("http://localhost:3000/_schema")
     },[]);
 
     if (!schema)

@@ -5,4 +5,14 @@ import preact from '@preact/preset-vite'
 export default defineConfig({
   clearScreen: false,
   plugins: [preact()],
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return
+        }
+        warn(warning)
+      }      
+    }
+  }
 })
