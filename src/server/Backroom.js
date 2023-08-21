@@ -51,9 +51,9 @@ export default class Backroom {
             sequelize: this.sequelize
         });
 
-        let apiRoot=trimChar(conf.apiRoot,"/");
+        /*let apiRoot=trimChar(conf.apiRoot,"/");
         if (apiRoot)
-            apiRoot="/"+apiRoot;
+            apiRoot="/"+apiRoot;*/
 
         this.middleware=express();
         this.middleware.use((req,res,next)=>{
@@ -64,7 +64,7 @@ export default class Backroom {
             next();
         });
 
-        this.middleware.get(`${apiRoot}/_schema`,(req, res, next)=>{
+        this.middleware.get(`/_schema`,(req, res, next)=>{
             res.json({
                 collections: this.collections
             });

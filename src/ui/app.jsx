@@ -4,6 +4,9 @@ import simpleRestProvider from 'ra-data-simple-rest';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.js";
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import urlJoin from 'url-join';
 
 function collectionList(collection) {
     return (
@@ -63,7 +66,7 @@ function collectionResource(collection) {
 }
 
 async function fetchSchema(url) {
-    let response=await fetchEx("http://localhost:3000/_schema",{
+    let response=await fetchEx(url,{
         dataType: "json"
     });
 
@@ -80,23 +83,31 @@ async function fetchSchema(url) {
     return schema;
 }
 
-export function App() {
+export function App({api}) {
     let schema=useAsyncMemo(async()=>{
-        return await fetchSchema("http://localhost:3000/_schema")
+        return await fetchSchema(urlJoin(api,"_schema"));
     },[]);
 
     if (!schema)
-        return "Loading...";
+        return (
+            <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100vh"
+                    }}>
+                <CircularProgress size="3em"/>
+            </div>
+        );
 
-    //console.log("render...");
+    let dataProvider=simpleRestProvider(api);
 
-    let dataProvider=simpleRestProvider('http://localhost:3000');
-
-    return (
+    return (<>
         <Admin dataProvider={dataProvider}>
             {Object.keys(schema.collections).map(c=>
                 collectionResource({key: c,...schema.collections[c]})
             )}
         </Admin>
-    );
+    </>);
 }

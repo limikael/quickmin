@@ -7,9 +7,7 @@
     "backroom": "src/server/backroom-cli.js"
   },
   "scripts": {
-    "dev": "concurrently npm:dev:client npm:dev:server",
-    "dev:client": "vite",
-    "dev:server": "nodemon ./src/server/backroom-cli.js --sync=none",
+    "dev": "./src/server/backroom-cli.js --sync=none --ui=vite",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -33,6 +31,7 @@
     "preact": "^10.16.0",
     "react-admin": "^4.13.0",
     "sqlite3": "^5.1.6",
+    "url-join": "^5.0.0",
     "vite": "^4.4.5"
   }
 }

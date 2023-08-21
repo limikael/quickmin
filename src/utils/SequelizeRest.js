@@ -10,11 +10,11 @@ export default class SequelizeRest {
 
 		this.middleware.use(bodyParser.json());
 
-		let apiRoot=trimChar(conf.apiRoot,"/");
+		/*let apiRoot=trimChar(conf.apiRoot,"/");
 		if (apiRoot)
-			apiRoot="/"+apiRoot;
+			apiRoot="/"+apiRoot;*/
 
-		this.middleware.get(`${apiRoot}/:model`,(req, res, next)=>{
+		this.middleware.get(`/:model`,(req, res, next)=>{
 			if (!this.isModel(req.params.model))
 				return next();
 
@@ -25,7 +25,7 @@ export default class SequelizeRest {
 			});
 		});
 
-		this.middleware.get(`${apiRoot}/:model/:id`,(req, res, next)=>{
+		this.middleware.get(`/:model/:id`,(req, res, next)=>{
 			if (!this.isModel(req.params.model))
 				return next();
 
@@ -35,7 +35,7 @@ export default class SequelizeRest {
 			});
 		});
 
-		this.middleware.put(`${apiRoot}/:model/:id`,(req, res, next)=>{
+		this.middleware.put(`/:model/:id`,(req, res, next)=>{
 			if (!this.isModel(req.params.model))
 				return next();
 
@@ -48,7 +48,7 @@ export default class SequelizeRest {
 			});
 		});
 
-		this.middleware.post(`${apiRoot}/:model`,(req, res, next)=>{
+		this.middleware.post(`/:model`,(req, res, next)=>{
 			if (!this.isModel(req.params.model))
 				return next();
 
@@ -60,7 +60,7 @@ export default class SequelizeRest {
 			});
 		});
 
-		this.middleware.delete(`${apiRoot}/:model/:id`,(req, res, next)=>{
+		this.middleware.delete(`/:model/:id`,(req, res, next)=>{
 			if (!this.isModel(req.params.model))
 				return next();
 

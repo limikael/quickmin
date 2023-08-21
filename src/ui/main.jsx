@@ -1,4 +1,5 @@
 import { render } from 'preact'
 import { App } from './app.jsx'
 
-render(<App />, document.getElementById('app'))
+let el=document.getElementById('app');
+render(<App {...Object.assign({},el.dataset)}/>, el);
