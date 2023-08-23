@@ -2,6 +2,8 @@ import {Sequelize, DataTypes} from "sequelize";
 import SequelizeRest from "../utils/SequelizeRest.js";
 import {trimChar} from "../utils/js-util.js";
 import express from "express";
+import bodyParser from "body-parser";
+import jwt from "jsonwebtoken";
 
 let SEQUELIZE_TYPES={
     "text": DataTypes.STRING,
@@ -11,11 +13,17 @@ let SEQUELIZE_TYPES={
     "select": DataTypes.STRING
 }
 
-export default class Backroom {
+export default class Quickmin {
     constructor(conf={}) {
         Object.assign(this,conf);
 
         this.sequelize=new Sequelize(this.dsn);
+
+        if (this.jwtSecret && this.adminUser && this.adminPass)
+            this.requireAuth=true;
+
+        else if (this.jwtSecret || this.adminUser || this.adminPass)
+            throw new Error("Need none or all of adminUser, adminPass and jwtSecret");
 
         for (let c in this.collections) {
             if (!this.collections[c].title)
@@ -47,15 +55,15 @@ export default class Backroom {
             this.sequelize.define(c,attrs)
         }
 
-        this.sequelizeRest=new SequelizeRest({
-            sequelize: this.sequelize
-        });
+        let sequelizeRestConf={
+            sequelize: this.sequelize,
+        };
 
-        /*let apiRoot=trimChar(conf.apiRoot,"/");
-        if (apiRoot)
-            apiRoot="/"+apiRoot;*/
+        sequelizeRestConf.authorizeWrite=this.authorizeWrite;
+        this.sequelizeRest=new SequelizeRest(sequelizeRestConf);
 
         this.middleware=express();
+        this.middleware.use(bodyParser.json());
         this.middleware.use((req,res,next)=>{
             res.setHeader("Access-Control-Allow-Methods", "*");
             res.setHeader("Access-Control-Allow-Origin", "*");
@@ -64,13 +72,45 @@ export default class Backroom {
             next();
         });
 
-        this.middleware.get(`/_schema`,(req, res, next)=>{
+        this.middleware.get("/_schema",(req, res)=>{
             res.json({
-                collections: this.collections
+                collections: this.collections,
+                requireAuth: this.requireAuth
             });
         });
 
+        this.middleware.post("/_login",(req, res)=>{
+            if (req.body.username==this.adminUser &&
+                    req.body.password==this.adminPass) {
+                let payload={
+                    username: req.body.username
+                };
+
+                res.json({
+                    token: jwt.sign(payload,this.jwtSecret,{})
+                });
+            }
+
+            else {
+                res.status(403);
+                res.json({"message":"Bad credentials"})
+            }
+        });
+
         this.middleware.use(this.sequelizeRest.middleware);
+    }
+
+    authorizeWrite=(req)=>{
+        if (!this.requireAuth)
+            return;
+
+        let authorization=req.headers.authorization.split(" ");
+        if (authorization[0]!="Bearer")
+            throw new Error("Expected bearer authorization");
+
+        let payload=jwt.verify(authorization[1],this.jwtSecret);
+        if (payload.username!=this.adminUser)
+            throw new Error("Not logged in");
     }
 
     async sync(options) {

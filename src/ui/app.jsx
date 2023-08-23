@@ -7,6 +7,8 @@ import FIELD_TYPES from "./field-types.js";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import urlJoin from 'url-join';
+import {useMemo} from "react";
+import AuthProvider from "./AuthProvider";
 
 function collectionList(collection) {
     return (
@@ -65,30 +67,39 @@ function collectionResource(collection) {
     );
 }
 
-async function fetchSchema(url) {
-    let response=await fetchEx(url,{
+async function fetchConf(apiUrl) {
+    let response=await fetchEx(urlJoin(apiUrl,"_schema"),{
         dataType: "json"
     });
 
-    let schema=response.data;
-    for (let cid in schema.collections) {
-        for (let fid in schema.collections[cid].fields) {
-            let type=schema.collections[cid].fields[fid].type;
+    let conf=response.data;
+    for (let cid in conf.collections) {
+        for (let fid in conf.collections[cid].fields) {
+            let type=conf.collections[cid].fields[fid].type;
             let processor=FIELD_TYPES[type].confProcessor;
             if (processor) 
-                processor(schema.collections[cid].fields[fid]);
+                processor(conf.collections[cid].fields[fid]);
         }
     }
 
-    return schema;
+    let httpClient;
+    if (conf.requireAuth) {
+        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"));
+        httpClient=conf.authProvider.httpClient;
+    }
+
+    conf.dataProvider=simpleRestProvider(apiUrl,httpClient);
+
+    return conf;
 }
 
 export function App({api}) {
-    let schema=useAsyncMemo(async()=>{
-        return await fetchSchema(urlJoin(api,"_schema"));
-    },[]);
+    let conf=useAsyncMemo(async()=>await fetchConf(api),[]);
 
-    if (!schema)
+//    let authProvider=useMemo(()=>));
+//    let authProvider=null;
+
+    if (!conf)
         return (
             <div
                     style={{
@@ -101,12 +112,14 @@ export function App({api}) {
             </div>
         );
 
-    let dataProvider=simpleRestProvider(api);
+//    let dataProvider=simpleRestProvider(api,authProvider?.httpClient);
 
     return (<>
-        <Admin dataProvider={dataProvider}>
-            {Object.keys(schema.collections).map(c=>
-                collectionResource({key: c,...schema.collections[c]})
+        <Admin dataProvider={conf.dataProvider}
+                authProvider={conf.authProvider}
+                requireAuth={conf.requireAuth}>
+            {Object.keys(conf.collections).map(c=>
+                collectionResource({key: c,...conf.collections[c]})
             )}
         </Admin>
     </>);

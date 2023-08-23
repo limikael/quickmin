@@ -2,7 +2,7 @@
 
 import yargs from "yargs/yargs";
 import {hideBin} from "yargs/helpers";
-import Backroom from "./Backroom.js";
+import Quickmin from "./Quickmin.js";
 import http from "http";
 import yaml from "yaml";
 import fs from "fs";
@@ -20,7 +20,7 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Port to listen to.",
     })
     .option("conf",{
-        default: "backroom.yaml",
+        default: "quickmin.yaml",
         description: "Config file.",
     })
     .option("ui",{
@@ -33,7 +33,7 @@ let yargsConf=yargs(hideBin(process.argv))
         choices: ["none","safe","alter","force"],
         default: "alter"
     })
-    .usage("backroom -- Backend as an app.")
+    .usage("quickmin -- Backend as an app.")
 
 let options=yargsConf.parse();
 
@@ -45,25 +45,25 @@ if (!fs.existsSync(options.conf)) {
 }
 
 let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
-let backroom=new Backroom(conf);
+let quickmin=new Quickmin(conf);
 
 switch (options.sync) {
     case "safe":
-        await backroom.sync({});
+        await quickmin.sync({});
         break;
 
     case "alter":
-        await backroom.sync({alter: true});
+        await quickmin.sync({alter: true});
         break;
 
     case "force":
-        await backroom.sync({force: true});
+        await quickmin.sync({force: true});
         break;
 }
 
 let app=express();
 app.use(removeDoubleSlashMiddleware());
-app.use(backroom.middleware);
+app.use(quickmin.middleware);
 
 switch (options.ui) {
     case "dist":

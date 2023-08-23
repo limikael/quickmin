@@ -1,19 +1,20 @@
 {
-  "name": "backroom",
+  "name": "quickmin",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "bin": {
-    "backroom": "src/server/backroom-cli.js"
+    "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "./src/server/backroom-cli.js --sync=none --ui=vite",
+    "dev": "./src/server/quickmin-cli.js --sync=safe --ui=vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
     "ra-data-fakerest": "^4.13.0",
     "ra-data-simple-rest": "^4.13.0",
     "sequelize": "^6.32.1",

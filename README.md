@@ -1,5 +1,5 @@
 Todo:
 
-- spinner
-- load ui
+x spinner
+x load ui
 - auth

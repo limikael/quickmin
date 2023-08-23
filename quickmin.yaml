@@ -2,7 +2,12 @@
 # This is only for testing.
 #
 
-dsn: "sqlite:backroom.db"
+dsn: "sqlite:quickmin.db"
+
+jwtSecret: "hello world"
+adminUser: admin
+adminPass: admin
+
 collections:
   posts:
     listFields: [title,status,published]
