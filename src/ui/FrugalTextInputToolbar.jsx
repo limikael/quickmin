@@ -4,19 +4,17 @@ import { List, ListItem, ListItemText, Menu, MenuItem, Select } from '@mui/mater
 import {useEventListener, useForceUpdate} from "../utils/react-util.jsx";
 import {useState, useRef} from "react";
 
-import FormatBold from '@mui/icons-material/FormatBold';
-import FormatItalic from '@mui/icons-material/FormatItalic';
-import FormatUnderlined from '@mui/icons-material/FormatUnderlined';
-import FormatStrikethrough from '@mui/icons-material/FormatStrikethrough';
-import Code from '@mui/icons-material/Code';
-
-import FormatAlignLeft from '@mui/icons-material/FormatAlignLeft';
-import FormatAlignCenter from '@mui/icons-material/FormatAlignCenter';
-import FormatAlignRight from '@mui/icons-material/FormatAlignRight';
-import FormatAlignJustify from '@mui/icons-material/FormatAlignJustify';
-
-import FormatListBulleted from '@mui/icons-material/FormatListBulleted';
-import FormatListNumbered from '@mui/icons-material/FormatListNumbered';
+import FormatBold from '@mui/icons-material/esm/FormatBold';
+import FormatItalic from '@mui/icons-material/esm/FormatItalic';
+import FormatUnderlined from '@mui/icons-material/esm/FormatUnderlined';
+import FormatStrikethrough from '@mui/icons-material/esm/FormatStrikethrough';
+import Code from '@mui/icons-material/esm/Code';
+import FormatAlignLeft from '@mui/icons-material/esm/FormatAlignLeft';
+import FormatAlignCenter from '@mui/icons-material/esm/FormatAlignCenter';
+import FormatAlignRight from '@mui/icons-material/esm/FormatAlignRight';
+import FormatAlignJustify from '@mui/icons-material/esm/FormatAlignJustify';
+import FormatListBulleted from '@mui/icons-material/esm/FormatListBulleted';
+import FormatListNumbered from '@mui/icons-material/esm/FormatListNumbered';
 
 export function FrugalTextInputToolbar({dispatcher}) {
     let toolbarState=useRef({marks:[], level:"normal"});

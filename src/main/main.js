@@ -1,0 +1,1 @@
+export {App as Quickmin} from "../ui/app.jsx";
