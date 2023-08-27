@@ -1,5 +1,5 @@
-import { render } from 'preact'
-import { App } from './app.jsx'
+import {render} from 'preact'
+import QuickminAdmin from './QuickminAdmin.jsx'
 
 let el=document.getElementById('app');
-render(<App {...Object.assign({},el.dataset)}/>, el);
+render(<QuickminAdmin {...Object.assign({},el.dataset)}/>, el);

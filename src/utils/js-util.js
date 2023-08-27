@@ -22,11 +22,13 @@ export async function fetchEx(url, options={}) {
 export function netTry(res, fn) {
 	fn().catch(e=>{
 		res.status(500);
-		if (e instanceof Error)
+		if (e instanceof Error) {
+			console.error(e);
 			res.json({
 				message: e.message,
 				stack: e.stack
 			});
+		}
 
 		else
 			res.end(e);

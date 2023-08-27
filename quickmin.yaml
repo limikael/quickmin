@@ -8,6 +8,8 @@ jwtSecret: "hello world"
 adminUser: admin
 adminPass: admin
 
+apiPath: api
+
 collections:
   posts:
     listFields: [title,status,published]

@@ -93,11 +93,9 @@ async function fetchConf(apiUrl) {
     return conf;
 }
 
-export function App({api}) {
+export default function QuickminAdmin({api}) {
     let conf=useAsyncMemo(async()=>await fetchConf(api),[]);
-
-//    let authProvider=useMemo(()=>));
-//    let authProvider=null;
+    //console.log(conf);
 
     if (!conf)
         return (
@@ -111,8 +109,6 @@ export function App({api}) {
                 <CircularProgress size="3em"/>
             </div>
         );
-
-//    let dataProvider=simpleRestProvider(api,authProvider?.httpClient);
 
     return (<>
         <Admin dataProvider={conf.dataProvider}

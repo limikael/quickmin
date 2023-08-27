@@ -2,7 +2,7 @@
 
 import yargs from "yargs/yargs";
 import {hideBin} from "yargs/helpers";
-import Quickmin from "./Quickmin.js";
+import QuickminServer from "./QuickminServer.js";
 import http from "http";
 import yaml from "yaml";
 import fs from "fs";
@@ -10,6 +10,10 @@ import express from "express";
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {removeDoubleSlashMiddleware} from "../utils/express-util.js";
+import Database from 'better-sqlite3';
+import {drizzle} from 'drizzle-orm/better-sqlite3';
+import {Sequelize, DataTypes} from "sequelize";
+import bodyParser from "body-parser";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +37,11 @@ let yargsConf=yargs(hideBin(process.argv))
         choices: ["none","safe","alter","force"],
         default: "alter"
     })
+    .option("driver",{
+        description: "Database driver to use.",
+        choices: ["sequelize","drizzle"],
+        default: "sequelize"
+    })
     .usage("quickmin -- Backend as an app.")
 
 let options=yargsConf.parse();
@@ -45,7 +54,22 @@ if (!fs.existsSync(options.conf)) {
 }
 
 let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
-let quickmin=new Quickmin(conf);
+
+switch (options.driver) {
+    case "sequelize":
+        conf.sequelize=new Sequelize(conf.dsn);
+        break;
+
+    case "drizzle":
+        let dsnUrl=new URL(conf.dsn);
+        if (dsnUrl.protocol!="sqlite:")
+            throw new Error("Only sqlite supported with drizzle");
+
+        let sqlite=new Database(dsnUrl.pathname);
+        conf.drizzle=drizzle(sqlite);
+}
+
+let quickmin=new QuickminServer(conf);
 
 switch (options.sync) {
     case "safe":
@@ -62,7 +86,19 @@ switch (options.sync) {
 }
 
 let app=express();
-app.use(removeDoubleSlashMiddleware());
+app.use((req,res,next)=>{
+    res.setHeader("Access-Control-Allow-Methods", "*");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Access-Control-Expose-Headers", "*");
+    if (req.method=="OPTIONS") {
+        res.sendStatus(200);
+    }
+
+    next();
+});
+//app.use(removeDoubleSlashMiddleware());
+app.use(bodyParser.json());
 app.use(quickmin.middleware);
 
 switch (options.ui) {
@@ -97,6 +133,7 @@ switch (options.ui) {
 }
 
 let server=http.createServer(app);
+
 await server.listen(options.port);
 
 console.log("Server listening on port ",options.port)
