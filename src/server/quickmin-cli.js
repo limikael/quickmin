@@ -34,8 +34,8 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .option("sync",{
         description: "Sync database schema on startup.",
-        choices: ["none","safe","alter","force"],
-        default: "alter"
+        type: "boolean",
+        default: false
     })
     .option("driver",{
         description: "Database driver to use.",
@@ -71,19 +71,8 @@ switch (options.driver) {
 
 let quickmin=new QuickminServer(conf);
 
-switch (options.sync) {
-    case "safe":
-        await quickmin.sync({});
-        break;
-
-    case "alter":
-        await quickmin.sync({alter: true});
-        break;
-
-    case "force":
-        await quickmin.sync({force: true});
-        break;
-}
+if (options.sync)
+    await quickmin.sync();
 
 let app=express();
 app.use((req,res,next)=>{

@@ -7,7 +7,7 @@
     "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "./src/server/quickmin-cli.js --sync=safe --ui=vite --port=3001",
+    "dev": "./src/server/quickmin-cli.js --ui=vite --port=3001 --driver=drizzle",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -23,7 +23,7 @@
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.28.5",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.1",
+    "jsrsasign": "^10.8.6",
     "ra-core": "^4.13.1",
     "ra-data-fakerest": "^4.13.0",
     "ra-data-simple-rest": "^4.13.0",

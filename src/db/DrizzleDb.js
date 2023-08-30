@@ -27,6 +27,9 @@ export default class DrizzleDb {
 
             this.tables[c]=sqliteTable(c,def);
         }
+
+        /*console.log("drizzle initialized");
+        process.exit();*/
 	}
 
     async findMany(modelName) {
@@ -77,5 +80,25 @@ export default class DrizzleDb {
 
     isModel(modelName) {
         return this.tables.hasOwnProperty(modelName);
+    }
+
+    getSql=async (sql, ...params)=>{
+        console.log("sql: ",sql);
+
+        let res=await this.drizzle.session.client
+            .prepare(sql)
+            .bind(...params)
+            .all();
+
+        if (Array.isArray(res))
+            return res;
+
+        return res.results;
+    }
+
+    runSql=async (sql, ...params)=> {
+        return await this.drizzle.session.client
+            .prepare(sql)
+            .run(...params);
     }
 }

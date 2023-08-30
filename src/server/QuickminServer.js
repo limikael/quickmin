@@ -1,8 +1,9 @@
 import {trimChar} from "../utils/js-util.js";
-import jwt from "jsonwebtoken";
-import SequelizeDb from "../db/SequelizeDb.js";
+//import SequelizeDb from "../db/SequelizeDb.js";
 import DrizzleDb from "../db/DrizzleDb.js";
 import {netTry} from "../utils/js-util.js";
+import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
+import DbMigrator from "../migrate/DbMigrator.js";
 
 let FIELD_TYPES=[
     "text",
@@ -17,7 +18,7 @@ function parseReq(req) {
             || typeof req.headers==="undefined"
             || !req.hasOwnProperty("method")
             || !req.hasOwnProperty("body"))
-        throw new Error("Expected req to have method, url, headers and body");
+        throw new Error("Expected req to have method, url, headers and body. "+JSON.stringify(req));
 
     let urlSplit=req.url.split("?");
     let urlPath=urlSplit[0].replace(/\/+/g,"/");
@@ -66,19 +67,24 @@ export default class QuickminServer {
     constructor(conf={}) {
         Object.assign(this,canonicalizeConf(conf));
 
-        if (conf.sequelize)
+        if (conf.sequelize) {
             this.db=new SequelizeDb({
                 sequelize: this.sequelize,
                 collections: this.collections
             });
+        }
 
-        else if (conf.drizzle)
+        else if (conf.drizzle) {
             this.db=new DrizzleDb({
                 drizzle: this.drizzle,
                 collections: this.collections
             });
+        }
 
-        else throw new Error("No database");
+        else {
+            //console.log("Warning: no database at startup.");
+            throw new Error("No database");
+        }
     }
 
     isPathRequest(req, method, path) {
@@ -94,6 +100,8 @@ export default class QuickminServer {
     }
 
     handleRequest=async (req, res={})=>{
+        req=parseReq(req);
+
         if (this.apiPath) {
             if (req.argv[0]!=this.apiPath)
                 return;
@@ -120,8 +128,9 @@ export default class QuickminServer {
                     username: req.body.username
                 };
 
+                let token=jwtSign(payload,this.jwtSecret);
                 return {
-                    token: jwt.sign(payload,this.jwtSecret,{})
+                    token: token
                 };
             }
 
@@ -214,12 +223,43 @@ export default class QuickminServer {
         if (authorization[0]!="Bearer")
             throw new Error("Expected bearer authorization");
 
-        let payload=jwt.verify(authorization[1],this.jwtSecret);
+        let payload=jwtVerify(authorization[1],this.jwtSecret);
         if (payload.username!=this.adminUser)
             throw new Error("Not logged in");
     }
 
-    async sync(options) {
-        await this.db.sync(options);
+    async sync() {
+        let SYNC_FIELD_TYPES={
+            "text": "text",
+            "richtext": "text",
+            "date": "text",
+            "datetime": "text",
+            "select": "text",
+        };
+
+        let tables={};
+        for (let c in this.collections) {
+            tables[c]={
+                id: {
+                    type: "integer",
+                    pk: true
+                }
+            };
+            for (let f in this.collections[c].fields) {
+                tables[c][f]={
+                    ...this.collections[c].fields[f],
+                    pk: false,
+                    type: SYNC_FIELD_TYPES[this.collections[c].fields[f].type],
+                }
+            }
+        }
+
+        let migrator=new DbMigrator({
+            getSql: this.db.getSql,
+            runSql: this.db.runSql,
+            tables: tables,
+        });
+
+        await migrator.sync();
     }
 }
