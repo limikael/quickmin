@@ -1,3 +1,10 @@
+export function splitPath(pathname) {
+	if (pathname===undefined)
+		throw new Error("Undefined pathname");
+
+	return pathname.split("/").filter(s=>s.length>0);
+}
+
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);
@@ -5,6 +12,8 @@ export async function fetchEx(url, options={}) {
 	}
 
 	let result=await fetch(url,options);
+	if (result.status<200 || result.status>=300)
+		throw new Error(await result.text());
 
 	switch (options.dataType) {
 		case "json":

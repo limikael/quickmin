@@ -7,11 +7,12 @@
     "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "./src/server/quickmin-cli.js --ui=vite --port=3001 --driver=drizzle",
+    "dev": "./src/server/quickmin-cli.js --ui=dist --port=3001 --driver=drizzle",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hono/node-server": "^1.1.1",
     "@mui/icons-material": "^5.14.6",
     "@mui/material": "^5.14.6",
     "@tiptap/extension-text-align": "^2.1.6",
@@ -22,7 +23,7 @@
     "body-parser": "^1.20.2",
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.28.5",
-    "express": "^4.18.2",
+    "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
     "ra-core": "^4.13.1",
     "ra-data-fakerest": "^4.13.0",

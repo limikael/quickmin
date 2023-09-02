@@ -6,7 +6,6 @@ import QuickminServer from "./QuickminServer.js";
 import http from "http";
 import yaml from "yaml";
 import fs from "fs";
-import express from "express";
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {removeDoubleSlashMiddleware} from "../utils/express-util.js";
@@ -14,6 +13,9 @@ import Database from 'better-sqlite3';
 import {drizzle} from 'drizzle-orm/better-sqlite3';
 import {Sequelize, DataTypes} from "sequelize";
 import bodyParser from "body-parser";
+import {Hono} from 'hono'
+import {serve} from '@hono/node-server'
+import {serveStatic} from '@hono/node-server/serve-static'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,8 +76,9 @@ let quickmin=new QuickminServer(conf);
 if (options.sync)
     await quickmin.sync();
 
-let app=express();
-app.use((req,res,next)=>{
+let app=new Hono();
+
+/*app.use((req,res,next)=>{
     res.setHeader("Access-Control-Allow-Methods", "*");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
@@ -87,8 +90,16 @@ app.use((req,res,next)=>{
     next();
 });
 //app.use(removeDoubleSlashMiddleware());
-app.use(bodyParser.json());
-app.use(quickmin.middleware);
+app.use(bodyParser.json());*/
+
+app.use("*",async (c, next)=>{
+    res=await quickmin.handleRequest(c.req.raw);
+
+    if (res)
+        return res;
+
+    return await next();
+});
 
 switch (options.ui) {
     case "dist":
@@ -100,10 +111,12 @@ switch (options.ui) {
             console.log();
             process.exit(1);
         }
-        app.use(express.static(path.join(__dirname,"..","..","dist")));
+        app.use("*",serveStatic({root: "dist"}));
         break;
 
     case "vite":
+        throw new Error("vite currently unsupported");
+
         let vite=await import("vite");
         let preact=(await import("@preact/preset-vite")).default;
 
@@ -116,13 +129,13 @@ switch (options.ui) {
                 middlewareMode: true,
             }
         });
-
-        app.use(viteServer.middlewares);
         break;
 }
 
-let server=http.createServer(app);
+let res=serve({
+    fetch: app.fetch,
+    port: options.port
+},()=>{
+    console.log("Server listening on port ",options.port)    
+});
 
-await server.listen(options.port);
-
-console.log("Server listening on port ",options.port)
