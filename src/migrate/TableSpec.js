@@ -14,9 +14,9 @@ export default class TableSpec {
 	}
 
 	async describe() {
-		/*let srows=await this.migrator.getSql("SELECT sql FROM sqlite_schema WHERE name=?",this.name);
+		let srows=await this.migrator.getSql("SELECT sql FROM sqlite_schema WHERE name=?",this.name);
 		if (!srows.length)
-			return undefined;*/
+			return undefined;
 
 		let rows=await this.migrator.getSql(`PRAGMA TABLE_INFO (${this.name})`);
 
