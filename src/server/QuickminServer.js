@@ -4,16 +4,19 @@ import DrizzleDb from "../db/DrizzleDb.js";
 import {netTry, splitPath} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
-
-let FIELD_TYPES=[
-    "text",
-    "richtext",
-    "date",
-    "datetime",
-    "select",
-];
+import fs from "fs";
+import NodeStorage from "../storage/NodeStorage.js";
 
 function canonicalizeConf(conf) {
+    let FIELD_TYPES=[
+        "text",
+        "richtext",
+        "date",
+        "datetime",
+        "select",
+        "image"
+    ];
+
     if (conf.jwtSecret && conf.adminUser && conf.adminPass)
         conf.requireAuth=true;
 
@@ -44,7 +47,10 @@ function canonicalizeConf(conf) {
 
 export default class QuickminServer {
     constructor(conf={}) {
-        Object.assign(this,canonicalizeConf(conf));
+        conf=canonicalizeConf(conf);
+        Object.assign(this,conf);
+
+        this.storage=new NodeStorage(conf);
 
         if (conf.sequelize) {
             this.db=new SequelizeDb({
@@ -89,10 +95,16 @@ export default class QuickminServer {
             req.argv.shift();
         }
 
-        if (this.isPathRequest(req,"GET","_schema")) {
+        if (req.argv[0]=="_content") {
+            let path=new URL(req.url).pathname;
+            return this.storage.getResponse(req.argv[1]);
+        }
+
+        else if (this.isPathRequest(req,"GET","_schema")) {
             return Response.json({
                 collections: this.collections,
-                requireAuth: this.requireAuth
+                requireAuth: this.requireAuth,
+                storagePath: this.storagePath
             });
         }
 
@@ -135,7 +147,7 @@ export default class QuickminServer {
             this.authorizeWrite(req);
             return Response.json(await this.db.insert(
                 req.argv[0],
-                await req.json()
+                await this.getRequestFormData(req)
             ));
         }
 
@@ -144,7 +156,7 @@ export default class QuickminServer {
             return Response.json(await this.db.update(
                 req.argv[0],
                 req.argv[1],
-                await req.json()
+                await this.getRequestFormData(req)
             ));
         }
 
@@ -155,6 +167,24 @@ export default class QuickminServer {
                 req.argv[1],
             ));
         }
+    }
+
+    async getRequestFormData(req) {
+        let formData=await req.formData();
+
+        let record={};
+        for (let [name,data] of formData.entries()) {
+            if (data instanceof File) {
+                this.storage.putFile(data);
+                record[name]=data.name;
+            }
+
+            else {
+                record[name]=JSON.parse(data);
+            }
+        }
+
+        return record;
     }
 
     authorizeWrite(req) {
@@ -180,6 +210,7 @@ export default class QuickminServer {
             "date": "text",
             "datetime": "text",
             "select": "text",
+            "image": "text"
         };
 
         let tables={};

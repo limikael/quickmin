@@ -1,6 +1,15 @@
 import {TextField, TextInput, DateField, DateInput, DateTimeInput,
-        SelectField, SelectInput} from "react-admin";
+        SelectField, SelectInput, ImageField, ImageInput} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
+import urlJoin from 'url-join';
+
+function QuickminImageInput(props) {
+    return (
+        <ImageInput source={props.source} label={props.title}>
+           <ImageField source="src" title="title" />
+        </ImageInput>
+    );
+}
 
 export const FIELD_TYPES={
     "text": {
@@ -47,7 +56,34 @@ export const FIELD_TYPES={
                     });
             }
         }
-    }
+    },
+
+    "image": {
+//        list: QuickminImageField,
+        edit: QuickminImageInput,
+        readProcessor(data, conf) {
+            let url="";
+            if (data)
+                url=urlJoin(conf.apiUrl,"_content",data);
+
+            return {
+                title: 'Image',
+                src: url,
+                current: data
+            }
+        },
+        writeProcessor(field) {
+            if (field) {
+                if (field.rawFile)
+                    return field.rawFile
+
+                else
+                    return field.current;
+            }
+
+            return null;
+        }
+    },
 };
 
 export default FIELD_TYPES;

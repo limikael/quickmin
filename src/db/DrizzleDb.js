@@ -6,7 +6,8 @@ let DRIZZLE_TYPES={
     "richtext": text,
     "date": text,
     "datetime": text,
-    "select": text
+    "select": text,
+    "image": text
 }
 
 export default class DrizzleDb {

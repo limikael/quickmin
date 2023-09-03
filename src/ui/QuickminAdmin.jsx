@@ -1,14 +1,14 @@
 import {Admin, Resource, List, Datagrid, 
-        Edit, SimpleForm, Create, } from 'react-admin';
-import simpleRestProvider from 'ra-data-simple-rest';
+        Edit, SimpleForm, Create, withLifecycleCallbacks} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
-import FIELD_TYPES from "./field-types.js";
+import FIELD_TYPES from "./field-types.jsx";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import urlJoin from 'url-join';
 import {useMemo} from "react";
 import AuthProvider from "./AuthProvider";
+import DataProvider from "./DataProvider";
 
 function collectionList(collection) {
     return (
@@ -82,13 +82,14 @@ async function fetchConf(apiUrl) {
         }
     }
 
-    let httpClient;
+    conf.apiUrl=apiUrl;
+
     if (conf.requireAuth) {
         conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"));
-        httpClient=conf.authProvider.httpClient;
+        conf.httpClient=conf.authProvider.httpClient;
     }
 
-    conf.dataProvider=simpleRestProvider(apiUrl,httpClient);
+    conf.dataProvider=new DataProvider(conf);
 
     return conf;
 }
