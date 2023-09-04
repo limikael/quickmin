@@ -107,12 +107,8 @@ export function FrugalTextInputToolbar({dispatcher}) {
                     value={toolbarState.current.level}
                     onChange={onLevelSelect}>
                 <MenuItem value="normal">Normal</MenuItem>
-                <MenuItem value="1">H1</MenuItem>
-                <MenuItem value="2">H2</MenuItem>
-                <MenuItem value="3">H3</MenuItem>
-                <MenuItem value="4">H4</MenuItem>
-                <MenuItem value="5">H5</MenuItem>
-                <MenuItem value="6">H6</MenuItem>
+                <MenuItem value="1">Header</MenuItem>
+                <MenuItem value="2">Subheader</MenuItem>
             </Select>
 
             <ToggleButtonGroup value={toolbarState.current.marks}>

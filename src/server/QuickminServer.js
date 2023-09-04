@@ -100,7 +100,7 @@ export default class QuickminServer {
 
         if (req.argv[0]=="_content") {
             let path=new URL(req.url).pathname;
-            return await this.storage.getResponse(req.argv[1]);
+            return await this.storage.getResponse(req.argv[1],req);
         }
 
         else if (this.isPathRequest(req,"GET","_schema")) {
