@@ -50,7 +50,10 @@ export default class QuickminServer {
         conf=canonicalizeConf(conf);
         Object.assign(this,conf);
 
-        this.storage=new NodeStorage(conf);
+        if (!this.storageClass)
+            this.storageClass=NodeStorage;
+
+        this.storage=new this.storageClass(conf);
 
         if (conf.sequelize) {
             this.db=new SequelizeDb({
@@ -85,7 +88,7 @@ export default class QuickminServer {
     }
 
     handleRequest=async (req)=>{
-        req=req.clone();
+        //req=req.clone();
         req.argv=splitPath(new URL(req.url).pathname);
 
         if (this.apiPath) {
@@ -97,7 +100,7 @@ export default class QuickminServer {
 
         if (req.argv[0]=="_content") {
             let path=new URL(req.url).pathname;
-            return this.storage.getResponse(req.argv[1]);
+            return await this.storage.getResponse(req.argv[1]);
         }
 
         else if (this.isPathRequest(req,"GET","_schema")) {
@@ -137,10 +140,15 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"GET",2)) {
-            return Response.json(await this.db.findOne(
+            let item=await this.db.findOne(
                 req.argv[0],
                 req.argv[1]
-            ));
+            );
+
+            if (!item)
+                return new Response("Not found",{status: 404});
+
+            return Response.json(item);
         }
 
         else if (this.isModelRequest(req,"POST",1)) {
@@ -172,10 +180,13 @@ export default class QuickminServer {
     async getRequestFormData(req) {
         let formData=await req.formData();
 
+        console.log("processing form data");
+
         let record={};
         for (let [name,data] of formData.entries()) {
             if (data instanceof File) {
-                this.storage.putFile(data);
+                console.log("processing file: "+data.name);
+                await this.storage.putFile(data);
                 record[name]=data.name;
             }
 

@@ -1,1 +1,2 @@
-export {default as QuickminAdmin} from "../ui/QuickminAdmin.jsx";
+import QuickminAdmin from "../ui/QuickminAdmin.jsx";
+export default QuickminAdmin;

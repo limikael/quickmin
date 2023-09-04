@@ -50,6 +50,9 @@
     },
     "./ui": {
       "import": "./src/export/ui.jsx"
+    },
+    "./ui-suspended": {
+      "import": "./src/export/ui-suspended.jsx"
     }
   }
 }
