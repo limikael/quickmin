@@ -1,11 +1,7 @@
 import {trimChar} from "../utils/js-util.js";
-//import SequelizeDb from "../db/SequelizeDb.js";
-import DrizzleDb from "../db/DrizzleDb.js";
 import {netTry, splitPath} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
-import fs from "fs";
-import NodeStorage from "../storage/NodeStorage.js";
 
 function canonicalizeConf(conf) {
     let FIELD_TYPES=[
@@ -50,29 +46,11 @@ export default class QuickminServer {
         conf=canonicalizeConf(conf);
         Object.assign(this,conf);
 
-        if (!this.storageClass)
-            this.storageClass=NodeStorage;
+/*        if (!this.storageClass)
+            this.storageClass=NodeStorage;*/
 
-        this.storage=new this.storageClass(conf);
-
-        if (conf.sequelize) {
-            this.db=new SequelizeDb({
-                sequelize: this.sequelize,
-                collections: this.collections
-            });
-        }
-
-        else if (conf.drizzle) {
-            this.db=new DrizzleDb({
-                drizzle: this.drizzle,
-                collections: this.collections
-            });
-        }
-
-        else {
-            //console.log("Warning: no database at startup.");
-            throw new Error("No database");
-        }
+        this.db=this.dbFactory(conf);
+        this.storage=this.storageFactory(conf);
     }
 
     isPathRequest(req, method, path) {

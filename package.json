@@ -45,14 +45,26 @@
     "vite": "^4.4.5"
   },
   "exports": {
-    "./server": {
-      "import": "./src/export/server.js"
-    },
     "./ui": {
       "import": "./src/export/ui.jsx"
     },
     "./ui-suspended": {
       "import": "./src/export/ui-suspended.jsx"
+    },
+    "./hono-middleware": {
+      "import": "./src/export/hono-middleware.js"
+    },
+    "./drizzle-sqlite": {
+      "import": "./src/export/drizzle-sqlite.js"
+    },
+    "./drizzle-d1": {
+      "import": "./src/export/drizzle-d1.js"
+    },
+    "./node-storage": {
+      "import": "./src/export/node-storage.js"
+    },
+    "./r2-storage": {
+      "import": "./src/export/r2-storage.js"
     }
   }
 }
