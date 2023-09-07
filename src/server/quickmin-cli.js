@@ -3,19 +3,15 @@
 import yargs from "yargs/yargs";
 import {hideBin} from "yargs/helpers";
 import QuickminServer from "./QuickminServer.js";
-import http from "http";
 import yaml from "yaml";
 import fs from "fs";
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {removeDoubleSlashMiddleware} from "../utils/express-util.js";
-import Database from 'better-sqlite3';
-import {drizzle} from 'drizzle-orm/better-sqlite3';
-import {Sequelize, DataTypes} from "sequelize";
-import bodyParser from "body-parser";
 import {Hono} from 'hono'
 import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
+import {configureDrizzleSqlite} from "../export/drizzle-sqlite.js";
+import {configureNodeStorage} from "../export/node-storage.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +40,11 @@ let yargsConf=yargs(hideBin(process.argv))
         choices: ["sequelize","drizzle"],
         default: "sequelize"
     })
+    .option("storage",{
+        description: "Storage driver to use.",
+        choices: ["node"],
+        default: "node"
+    })
     .usage("quickmin -- Backend as an app.")
 
 let options=yargsConf.parse();
@@ -59,16 +60,18 @@ let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
 
 switch (options.driver) {
     case "sequelize":
-        conf.sequelize=new Sequelize(conf.dsn);
+        configureSequelize(conf);
         break;
 
     case "drizzle":
-        let dsnUrl=new URL(conf.dsn);
-        if (dsnUrl.protocol!="sqlite:")
-            throw new Error("Only sqlite supported with drizzle");
+        configureDrizzleSqlite(conf);
+        break;
+}
 
-        let sqlite=new Database(dsnUrl.pathname);
-        conf.drizzle=drizzle(sqlite);
+switch (options.storage) {
+    case "node":
+        configureNodeStorage(conf);
+        break;
 }
 
 let quickmin=new QuickminServer(conf);
@@ -77,21 +80,6 @@ if (options.sync)
     await quickmin.sync();
 
 let app=new Hono();
-
-/*app.use((req,res,next)=>{
-    res.setHeader("Access-Control-Allow-Methods", "*");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "*");
-    res.setHeader("Access-Control-Expose-Headers", "*");
-    if (req.method=="OPTIONS") {
-        res.sendStatus(200);
-    }
-
-    next();
-});
-//app.use(removeDoubleSlashMiddleware());
-app.use(bodyParser.json());*/
-
 app.use("*",async (c, next)=>{
     res=await quickmin.handleRequest(c.req.raw);
 
