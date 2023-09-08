@@ -80,8 +80,6 @@ export default class DrizzleDb {
     }
 
     getSql=async (sql, ...params)=>{
-        console.log("sql: ",sql);
-
         let res=await this.drizzle.session.client
             .prepare(sql)
             .bind(...params)

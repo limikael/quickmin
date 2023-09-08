@@ -14,11 +14,11 @@ export default class TableSpec {
 	}
 
 	async describe() {
-		let srows=await this.migrator.getSql("SELECT sql FROM sqlite_schema WHERE name=?",this.name);
+		let srows=await this.migrator.getSql(`SELECT sql FROM sqlite_schema WHERE name='${this.name}'`);
 		if (!srows.length)
 			return undefined;
 
-		let rows=await this.migrator.getSql(`PRAGMA TABLE_INFO (${this.name})`);
+		let rows=await this.migrator.getSql(`PRAGMA table_info (${this.name})`);
 
 		let res={};
 		for (let row of rows) {
@@ -46,19 +46,19 @@ export default class TableSpec {
 
 		// If it doesn't exist, create.
 		if (!existingSpecs) {
-			this.migrator.log("Create: "+this.name);
+			this.migrator.log("[create]   "+this.name);
 			await this.createTable();
 			return;
 		}
 
 		// If up to date, don't do anything.
 		if (this.isCurrent(existingSpecs)) {
-			this.migrator.log("Current: "+this.name);
+			this.migrator.log("[current]  "+this.name);
 			return;
 		}
 
 		// Modify.
-		this.migrator.log("Modify: "+this.name);
+		this.migrator.log("[modify]   "+this.name);
 		await this.createTable("_new");
 
 		let existingFieldNames=Object.keys(existingSpecs);

@@ -216,7 +216,7 @@ export default class QuickminServer {
             throw new Error("Not logged in");
     }
 
-    async sync() {
+    async sync(dryRun) {
         let tables={};
         for (let c in this.collections) {
             tables[c]={
@@ -238,6 +238,7 @@ export default class QuickminServer {
             getSql: this.db.getSql,
             runSql: this.db.runSql,
             tables: tables,
+            dryRun: dryRun
         });
 
         await migrator.sync();

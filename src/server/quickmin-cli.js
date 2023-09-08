@@ -12,6 +12,7 @@ import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
 import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
 import {nodeStorageDriver} from "../export/node-storage.js";
+import {wranglerDb} from "../export/wrangler-db.js";
 import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 
@@ -38,7 +39,7 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .option("driver",{
         description: "Database driver to use.",
-        choices: ["sequelize","drizzle"],
+        choices: ["sequelize","drizzle","wrangler","wrangler-local"],
         default: "drizzle"
     })
     .option("storage",{
@@ -46,10 +47,22 @@ let yargsConf=yargs(hideBin(process.argv))
         choices: ["node"],
         default: "node"
     })
+    .option("dry-run",{
+        description: "Show SQL queries that would be performed by migration. "
+            +"No schema modifications made.",
+        type: "boolean"
+    })
+    .command("serve","Serve restful api and UI (default).")
+    .command("migrate","Perform database migration.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
+    .epilog("For more info, see https://github.com/limikael/quickmin")
 
 let options=yargsConf.parse();
+
+let command=options._[0];
+if (!command)
+    command="serve";
 
 if (!fs.existsSync(options.conf)) {
     console.log("Can't find config file:",options.conf);
@@ -59,13 +72,25 @@ if (!fs.existsSync(options.conf)) {
 }
 
 let drivers=[];
+let driverOptions={};
 
 switch (options.driver) {
     case "sequelize":
+        throw new Error("Not supported at the moment... Refactoring...");
         break;
 
     case "drizzle":
         drivers.push(drizzleSqliteDriver);
+        break;
+
+    case "wrangler":
+        driverOptions.wranglerLocal=false;
+        drivers.push(wranglerDb);
+        break;
+
+    case "wrangler-local":
+        driverOptions.wranglerLocal=true;
+        drivers.push(wranglerDb);
         break;
 }
 
@@ -76,61 +101,69 @@ switch (options.storage) {
 }
 
 let xmlConf=fs.readFileSync(options.conf,"utf8");
-let quickmin=new QuickminServer(xmlConf,drivers);
+let quickmin=new QuickminServer(xmlConf,drivers,driverOptions);
 
-let app=new Hono();
+switch (command) {
+    case "serve":
+        let app=new Hono();
 
-app.use("*",async (c, next)=>{
-    res=await quickmin.handleRequest(c.req.raw);
+        app.use("*",async (c, next)=>{
+            res=await quickmin.handleRequest(c.req.raw);
 
-    if (res)
-        return res;
+            if (res)
+                return res;
 
-    return await next();
-});
-
-if (options.ui) {
-    if (!fs.existsSync(path.join(__dirname,"../../dist"))
-            || options.rebuildUi) {
-        console.log("Bundling client...");
-
-        await isoqBundler({
-            entryPoint: path.join(__dirname,"../ui/main.jsx"),
-            outdir: path.join(__dirname,"../../dist"),
-            contentdir: path.join(__dirname,"../../dist/content"),
-            splitting: true,
-            quiet: true
+            return await next();
         });
-    }
 
-    let p=path.join(__dirname,"../../dist/content");
-    app.use("*", serveStatic({root: path.relative("",p)}))
+        if (options.ui) {
+            if (!fs.existsSync(path.join(__dirname,"../../dist"))
+                    || options.rebuildUi) {
+                console.log("Bundling client...");
 
-    function getProps(req) {
-        let u=new URL(req.url);
-        return {api: urlJoin(u.origin,quickmin.apiPath)};
-    }
+                await isoqBundler({
+                    entryPoint: path.join(__dirname,"../ui/main.jsx"),
+                    outdir: path.join(__dirname,"../../dist"),
+                    contentdir: path.join(__dirname,"../../dist/content"),
+                    splitting: true,
+                    quiet: true
+                });
+            }
 
-    let mwPath=path.join(__dirname,"../../dist/isoq-hono.js");
-    let mwModule=await import(mwPath);
-    app.use("*",mwModule.default({
-        localFetch: app.fetch,
-        props: getProps
-    }));
+            let p=path.join(__dirname,"../../dist/content");
+            app.use("*", serveStatic({root: path.relative("",p)}))
+
+            function getProps(req) {
+                let u=new URL(req.url);
+                return {api: urlJoin(u.origin,quickmin.apiPath)};
+            }
+
+            let mwPath=path.join(__dirname,"../../dist/isoq-hono.js");
+            let mwModule=await import(mwPath);
+            app.use("*",mwModule.default({
+                localFetch: app.fetch,
+                props: getProps
+            }));
+        }
+
+        let res=serve({
+            fetch: app.fetch,
+            port: options.port
+        },(info)=>{
+            let base=`http://localhost:${info.port}`
+            if (options.ui) {
+                console.log("UI available at:");
+                console.log(`  ${base}/`);
+                console.log();
+            }
+            console.log("REST endpoints at:");
+            for (let k in quickmin.collections)
+                console.log(`  ${urlJoin(base,quickmin.apiPath,k)}`);
+        });
+        break;
+
+    case "migrate":
+        await quickmin.sync(options.dryRun);
+        break;
 }
-
-let res=serve({
-    fetch: app.fetch,
-    port: options.port
-},(info)=>{
-    let base=`http://localhost:${info.port}`
-    if (options.ui) {
-        console.log("UI available at:");
-        console.log(`  ${base}/`);
-        console.log();
-    }
-    console.log("REST endpoints at:");
-    for (let k in quickmin.collections)
-        console.log(`  ${urlJoin(base,quickmin.apiPath,k)}`);
-});
 

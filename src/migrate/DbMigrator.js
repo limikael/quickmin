@@ -14,7 +14,10 @@ export default class DbMigrator {
 
 		let runSql=this.runSql;
 		this.runSql=async (query, ...params)=>{
-			console.log("Q: "+query);
+			console.log("[query]    "+query);
+
+			if (spec.dryRun)
+				return;
 
 			return await runSql(query, ...params);
 		}

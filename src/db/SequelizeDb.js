@@ -62,8 +62,4 @@ export default class SequelizeDb {
 	isModel(modelName) {
 		return this.sequelize.models.hasOwnProperty(modelName);
 	}
-
-	async sync(options) {
-		await this.sequelize.sync(options);
-	}
 }
