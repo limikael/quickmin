@@ -123,9 +123,11 @@ let res=serve({
     port: options.port
 },(info)=>{
     let base=`http://localhost:${info.port}`
-    console.log("UI available at:");
-    console.log(`  ${base}/`);
-    console.log();
+    if (options.ui) {
+        console.log("UI available at:");
+        console.log(`  ${base}/`);
+        console.log();
+    }
     console.log("REST endpoints at:");
     for (let k in quickmin.collections)
         console.log(`  ${urlJoin(base,quickmin.apiPath,k)}`);

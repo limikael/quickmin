@@ -1,5 +1,8 @@
 Todo:
-
-- migration
+- migration + example
 - date field
-- pass props
+x pass props
+
+Stories:
+- auth
+- views
