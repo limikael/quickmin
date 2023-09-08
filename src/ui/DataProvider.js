@@ -7,6 +7,10 @@ export default class DataProvider {
         this.conf=conf;
         this.apiUrl=conf.apiUrl;
         this.httpClient=conf.httpClient;
+
+        if (!this.httpClient)
+            this.httpClient=fetchUtils.fetchJson;
+
         this.collections=conf.collections;
 		this.simpleRestProvider=simpleRestProvider(this.apiUrl,this.httpClient);
 	}

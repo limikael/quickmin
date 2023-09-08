@@ -36,7 +36,32 @@ export const FIELD_TYPES={
         list: SelectField,
         edit: SelectInput,
         confProcessor(field) {
-            if (Array.isArray(field.choices)
+            if (field.choices) {
+                let choices=field.choices.split(",")
+                field.choices=choices.map(s=>{
+                    return ({
+                        id: s,
+                        name: s.charAt(0).toUpperCase()+s.slice(1)
+                    })
+                });
+            }
+
+            else {
+                field.choices=[];
+                for (let child of field.children) {
+                    field.choices.push({
+                        id: child.attributes.id,
+                        name: child.children[0]
+                    })
+                }
+            }
+
+            /*field.choices=[
+                {id: "test1", name: "bla"},
+                {id: "test2", name: "bla bla"},
+            ];*/
+
+            /*if (Array.isArray(field.choices)
                     && (typeof field.choices[0])=="string") {
                 field.choices=field.choices.map(s=>{
                     return ({
@@ -54,7 +79,7 @@ export const FIELD_TYPES={
                         id: k,
                         name: choices[k]
                     });
-            }
+            }*/
         }
     },
 

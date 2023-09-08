@@ -1,11 +1,10 @@
 export default class R2Storage {
-    constructor(conf) {
-        Object.assign(this,conf);
-        console.log("Using R2: "+conf.r2Binding);
+    constructor(r2) {
+        this.r2=r2;
     }
 
     async putFile(f) {
-        let object=await this.env[this.r2Binding].put(f.name,await f.arrayBuffer());
+        let object=await this.r2.put(f.name,await f.arrayBuffer());
     }
 
     async getResponse(key, req) {
@@ -15,8 +14,7 @@ export default class R2Storage {
                 etagDoesNotMatch: req.headers.get("if-none-match").replaceAll('"',"")
             }
 
-        let r2=this.env[this.r2Binding];
-        const object=await r2.get(key,options);
+        const object=await this.r2.get(key,options);
 
         if (object === null) {
             return new Response('Object Not Found', { status: 404 });

@@ -3,34 +3,30 @@ import {and, asc, desc, eq, or} from 'drizzle-orm';
 
 let DRIZZLE_TYPES={
     "text": text,
-    "richtext": text,
     "date": text,
     "datetime": text,
-    "select": text,
-    "image": text
 }
 
 export default class DrizzleDb {
-	constructor(conf) {
-		Object.assign(this,conf);
-
+	constructor(server) {
+        this.server=server;
+        this.drizzle=server.drizzle;
         this.tables={};
 
-        for (let c in this.collections) {
+        for (let c in this.server.collections) {
             let def={
                 id: integer("id").primaryKey({autoIncrement: true})
             };
 
-            for (let f in this.collections[c].fields) {
-                let t=DRIZZLE_TYPES[this.collections[c].fields[f].type];
+            for (let f in this.server.collections[c].fields) {
+                let t=DRIZZLE_TYPES[this.server.collections[c].fields[f].sqlType];
+                if (!t)
+                    throw new Error("Type not supported in drizzle: "+this.server.collections[c].fields[f].sqlType);
                 def[f]=t(f);
             }
 
             this.tables[c]=sqliteTable(c,def);
         }
-
-        /*console.log("drizzle initialized");
-        process.exit();*/
 	}
 
     async findMany(modelName) {

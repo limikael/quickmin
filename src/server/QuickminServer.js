@@ -1,56 +1,81 @@
-import {trimChar} from "../utils/js-util.js";
 import {netTry, splitPath} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
+import {parse as parseXml} from "txml";
+import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 
-function canonicalizeConf(conf) {
-    let FIELD_TYPES=[
-        "text",
-        "richtext",
-        "date",
-        "datetime",
-        "select",
-        "image"
-    ];
+export default class QuickminServer {
+    constructor(xmlConf, drivers=[], driverOptions={}) {
+        let SQL_TYPES={
+            "text": "text",
+            "richtext": "text",
+            "date": "date",
+            "datetime": "datetime",
+            "select": "text",
+            "image": "text"
+        };
 
-    if (conf.jwtSecret && conf.adminUser && conf.adminPass)
-        conf.requireAuth=true;
+        this.conf=parseXml(xmlConf);
 
-    else if (conf.jwtSecret || conf.adminUser || conf.adminPass)
-        throw new Error("Need none or all of adminUser, adminPass and jwtSecret");
+        this.collections={};
+        for (let collectionEl of getElementsByTagName(this.conf,"Collection")) {
+            let collection={
+                id: collectionEl.attributes.id,
+                fields: {},
+                listFields: []
+            }
 
-    for (let c in conf.collections) {
-        if (!conf.collections[c].title)
-            conf.collections[c].title=c.charAt(0).toUpperCase()+c.slice(1);
+            for (let fieldEl of collectionEl.children) {
+                for (let k in fieldEl.attributes)
+                    if (fieldEl.attributes[k]===null)
+                        fieldEl.attributes[k]=true;
 
-        if (!conf.collections[c].listFields)
-            conf.collections[c].listFields=Object.keys(conf.collections[c].fields);
+                if (fieldEl.attributes.listable)
+                    collection.listFields.push(fieldEl.attributes.id);
 
-        for (let f in conf.collections[c].fields) {
-            if (typeof conf.collections[c].fields[f]=="string") {
-                conf.collections[c].fields[f]={
-                    type: conf.collections[c].fields[f]
+                let type=fieldEl.tagName.toLowerCase();
+                if (!SQL_TYPES[type])
+                    throw new Error("Unknown field type: "+type);
+
+                collection.fields[fieldEl.attributes.id]={
+                    type: type,
+                    sqlType: SQL_TYPES[type],
+                    children: fieldEl.children,
+                    ...fieldEl.attributes
                 }
             }
 
-            if (!FIELD_TYPES.includes(conf.collections[c].fields[f].type))
-                throw new Error("Unknown field type: "+conf.collections[c].fields[f].type);
+            if (!collection.listFields.length)
+                collection.listFields=Object.keys(collection.fields);
+
+            this.collections[collectionEl.attributes.id]=collection;
         }
+
+        this.apiPath="";
+        if (this.getConf("Api").path)
+            this.apiPath=this.getConf("Api").path;
+
+        if (getElementByTagName(this.conf,"Authorization")) {
+            this.jwtSecret=this.getConf("Authorization").secret;
+            this.adminUser=this.getConf("Authorization").user;
+            this.adminPass=this.getConf("Authorization").pass;
+
+            if (!this.jwtSecret || !this.adminUser || !this.adminPass)
+                throw new Error("Need secret, user, pass for Authorization");
+
+            this.requireAuth=true;
+        }
+
+        for (let driver of drivers)
+            driver(this, driverOptions);
     }
 
-    if (!conf.apiPath)
-        conf.apiPath="";
+    getConf(name) {
+        let el=getElementByTagName(this.conf,name);
+        if (!el)
+            return {};
 
-    return conf;
-}
-
-export default class QuickminServer {
-    constructor(conf={}) {
-        conf=canonicalizeConf(conf);
-        Object.assign(this,conf);
-
-        this.db=this.dbFactory(conf);
-        this.storage=this.storageFactory(conf);
+        return el.attributes;
     }
 
     isPathRequest(req, method, path) {
@@ -85,7 +110,6 @@ export default class QuickminServer {
             return Response.json({
                 collections: this.collections,
                 requireAuth: this.requireAuth,
-                storagePath: this.storagePath
             });
         }
 
@@ -158,7 +182,7 @@ export default class QuickminServer {
     async getRequestFormData(req) {
         let formData=await req.formData();
 
-        console.log("processing form data");
+        //console.log("processing form data");
 
         let record={};
         for (let [name,data] of formData.entries()) {
@@ -193,15 +217,6 @@ export default class QuickminServer {
     }
 
     async sync() {
-        let SYNC_FIELD_TYPES={
-            "text": "text",
-            "richtext": "text",
-            "date": "text",
-            "datetime": "text",
-            "select": "text",
-            "image": "text"
-        };
-
         let tables={};
         for (let c in this.collections) {
             tables[c]={
@@ -214,7 +229,7 @@ export default class QuickminServer {
                 tables[c][f]={
                     ...this.collections[c].fields[f],
                     pk: false,
-                    type: SYNC_FIELD_TYPES[this.collections[c].fields[f].type],
+                    type: this.collections[c].fields[f].sqlType,
                 }
             }
         }

@@ -1,11 +1,9 @@
 import {drizzle} from "drizzle-orm/d1";
 import DrizzleDb from "../db/DrizzleDb.js";
 
-export function configureDrizzleD1(conf) {
-	conf.dbFactory=(conf)=>{
-		conf.drizzle=drizzle(conf.env[conf.d1Binding]);
-		return new DrizzleDb(conf);
-	}
+export function drizzleD1Driver(server, driverOptions) {
+	server.drizzle=drizzle(driverOptions.env[server.getConf("Database").d1]);
+	server.db=new DrizzleDb(server);
 }
 
-export default configureDrizzleD1;
+export default drizzleD1Driver;

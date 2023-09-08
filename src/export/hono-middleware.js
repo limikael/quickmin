@@ -16,15 +16,12 @@ class WeakMemo {
 	}
 }
 
-export function quickmin(conf) {
+export function quickmin(conf,drivers) {
 	let quickminMemo=new WeakMemo();
 
 	return async (c, next)=>{
 		let quickmin=await quickminMemo.get(c.env,async()=>{
-			return new QuickminServer({
-				...conf,
-				env: c.env,
-			});
+			return new QuickminServer(conf,drivers,{env: c.env});
 		});
 
 		let response=await quickmin.handleRequest(c.req.raw);

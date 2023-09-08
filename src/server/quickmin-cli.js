@@ -10,8 +10,8 @@ import {fileURLToPath} from 'url';
 import {Hono} from 'hono'
 import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
-import {configureDrizzleSqlite} from "../export/drizzle-sqlite.js";
-import {configureNodeStorage} from "../export/node-storage.js";
+import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
+import {nodeStorageDriver} from "../export/node-storage.js";
 import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 
@@ -24,7 +24,7 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Port to listen to.",
     })
     .option("conf",{
-        default: "quickmin.yaml",
+        default: "quickmin.xml",
         description: "Config file.",
     })
     .option("ui",{
@@ -46,6 +46,7 @@ let yargsConf=yargs(hideBin(process.argv))
         choices: ["node"],
         default: "node"
     })
+    .strict()
     .usage("quickmin -- Backend as an app or middleware.")
 
 let options=yargsConf.parse();
@@ -57,25 +58,25 @@ if (!fs.existsSync(options.conf)) {
     process.exit(1);
 }
 
-let conf=yaml.parse(fs.readFileSync(options.conf,"utf8"));
+let drivers=[];
 
 switch (options.driver) {
     case "sequelize":
-        configureSequelize(conf);
         break;
 
     case "drizzle":
-        configureDrizzleSqlite(conf);
+        drivers.push(drizzleSqliteDriver);
         break;
 }
 
 switch (options.storage) {
     case "node":
-        configureNodeStorage(conf);
+        drivers.push(nodeStorageDriver);
         break;
 }
 
-let quickmin=new QuickminServer(conf);
+let xmlConf=fs.readFileSync(options.conf,"utf8");
+let quickmin=new QuickminServer(xmlConf,drivers);
 
 let app=new Hono();
 

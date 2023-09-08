@@ -2,8 +2,11 @@ import path from "path";
 import fs from "fs";
 
 export default class NodeStorage {
-	constructor(conf) {
-		Object.assign(this,conf);
+	constructor(storagePath) {
+		if (!fs.existsSync(storagePath))
+			throw new Error("Storage path doesn't exist: "+storagePath);
+
+		this.storagePath=storagePath;
 	}
 
 	async putFile(f) {
