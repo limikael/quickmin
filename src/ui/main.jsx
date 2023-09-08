@@ -1,5 +1,7 @@
-import {render} from 'preact'
-import QuickminAdmin from './QuickminAdmin.jsx'
+import Admin from "../export/ui-suspended.jsx";
 
-let el=document.getElementById('app');
-render(<QuickminAdmin {...Object.assign({},el.dataset)}/>, el);
+export default function({api}) {
+	return (<>
+		<Admin api={api}/>
+	</>);
+}

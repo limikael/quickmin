@@ -38,6 +38,9 @@ function canonicalizeConf(conf) {
         }
     }
 
+    if (!conf.apiPath)
+        conf.apiPath="";
+
     return conf;
 }
 
@@ -45,9 +48,6 @@ export default class QuickminServer {
     constructor(conf={}) {
         conf=canonicalizeConf(conf);
         Object.assign(this,conf);
-
-/*        if (!this.storageClass)
-            this.storageClass=NodeStorage;*/
 
         this.db=this.dbFactory(conf);
         this.storage=this.storageFactory(conf);

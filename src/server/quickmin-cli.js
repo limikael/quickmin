@@ -12,6 +12,8 @@ import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
 import {configureDrizzleSqlite} from "../export/drizzle-sqlite.js";
 import {configureNodeStorage} from "../export/node-storage.js";
+import isoqBundler from "isoq/bundler";
+import urlJoin from 'url-join';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,26 +28,25 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Config file.",
     })
     .option("ui",{
-        description: "Serve web ui.",
-        choices: ["none","dist","vite"],
-        default: "dist",
-    })
-    .option("sync",{
-        description: "Sync database schema on startup.",
+        description: "Serve web UI.",
         type: "boolean",
-        default: false
+        default: true
+    })
+    .option("rebuild-ui",{
+        description: "Rebuild web UI even if it exists.",
+        type: "boolean",
     })
     .option("driver",{
         description: "Database driver to use.",
         choices: ["sequelize","drizzle"],
-        default: "sequelize"
+        default: "drizzle"
     })
     .option("storage",{
         description: "Storage driver to use.",
         choices: ["node"],
         default: "node"
     })
-    .usage("quickmin -- Backend as an app.")
+    .usage("quickmin -- Backend as an app or middleware.")
 
 let options=yargsConf.parse();
 
@@ -76,10 +77,8 @@ switch (options.storage) {
 
 let quickmin=new QuickminServer(conf);
 
-if (options.sync)
-    await quickmin.sync();
-
 let app=new Hono();
+
 app.use("*",async (c, next)=>{
     res=await quickmin.handleRequest(c.req.raw);
 
@@ -89,41 +88,46 @@ app.use("*",async (c, next)=>{
     return await next();
 });
 
-switch (options.ui) {
-    case "dist":
-        if (!fs.existsSync(path.join(__dirname,"..","..","dist"))) {
-            console.log("No UI files found, try:");
-            console.log();
-            console.log("  --ui=none  To run in headless mode.");
-            console.log("  --ui=vite  To start a vite dev server.");
-            console.log();
-            process.exit(1);
-        }
-        app.use("*",serveStatic({root: "dist"}));
-        break;
+if (options.ui) {
+    if (!fs.existsSync(path.join(__dirname,"../../dist"))
+            || options.rebuildUi) {
+        console.log("Bundling client...");
 
-    case "vite":
-        throw new Error("vite currently unsupported");
-
-        let vite=await import("vite");
-        let preact=(await import("@preact/preset-vite")).default;
-
-        let viteServer=await vite.createServer({
-            configFile: false,
-            clearScreen: false,
-            root: path.join(__dirname,"..",".."),
-            plugins: [preact()],
-            server: {
-                middlewareMode: true,
-            }
+        await isoqBundler({
+            entryPoint: path.join(__dirname,"../ui/main.jsx"),
+            outdir: path.join(__dirname,"../../dist"),
+            contentdir: path.join(__dirname,"../../dist/content"),
+            splitting: true,
+            quiet: true
         });
-        break;
+    }
+
+    let p=path.join(__dirname,"../../dist/content");
+    app.use("*", serveStatic({root: path.relative("",p)}))
+
+    function getProps(req) {
+        let u=new URL(req.url);
+        return {api: urlJoin(u.origin,quickmin.apiPath)};
+    }
+
+    let mwPath=path.join(__dirname,"../../dist/isoq-hono.js");
+    let mwModule=await import(mwPath);
+    app.use("*",mwModule.default({
+        localFetch: app.fetch,
+        props: getProps
+    }));
 }
 
 let res=serve({
     fetch: app.fetch,
     port: options.port
-},()=>{
-    console.log("Server listening on port ",options.port)    
+},(info)=>{
+    let base=`http://localhost:${info.port}`
+    console.log("UI available at:");
+    console.log(`  ${base}/`);
+    console.log();
+    console.log("REST endpoints at:");
+    for (let k in quickmin.collections)
+        console.log(`  ${urlJoin(base,quickmin.apiPath,k)}`);
 });
 

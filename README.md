@@ -1,7 +1,5 @@
 Todo:
 
-x spinner
-x load ui
-- auth
-
-awfawef
+- migration
+- date field
+- pass props
