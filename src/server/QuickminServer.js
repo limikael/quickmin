@@ -2,10 +2,11 @@ import {netTry, splitPath} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseXml} from "txml";
+import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 
 export default class QuickminServer {
-    constructor(xmlConf, drivers=[], driverOptions={}) {
+    constructor(confYaml, drivers=[]) {
         let SQL_TYPES={
             "text": "text",
             "richtext": "text",
@@ -15,17 +16,23 @@ export default class QuickminServer {
             "image": "text"
         };
 
-        this.conf=parseXml(xmlConf);
+        if (typeof confYaml=="string")
+            confYaml=parseYaml(confYaml);
+
+        this.conf=confYaml;
 
         this.collections={};
-        for (let collectionEl of getElementsByTagName(this.conf,"Collection")) {
+        for (let collectionId in this.conf.collections) {
+            let collectionConf=this.conf.collections[collectionId];
+
             let collection={
-                id: collectionEl.attributes.id,
+                id: collectionId,
                 fields: {},
                 listFields: []
             }
 
-            for (let fieldEl of collectionEl.children) {
+            let fieldEls=parseXml(collectionConf.fields);
+            for (let fieldEl of fieldEls) {
                 for (let k in fieldEl.attributes)
                     if (fieldEl.attributes[k]===null)
                         fieldEl.attributes[k]=true;
@@ -48,35 +55,30 @@ export default class QuickminServer {
             if (!collection.listFields.length)
                 collection.listFields=Object.keys(collection.fields);
 
-            this.collections[collectionEl.attributes.id]=collection;
+            this.collections[collectionId]=collection;
         }
 
-        this.apiPath="";
-        if (this.getConf("Api").path)
-            this.apiPath=this.getConf("Api").path;
+        if (!this.conf.apiPath)
+            this.conf.apiPath="";
 
-        if (getElementByTagName(this.conf,"Authorization")) {
-            this.jwtSecret=this.getConf("Authorization").secret;
-            this.adminUser=this.getConf("Authorization").user;
-            this.adminPass=this.getConf("Authorization").pass;
-
-            if (!this.jwtSecret || !this.adminUser || !this.adminPass)
+        if (this.conf.jwtSecret || this.conf.adminUser || this.conf.adminPass) {
+            if (!this.conf.jwtSecret || !this.conf.adminUser || !this.conf.adminPass)
                 throw new Error("Need secret, user, pass for Authorization");
 
             this.requireAuth=true;
         }
 
         for (let driver of drivers)
-            driver(this, driverOptions);
+            driver(this);
     }
 
-    getConf(name) {
+    /*getConf(name) {
         let el=getElementByTagName(this.conf,name);
         if (!el)
             return {};
 
         return el.attributes;
-    }
+    }*/
 
     isPathRequest(req, method, path) {
         return (req.method==method
@@ -94,8 +96,8 @@ export default class QuickminServer {
         //req=req.clone();
         req.argv=splitPath(new URL(req.url).pathname);
 
-        if (this.apiPath) {
-            if (req.argv[0]!=this.apiPath)
+        if (this.conf.apiPath) {
+            if (req.argv[0]!=this.conf.apiPath)
                 return;
 
             req.argv.shift();
@@ -118,13 +120,13 @@ export default class QuickminServer {
             //console.log("it is a post..");
             //console.log(req.body);
 
-            if (body.username==this.adminUser &&
-                    body.password==this.adminPass) {
+            if (body.username==this.conf.adminUser &&
+                    body.password==this.conf.adminPass) {
                 let payload={
                     username: body.username
                 };
 
-                let token=jwtSign(payload,this.jwtSecret);
+                let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
                     token: token
                 });
@@ -211,8 +213,8 @@ export default class QuickminServer {
         if (authorization[0]!="Bearer")
             throw new Error("Expected bearer authorization");
 
-        let payload=jwtVerify(authorization[1],this.jwtSecret);
-        if (payload.username!=this.adminUser)
+        let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
+        if (payload.username!=this.conf.adminUser)
             throw new Error("Not logged in");
     }
 

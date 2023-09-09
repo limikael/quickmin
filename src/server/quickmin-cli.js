@@ -12,7 +12,7 @@ import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
 import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
 import {nodeStorageDriver} from "../export/node-storage.js";
-import {wranglerDb} from "../export/wrangler-db.js";
+import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
 import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 
@@ -25,7 +25,7 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Port to listen to.",
     })
     .option("conf",{
-        default: "quickmin.xml",
+        default: "quickmin.yaml",
         description: "Config file.",
     })
     .option("ui",{
@@ -84,13 +84,11 @@ switch (options.driver) {
         break;
 
     case "wrangler":
-        driverOptions.wranglerLocal=false;
         drivers.push(wranglerDb);
         break;
 
     case "wrangler-local":
-        driverOptions.wranglerLocal=true;
-        drivers.push(wranglerDb);
+        drivers.push(wranglerDbLocal);
         break;
 }
 
@@ -100,8 +98,8 @@ switch (options.storage) {
         break;
 }
 
-let xmlConf=fs.readFileSync(options.conf,"utf8");
-let quickmin=new QuickminServer(xmlConf,drivers,driverOptions);
+let confYaml=fs.readFileSync(options.conf,"utf8");
+let quickmin=new QuickminServer(confYaml,drivers);
 
 switch (command) {
     case "serve":
@@ -135,7 +133,7 @@ switch (command) {
 
             function getProps(req) {
                 let u=new URL(req.url);
-                return {api: urlJoin(u.origin,quickmin.apiPath)};
+                return {api: urlJoin(u.origin,quickmin.conf.apiPath)};
             }
 
             let mwPath=path.join(__dirname,"../../dist/isoq-hono.js");
@@ -158,7 +156,7 @@ switch (command) {
             }
             console.log("REST endpoints at:");
             for (let k in quickmin.collections)
-                console.log(`  ${urlJoin(base,quickmin.apiPath,k)}`);
+                console.log(`  ${urlJoin(base,quickmin.conf.apiPath,k)}`);
         });
         break;
 

@@ -1,0 +1,22 @@
+dsn: "sqlite:quickmin.db"
+d1Binding: "DB"
+r2Bucket: "BUCKET"
+jwtSecret: "hvljYEUOLHKqWP8UNxI4HwZvXS6de903"
+adminUser: "admin"
+adminPass: "admin"
+apiPath: "api"
+upload: "upload"
+
+collections:
+  posts:
+    fields:
+      <Text id="title" fullWidth listable/>
+      <Image id="image"/>
+      <Select id="status" choices="draft,published" listable/>
+      <Date id="published" listable/>
+      <RichText id="content" fullWidth/>
+
+  pages:
+    fields:
+      <Text id="title" fullWidth listable/>
+      <RichText id="content" />

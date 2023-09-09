@@ -1,10 +1,11 @@
 import NodeStorage from "../storage/NodeStorage.js";
 
 export function nodeStorageDriver(server) {
-	if (!server.getConf("Storage").local)
-		return;
+	let upload=server.conf.upload;
+	if (!upload)
+		upload="upload";
 
-	server.storage=new NodeStorage(server.getConf("Storage").local);
+	server.storage=new NodeStorage(upload);
 }
 
 export default nodeStorageDriver;

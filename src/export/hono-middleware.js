@@ -1,4 +1,5 @@
 import QuickminServer from "../server/QuickminServer.js";
+import {parse as parseYaml} from "yaml";
 
 class WeakMemo {
 	constructor(initializer) {
@@ -21,7 +22,12 @@ export function quickmin(conf,drivers) {
 
 	return async (c, next)=>{
 		let quickmin=await quickminMemo.get(c.env,async()=>{
-			return new QuickminServer(conf,drivers,{env: c.env});
+	       if (typeof conf=="string")
+    	        conf=parseYaml(conf);
+
+    	    conf={...conf,env: c.env};
+
+			return new QuickminServer(conf,drivers);
 		});
 
 		let response=await quickmin.handleRequest(c.req.raw);
