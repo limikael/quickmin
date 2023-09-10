@@ -7,6 +7,11 @@ adminPass: "admin"
 apiPath: "api"
 upload: "upload"
 
+googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
+googleClientSecret: "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"
+
+roles: [user,admin]
+
 collections:
   posts:
     fields:
@@ -17,6 +22,14 @@ collections:
       <RichText id="content" fullWidth/>
 
   pages:
+    role: user
+    writeRole: admin
     fields:
       <Text id="title" fullWidth listable/>
       <RichText id="content" />
+
+  users:
+    fields:
+      <Text id="name" username/>
+      <AuthMethod id="google_auth" provider="google"/>
+      <RoleSelect id="role"/>

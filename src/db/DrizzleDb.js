@@ -36,12 +36,21 @@ export default class DrizzleDb {
             .all();
     }
 
-    async findOne(modelName, id) {
-        return await this.drizzle
+    async findOne(modelName, query) {
+        let q=this.drizzle
+            .select()
+            .from(this.tables[modelName]);
+
+        for (let k in query)
+            q.where(eq(this.tables[modelName][k],query[k]))
+
+        return await q.get();
+
+/*        return await this.drizzle
             .select()
             .from(this.tables[modelName])
             .where(eq(this.tables[modelName].id,id))
-            .get();
+            .get();*/
     }
 
     async insert(modelName, data) {

@@ -4,6 +4,7 @@ import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseXml} from "txml";
 import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
+import ClientOAuth2 from "client-oauth2";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -13,13 +14,20 @@ export default class QuickminServer {
             "date": "date",
             "datetime": "datetime",
             "select": "text",
-            "image": "text"
+            "image": "text",
+            "authmethod": "text",
+            "roleselect": "text"
         };
 
         if (typeof confYaml=="string")
             confYaml=parseYaml(confYaml);
 
         this.conf=confYaml;
+        this.authMethods={};
+
+        this.roles=this.conf.roles;
+        if (!this.roles)
+            this.roles=[];
 
         this.collections={};
         for (let collectionId in this.conf.collections) {
@@ -28,8 +36,19 @@ export default class QuickminServer {
             let collection={
                 id: collectionId,
                 fields: {},
-                listFields: []
+                listFields: [],
+                role: collectionConf.role,
+                writeRole: collectionConf.writeRole
             }
+
+            if (!collection.writeRole)
+                collection.writeRole=collection.role;
+
+            if (collection.role && !this.roles.includes(collection.role))
+                throw new Error("Undefined role: "+collection.role);
+
+            if (collection.writeRole && !this.roles.includes(collection.writeRole))
+                throw new Error("Undefined role: "+collection.writeRole);
 
             let fieldEls=parseXml(collectionConf.fields);
             for (let fieldEl of fieldEls) {
@@ -43,6 +62,18 @@ export default class QuickminServer {
                 let type=fieldEl.tagName.toLowerCase();
                 if (!SQL_TYPES[type])
                     throw new Error("Unknown field type: "+type);
+
+                if (type=="authmethod") {
+                    this.authMethods[fieldEl.attributes.provider]={
+                        collectionId: collectionId,
+                        fieldId: fieldEl.attributes.id
+                    }
+                }
+
+                if (type=="roleselect") {
+                    fieldEl.attributes.choices=this.conf.roles;
+                    fieldEl.attributes.role=true;
+                }
 
                 collection.fields[fieldEl.attributes.id]={
                     type: type,
@@ -72,13 +103,16 @@ export default class QuickminServer {
             driver(this);
     }
 
-    /*getConf(name) {
-        let el=getElementByTagName(this.conf,name);
-        if (!el)
-            return {};
-
-        return el.attributes;
-    }*/
+    createGoogleAuthClient(redirectUri) {
+        return new ClientOAuth2({
+            clientId: this.conf.googleClientId,
+            clientSecret: this.conf.googleClientSecret,
+            accessTokenUri: 'https://oauth2.googleapis.com/token',
+            authorizationUri: 'https://accounts.google.com/o/oauth2/auth',
+            redirectUri: redirectUri,
+            scopes: ['https://www.googleapis.com/auth/userinfo.email']
+        });
+    }
 
     isPathRequest(req, method, path) {
         return (req.method==method
@@ -90,6 +124,12 @@ export default class QuickminServer {
         return (req.method==method
             && req.argv.length==argc
             && this.db.isModel(req.argv[0]))
+    }
+
+    getTaggedCollectionField(collectionId, tag, value) {
+        for (let fieldId in this.collections[collectionId].fields)
+            if (this.collections[collectionId].fields[fieldId][tag]==value)
+                return fieldId;
     }
 
     handleRequest=async (req)=>{
@@ -109,25 +149,61 @@ export default class QuickminServer {
         }
 
         else if (this.isPathRequest(req,"GET","_schema")) {
+            let u=new URL(req.headers.get("referer"))
+            let reurl=u.origin+u.pathname;
+
             return Response.json({
                 collections: this.collections,
                 requireAuth: this.requireAuth,
+                googleAuthUrl: await this.createGoogleAuthClient(reurl).code.getUri()
+            });
+        }
+
+        else if (this.isPathRequest(req,"POST","_googleLogin")) {
+            let body=await req.json();
+            let u=new URL(req.headers.get("referer"))
+            let reurl=u.origin+u.pathname;
+
+            let res=await this.createGoogleAuthClient(reurl).code.getToken(body.url);
+            let apiUrl="https://oauth2.googleapis.com/tokeninfo?"+new URLSearchParams({
+                id_token: res.data.id_token
+            });
+
+            let response=await fetch(apiUrl);
+            let tokenInfo=await response.json();
+
+            let q={};
+            q[this.authMethods.google.fieldId]=tokenInfo.email;
+
+            let collectionId=this.authMethods.google.collectionId;
+            let userRecord=await this.db.findOne(collectionId,q);
+            let usernameField=this.getTaggedCollectionField(collectionId,"username",true);
+
+            let payload={
+                provider: "google",
+                id: userRecord.id,
+            };
+
+            let token=jwtSign(payload,this.conf.jwtSecret);
+            return Response.json({
+                username: userRecord[usernameField],
+                role: await this.getUserRoleByPayload(payload),
+                token: token
             });
         }
 
         else if (this.isPathRequest(req,"POST","_login")) {
             let body=await req.json();
-            //console.log("it is a post..");
-            //console.log(req.body);
-
             if (body.username==this.conf.adminUser &&
                     body.password==this.conf.adminPass) {
                 let payload={
-                    username: body.username
+                    provider: "admin",
                 };
 
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
+                    username: this.conf.adminUser,
+                    role: await this.getUserRoleByPayload(payload),
                     token: token
                 });
             }
@@ -138,16 +214,17 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"GET",1)) {
+            await this.assertRequestCan(req,this.collections[req.argv[0]].role);
             return Response.json(await this.db.findMany(
                 req.argv[0]
             ),{headers:{"Content-Range": "0-2/2"}});
         }
 
         else if (this.isModelRequest(req,"GET",2)) {
-            let item=await this.db.findOne(
-                req.argv[0],
-                req.argv[1]
-            );
+            await this.assertRequestCan(req,this.collections[req.argv[0]].role);
+            let item=await this.db.findOne(req.argv[0],{
+                id: req.argv[1]
+            });
 
             if (!item)
                 return new Response("Not found",{status: 404});
@@ -156,7 +233,7 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"POST",1)) {
-            this.authorizeWrite(req);
+            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
             return Response.json(await this.db.insert(
                 req.argv[0],
                 await this.getRequestFormData(req)
@@ -164,7 +241,7 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"PUT",2)) {
-            this.authorizeWrite(req);
+            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
             return Response.json(await this.db.update(
                 req.argv[0],
                 req.argv[1],
@@ -173,7 +250,7 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"DELETE",2)) {
-            this.authorizeWrite(req);
+            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
             return Response.json(await this.db.delete(
                 req.argv[0],
                 req.argv[1],
@@ -181,11 +258,48 @@ export default class QuickminServer {
         }
     }
 
+    async getUserRoleByPayload(userPayload) {
+        switch (userPayload.provider) {
+            case "admin":
+                return this.roles[this.roles.length-1];
+
+            case "google":
+                let collectionId=this.authMethods.google.collectionId;
+                let userRecord=await this.db.findOne(collectionId,{id: userPayload.id});
+                let roleField=this.getTaggedCollectionField(collectionId,"role",true);
+                return userRecord[roleField];
+                break;
+        }
+    }
+
+    async getRequestRole(req) {
+        if (!req.headers.get("authorization"))
+            throw new Error("Expected bearer authorization");
+
+        let authorization=req.headers.get("authorization").split(" ");
+        if (authorization[0]!="Bearer")
+            throw new Error("Expected bearer authorization");
+
+       let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
+       return await this.getUserRoleByPayload(payload);
+    }
+
+    async assertRequestCan(req, role) {
+        let requestRole=await this.getRequestRole(req);
+        let requestRoleIndex=this.roles.indexOf(requestRole)
+        if (requestRoleIndex<0)
+            requestRoleIndex=0
+
+        let requiredRoleIndex=this.roles.indexOf(role)
+        if (requiredRoleIndex<0)
+            requiredRoleIndex=0
+
+        if (requestRoleIndex<requiredRoleIndex)
+            throw new Error("Not authorized");
+    }
+
     async getRequestFormData(req) {
         let formData=await req.formData();
-
-        //console.log("processing form data");
-
         let record={};
         for (let [name,data] of formData.entries()) {
             if (data instanceof File) {
@@ -200,22 +314,6 @@ export default class QuickminServer {
         }
 
         return record;
-    }
-
-    authorizeWrite(req) {
-        if (!this.requireAuth)
-            return;
-
-        if (!req.headers.get("authorization"))
-            throw new Error("Expected bearer authorization");
-
-        let authorization=req.headers.get("authorization").split(" ");
-        if (authorization[0]!="Bearer")
-            throw new Error("Expected bearer authorization");
-
-        let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
-        if (payload.username!=this.conf.adminUser)
-            throw new Error("Not logged in");
     }
 
     async sync(dryRun) {

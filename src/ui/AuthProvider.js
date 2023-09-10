@@ -13,7 +13,15 @@ export default class AuthProvider {
 			throw new Error();
 	}
 
-    async login(params) {
+	setLoggedIn(userData) {
+    	window.localStorage.setItem("token",userData.token);
+    	window.localStorage.setItem("username",userData.username);
+    	window.localStorage.setItem("role",userData.role);
+
+		console.log("logging in role: "+userData.role);    	
+	}
+
+    login=async (params)=>{
     	let result=await fetchEx(this.url,{
     		dataType: "json",
     		method: "POST",
@@ -24,8 +32,7 @@ export default class AuthProvider {
     	if (result.status<200 || result.status>=300)
 	    	throw new Error("Unable to log in");
 
-    	window.localStorage.setItem("token",result.data.token);
-    	window.localStorage.setItem("username",params.username);
+	    this.setLoggedIn(result.data);
     }
 
     async checkError(error) {
@@ -35,6 +42,7 @@ export default class AuthProvider {
     async logout() {
     	window.localStorage.removeItem("token");
     	window.localStorage.removeItem("username");
+    	window.localStorage.removeItem("role");
     } 
 
     async getIdentity() {
