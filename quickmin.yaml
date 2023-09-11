@@ -23,6 +23,7 @@ collections:
 
   pages:
     role: user
+    writeRole: admin
     fields:
       <Text id="title" fullWidth listable/>
       <RichText id="content"/>

@@ -123,6 +123,7 @@ switch (command) {
                     entryPoint: path.join(__dirname,"../ui/main.jsx"),
                     outdir: path.join(__dirname,"../../dist"),
                     contentdir: path.join(__dirname,"../../dist/content"),
+                    minify: false,
                     splitting: true,
                     quiet: true
                 });

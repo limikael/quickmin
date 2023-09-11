@@ -6,7 +6,7 @@ import FIELD_TYPES from "./field-types.jsx";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import urlJoin from 'url-join';
-import {useMemo, useState} from "react";
+import {useMemo, useState, useCallback} from "react";
 import AuthProvider from "./AuthProvider";
 import DataProvider from "./DataProvider";
 import LoginPage from "./LoginPage.jsx";
@@ -35,8 +35,7 @@ function collectionEditor(collection, mode) {
             {Object.keys(collection.fields).map(fid=>{
                 let f=collection.fields[fid];
                 let Comp=FIELD_TYPES[f.type].edit;
-                //console.log(f);
-                //f.disabled=true;
+                f.disabled=collection.disabled;
                 return (
                     <Comp source={fid} key={fid} {...f}/>
                 );
@@ -70,51 +69,6 @@ function collectionResource(collection) {
                 edit={collectionEditor(collection,"edit")}
                 create={collectionEditor(collection,"create")}/>
     );
-}
-
-async function fetchConf(apiUrl) {
-    let response=await fetchEx(urlJoin(apiUrl,"_schema"),{
-        dataType: "json"
-    });
-
-    let conf=response.data;
-    for (let cid in conf.collections) {
-        for (let fid in conf.collections[cid].fields) {
-            let type=conf.collections[cid].fields[fid].type;
-            let processor=FIELD_TYPES[type].confProcessor;
-            if (processor) 
-                processor(conf.collections[cid].fields[fid]);
-        }
-    }
-
-    conf.apiUrl=apiUrl;
-
-    if (conf.requireAuth) {
-        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"));
-        conf.httpClient=conf.authProvider.httpClient;
-    }
-
-    conf.dataProvider=new DataProvider(conf);
-
-    let u=new URL(window.location);
-    if (u.searchParams.get("code") &&
-            u.searchParams.get("scope") &&
-            u.searchParams.get("authuser") &&
-            u.searchParams.get("prompt")) {
-        console.log("Doing google login...");
-        let result=await fetchEx(urlJoin(apiUrl,"_googleLogin"),{
-            method: "POST",
-            headers:{'content-type': 'application/json'},
-            body: JSON.stringify({"url":window.location.toString()}),
-            dataType: "json"
-        });
-
-        conf.authProvider.setLoggedIn(result.data);
-        window.location=u.origin+u.pathname;
-        return;
-    }
-
-    return conf;
 }
 
 function loginForm(conf) {
@@ -158,9 +112,54 @@ function loginForm(conf) {
     }
 }
 
+async function fetchConf(apiUrl, setRoleLevel) {
+    let response=await fetchEx(urlJoin(apiUrl,"_schema"),{
+        dataType: "json"
+    });
+
+    let conf=response.data;
+    for (let cid in conf.collections) {
+        for (let fid in conf.collections[cid].fields) {
+            let type=conf.collections[cid].fields[fid].type;
+            let processor=FIELD_TYPES[type].confProcessor;
+            if (processor) 
+                processor(conf.collections[cid].fields[fid]);
+        }
+    }
+
+    conf.apiUrl=apiUrl;
+    if (conf.requireAuth) {
+        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),setRoleLevel);
+        conf.httpClient=conf.authProvider.httpClient;
+    }
+
+    conf.dataProvider=new DataProvider(conf);
+
+    let u=new URL(window.location);
+    if (u.searchParams.get("code") &&
+            u.searchParams.get("scope") &&
+            u.searchParams.get("authuser") &&
+            u.searchParams.get("prompt")) {
+        console.log("Doing google login...");
+        let result=await fetchEx(urlJoin(apiUrl,"_googleLogin"),{
+            method: "POST",
+            headers:{'content-type': 'application/json'},
+            body: JSON.stringify({"url":window.location.toString()}),
+            dataType: "json"
+        });
+
+        conf.authProvider.setLoggedIn(result.data);
+        window.location=u.origin+u.pathname;
+        return;
+    }
+
+    return conf;
+}
+
 export default function QuickminAdmin({api, onload}) {
+    let [roleLevel,setRoleLevel]=useState(window.localStorage.getItem("roleLevel"));
     let conf=useAsyncMemo(async()=>{
-        let conf=await fetchConf(api);
+        let conf=await fetchConf(api,setRoleLevel);
 
         if (onload)
             onload();
@@ -185,14 +184,26 @@ export default function QuickminAdmin({api, onload}) {
         );
     }
 
+    //console.log("creating res, roleLevel="+roleLevel);
+    let resources=[];
+    for (let cid in conf.collections) {
+        let collection=conf.collections[cid];
+
+        //console.log("roleLevel "+roleLevel+" writeRoleLevel: "+collection.writeRoleLevel);
+        collection.disabled=false;
+        if (roleLevel<collection.writeRoleLevel)
+            collection.disabled=true;
+
+        if (roleLevel>=collection.roleLevel)
+            resources.push(collectionResource({key: cid, ...collection}));
+    }
+
     return (<>
         <Admin dataProvider={conf.dataProvider}
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
                 loginPage={loginForm(conf)}>
-            {Object.keys(conf.collections).map(c=>
-                collectionResource({key: c,...conf.collections[c]})
-            )}
+            {resources}
         </Admin>
     </>);
 }

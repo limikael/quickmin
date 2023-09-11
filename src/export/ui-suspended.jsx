@@ -25,8 +25,23 @@ function Spinner() {
 
 	return (<>
 		<div>
-			<div style="width: 100vw; height: 100vh; position: fixed; display: flex; align-items: center; justify-content: center;">
-				<div style="width: 200px; height: 200px; font-size: 100px; text-align: center; font-family: monospace; color: #2196F3">
+			<div style={{
+					width: "100vw",
+					height: "100vh",
+					position: "fixed",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center"
+				}}>
+				<div style={{
+						width: "200px",
+						height: "200px",
+						fontSize: "100px",
+						textAlign: "center",
+						fontFamily: "monospace",
+						color: "#2196F3",
+						cursor: "default"
+					}}>
 					<b>{s}</b>
 				</div>
 			</div>
