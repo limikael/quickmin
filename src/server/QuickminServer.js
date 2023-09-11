@@ -105,7 +105,8 @@ export default class QuickminServer {
             for (let fid in this.collections[cid].fields) {
                 let field=this.collections[cid].fields[fid];
 
-                if (field.type=="authmethod") {
+                if (field.type=="authmethod" &&
+                        this.authMethods[field.provider]) {
                     this.authMethods[field.provider].collectionId=cid;
                     this.authMethods[field.provider].fieldId=fid;
                 }
