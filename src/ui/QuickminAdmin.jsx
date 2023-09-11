@@ -59,7 +59,8 @@ function collectionEditor(collection, mode) {
             );
     }
 }
-                
+
+// recordRepresentation                
 function collectionResource(collection) {
     return (
         <Resource
@@ -68,7 +69,7 @@ function collectionResource(collection) {
                 list={collectionList(collection)}
                 edit={collectionEditor(collection,"edit")}
                 create={collectionEditor(collection,"create")}
-                />
+        />
     );
 }
 
