@@ -4,7 +4,6 @@ import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseXml} from "txml";
 import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
-import ClientOAuth2 from "client-oauth2";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
