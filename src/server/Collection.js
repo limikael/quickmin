@@ -61,9 +61,10 @@ export default class Collection {
 
 		// Find.
 		if (req.method=="GET" && argv.length==1) {
-            let item=await this.server.db.findOne(this.getTableName(),{
-                id: argv[0]
-            });
+            let item=await this.server.db.findOne(
+                this.getTableName(),
+                {id: argv[0], ...this.getWhere()}
+            );
 
             if (!item)
                 return new Response("Not found",{status: 404});
@@ -75,18 +76,20 @@ export default class Collection {
 
         // Create.
         if (req.method=="POST" && argv.length==0) {
+            let data=await this.server.getRequestFormData(req);
             return Response.json(await this.server.db.insert(
                 this.getTableName(),
-                await this.server.getRequestFormData(req)
+                {...data, ...this.getWhere()}
             ));
         }
 
         // Update.
         if (req.method=="PUT" && argv.length==1) {
+            let data=await this.server.getRequestFormData(req);
             return Response.json(await this.server.db.update(
                 this.getTableName(),
-                {id: argv[0]},
-                await this.server.getRequestFormData(req)
+                {id: argv[0], ...this.getWhere()},
+                {...data, ...this.getWhere()}
             ));
         }
 
@@ -94,7 +97,7 @@ export default class Collection {
         if (req.method=="DELETE" && argv.length==1) {
             return Response.json(await this.server.db.delete(
                 this.getTableName(),
-                {id: argv[0]},
+                {id: argv[0], ...this.getWhere()},
             ));
         }
 	}

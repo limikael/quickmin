@@ -30,6 +30,14 @@ export default class DrizzleDb {
         }
 	}
 
+    buildWhere(modelName, query) {
+        let parts=[];
+        for (let k in query)
+            parts.push(eq(this.tables[modelName][k],query[k]))
+
+        return and(...parts);
+    }
+
     async findMany(modelName, query={}) {
         let q=this.drizzle
             .select()
@@ -42,14 +50,11 @@ export default class DrizzleDb {
     }
 
     async findOne(modelName, query={}) {
-        let q=this.drizzle
+        return await this.drizzle
             .select()
-            .from(this.tables[modelName]);
-
-        for (let k in query)
-            q.where(eq(this.tables[modelName][k],query[k]))
-
-        return await q.get();
+            .from(this.tables[modelName])
+            .where(this.buildWhere(modelName,query))
+            .get();
     }
 
     async insert(modelName, data) {
@@ -63,14 +68,10 @@ export default class DrizzleDb {
     }
 
     async update(modelName, query, data) {
-        let q=this.drizzle
+        let updateResult=this.drizzle
             .update(this.tables[modelName])
-            .set(data);
-
-        for (let k in query)
-            q.where(eq(this.tables[modelName][k],query[k]))
-
-        let updateResult=await q
+            .set(data)
+            .where(this.buildWhere(modelName,query))
             .returning({updated: this.tables[modelName]})
             .get();
 
@@ -78,13 +79,9 @@ export default class DrizzleDb {
     }
 
     async delete(modelName, query) {
-        let q=this.drizzle
-            .delete(this.tables[modelName]);
-
-        for (let k in query)
-            q.where(eq(this.tables[modelName][k],query[k]))
-
-        let deleteResult=await q
+        let deleteResult=this.drizzle
+            .delete(this.tables[modelName])
+            .where(this.buildWhere(modelName,query))
             .returning({deleted: this.tables[modelName]})
             .get();
 
