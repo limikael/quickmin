@@ -15,6 +15,7 @@ import {nodeStorageDriver} from "../export/node-storage.js";
 import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
 import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
+import {googleAuthDriver} from "../auth/google-auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -98,6 +99,8 @@ switch (options.storage) {
         break;
 }
 
+drivers.push(googleAuthDriver);
+
 let confYaml=fs.readFileSync(options.conf,"utf8");
 let quickmin=new QuickminServer(confYaml,drivers);
 
@@ -123,7 +126,6 @@ switch (command) {
                     entryPoint: path.join(__dirname,"../ui/main.jsx"),
                     outdir: path.join(__dirname,"../../dist"),
                     contentdir: path.join(__dirname,"../../dist/content"),
-                    minify: false,
                     splitting: true,
                     quiet: true
                 });

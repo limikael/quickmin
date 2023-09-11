@@ -79,34 +79,41 @@ function loginForm(conf) {
             setShowUserPass(true);
         }
 
-        function onLoginClick() {
-            window.location=conf.googleAuthUrl;
+        function onLoginClick(url) {
+            window.location=url;
         }
+
+        if (!Object.keys(conf.authButtons).length)
+            showUserPass=true;
 
         return (<>
             <Login {...props}>
                 {showUserPass && <LoginForm />}
-                <CardContent>
-                    <Button
-                        style="margin-top: 16px"
-                        variant="contained"
-                        type="submit"
-                        color="primary"
-                        disabled={false}
-                        fullWidth
-                        onclick={onLoginClick}
-                    >Login with Google
-                    </Button>
-                    {!showUserPass &&
-                        <Link style="display: block; margin-top: 16px; opacity: 0.5"
-                                href="#" 
-                                align="center"
+                {!!Object.keys(conf.authButtons).length &&
+                    <CardContent>
+                        {Object.keys(conf.authButtons).map(k=>
+                            <Button
+                                style="margin-top: 16px"
                                 variant="contained"
-                                onclick={onShowUserPassClick}>
-                            Login with username/password
-                        </Link>
-                    }
-                </CardContent>
+                                type="submit"
+                                color="primary"
+                                disabled={false}
+                                fullWidth
+                                onclick={onLoginClick.bind(null,conf.authButtons[k])}
+                            >Login with {k}
+                            </Button>
+                        )}
+                        {!showUserPass &&
+                            <Link style="display: block; margin-top: 16px; opacity: 0.5"
+                                    href="#" 
+                                    align="center"
+                                    variant="contained"
+                                    onclick={onShowUserPassClick}>
+                                Login with username/password
+                            </Link>
+                        }
+                    </CardContent>
+                }
             </Login>
         </>)
     }
@@ -140,17 +147,25 @@ async function fetchConf(apiUrl, setRoleLevel) {
             u.searchParams.get("scope") &&
             u.searchParams.get("authuser") &&
             u.searchParams.get("prompt")) {
-        console.log("Doing google login...");
-        let result=await fetchEx(urlJoin(apiUrl,"_googleLogin"),{
-            method: "POST",
-            headers:{'content-type': 'application/json'},
-            body: JSON.stringify({"url":window.location.toString()}),
-            dataType: "json"
-        });
+        try {
+            let result=await fetchEx(urlJoin(apiUrl,"_oauthLogin"),{
+                method: "POST",
+                headers:{'content-type': 'application/json'},
+                body: JSON.stringify({
+                    "url": window.location.toString(),
+                    "state": u.searchParams.get("state")
+                }),
+                dataType: "json"
+            });
 
-        conf.authProvider.setLoggedIn(result.data);
-        window.location=u.origin+u.pathname;
-        return;
+            conf.authProvider.setLoggedIn(result.data);
+            window.location=u.origin+u.pathname;
+            return;
+        }
+
+        catch (e) {
+            console.log(e);
+        }
     }
 
     return conf;

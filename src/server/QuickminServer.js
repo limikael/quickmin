@@ -69,13 +69,6 @@ export default class QuickminServer {
                 if (!SQL_TYPES[type])
                     throw new Error("Unknown field type: "+type);
 
-                if (type=="authmethod") {
-                    this.authMethods[fieldEl.attributes.provider]={
-                        collectionId: collectionId,
-                        fieldId: fieldEl.attributes.id
-                    }
-                }
-
                 if (type=="roleselect") {
                     fieldEl.attributes.choices=this.conf.roles;
                     fieldEl.attributes.role=true;
@@ -107,17 +100,17 @@ export default class QuickminServer {
 
         for (let driver of drivers)
             driver(this);
-    }
 
-    createGoogleAuthClient(redirectUri) {
-        return new ClientOAuth2({
-            clientId: this.conf.googleClientId,
-            clientSecret: this.conf.googleClientSecret,
-            accessTokenUri: 'https://oauth2.googleapis.com/token',
-            authorizationUri: 'https://accounts.google.com/o/oauth2/auth',
-            redirectUri: redirectUri,
-            scopes: ['https://www.googleapis.com/auth/userinfo.email']
-        });
+        for (let cid in this.collections) {
+            for (let fid in this.collections[cid].fields) {
+                let field=this.collections[cid].fields[fid];
+
+                if (field.type=="authmethod") {
+                    this.authMethods[field.provider].collectionId=cid;
+                    this.authMethods[field.provider].fieldId=fid;
+                }
+            }
+        }
     }
 
     isPathRequest(req, method, path) {
@@ -158,35 +151,38 @@ export default class QuickminServer {
             let u=new URL(req.headers.get("referer"))
             let reurl=u.origin+u.pathname;
 
+            let authButtons={};
+            for (let method in this.authMethods)
+                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl);
+
             return Response.json({
                 collections: this.collections,
                 requireAuth: this.requireAuth,
-                googleAuthUrl: await this.createGoogleAuthClient(reurl).code.getUri()
+                authButtons: authButtons
             });
         }
 
-        else if (this.isPathRequest(req,"POST","_googleLogin")) {
+        else if (this.isPathRequest(req,"POST","_oauthLogin")) {
             let body=await req.json();
+            let provider=body.state;
             let u=new URL(req.headers.get("referer"))
             let reurl=u.origin+u.pathname;
-
-            let res=await this.createGoogleAuthClient(reurl).code.getToken(body.url);
-            let apiUrl="https://oauth2.googleapis.com/tokeninfo?"+new URLSearchParams({
-                id_token: res.data.id_token
-            });
-
-            let response=await fetch(apiUrl);
-            let tokenInfo=await response.json();
+            let loginToken=await this.authMethods[provider].process(reurl, body.url);
 
             let q={};
-            q[this.authMethods.google.fieldId]=tokenInfo.email;
+            q[this.authMethods[provider].fieldId]=loginToken;
 
-            let collectionId=this.authMethods.google.collectionId;
+            let collectionId=this.authMethods[provider].collectionId;
             let userRecord=await this.db.findOne(collectionId,q);
+            if (!userRecord)
+                return new Response("Not authorized...",{
+                    status: 403
+                });
+
             let usernameField=this.getTaggedCollectionField(collectionId,"username",true);
 
             let payload={
-                provider: "google",
+                provider: provider,
                 id: userRecord.id,
             };
 
