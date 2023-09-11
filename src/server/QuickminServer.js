@@ -1,4 +1,4 @@
-import {netTry, splitPath} from "../utils/js-util.js";
+import {netTry, splitPath, jsonEq} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
@@ -52,12 +52,6 @@ export default class QuickminServer {
         }
     }
 
-    isPathRequest(req, method, path) {
-        return (req.method==method
-            && req.argv.length==1
-            && req.argv[0]==path)
-    }
-
     getTaggedCollectionField(collectionId, tag, value) {
         for (let fieldId in this.collections[collectionId].fields)
             if (this.collections[collectionId].fields[fieldId][tag]==value)
@@ -65,9 +59,7 @@ export default class QuickminServer {
     }
 
     handleRequest=async (req)=>{
-        //req=req.clone();
         let argv=splitPath(new URL(req.url).pathname);
-
         if (this.conf.apiPath) {
             if (argv[0]!=this.conf.apiPath)
                 return;
@@ -80,7 +72,7 @@ export default class QuickminServer {
             return await this.storage.getResponse(argv[1],req);
         }
 
-        else if (req.method=="GET" && argv.length==1 && argv[0]=="_schema") {
+        else if (req.method=="GET" && jsonEq(argv,["_schema"])) {
             let u=new URL(req.headers.get("referer"))
             let reurl=u.origin+u.pathname;
 
@@ -99,7 +91,7 @@ export default class QuickminServer {
             });
         }
 
-        else if (req.method=="POST" && argv.length==1 && argv[0]=="_oauthLogin") {
+        else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
             let body=await req.json();
             let provider=body.state;
             let u=new URL(req.headers.get("referer"))
@@ -131,7 +123,7 @@ export default class QuickminServer {
             });
         }
 
-        else if (this.isPathRequest(req,"POST","_login")) {
+        else if (req.method=="POST" && jsonEq(argv,["_login"])) {
             let body=await req.json();
             if (body.username==this.conf.adminUser &&
                     body.password==this.conf.adminPass) {

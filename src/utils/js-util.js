@@ -5,6 +5,10 @@ export function splitPath(pathname) {
 	return pathname.split("/").filter(s=>s.length>0);
 }
 
+export function jsonEq(a,b) {
+	return (JSON.stringify(a)==JSON.stringify(b));
+}
+
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);
