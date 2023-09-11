@@ -10,7 +10,8 @@ export default class Collection {
             "select": "text",
             "image": "text",
             "authmethod": "text",
-            "roleselect": "text"
+            "roleselect": "text",
+            "reference": "integer"
         };
 
 		this.id=id;
@@ -53,12 +54,16 @@ export default class Collection {
                 fieldEl.attributes.role=true;
             }
 
-            this.fields[fieldEl.attributes.id]={
+            let el={
                 type: type,
                 sqlType: SQL_TYPES[type],
-                children: fieldEl.children,
                 ...fieldEl.attributes
             }
+
+            if (fieldEl.children.length)
+                el.children=fieldEl.children;
+
+            this.fields[fieldEl.attributes.id]=el;
         }
 
         if (!this.listFields.length)

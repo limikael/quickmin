@@ -1,5 +1,6 @@
 import {TextField, TextInput, DateField, DateInput, DateTimeInput,
-        SelectField, SelectInput, ImageField, ImageInput} from "react-admin";
+        SelectField, SelectInput, ImageField, ImageInput,
+        ReferenceField, ReferenceInput} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 
@@ -85,6 +86,11 @@ export const FIELD_TYPES={
         list: SelectField,
         edit: SelectInput,
         confProcessor: processSelectConf
+    },
+
+    "reference": {
+        list: ReferenceField,
+        edit: ReferenceInput
     },
 
     "image": {

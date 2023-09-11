@@ -17,6 +17,7 @@ collections:
     fields:
       <Text id="title" fullWidth listable/>
       <Image id="image"/>
+      <Reference id="author" reference="users" listable/>
       <Select id="status" choices="draft,published" listable />
       <Date id="published" listable/>
       <RichText id="content" fullWidth/>

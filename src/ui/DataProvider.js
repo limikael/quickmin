@@ -53,17 +53,31 @@ export default class DataProvider {
     }
 
     getList=(resource, params)=>{
+        //console.log("get list...");
+
     	return this.simpleRestProvider.getList(resource,params);
     }
 
     getOne=async (resource, params)=>{
+        //console.log("get one...");
+
         let response=await this.simpleRestProvider.getOne(resource,params);
         response.data=this.processRead(resource,response.data);
     	return response;
     }
 
-    getMany=(resource, params)=>{
-    	return this.simpleRestProvider.getMany(resource,params);
+    getMany=async (resource, params)=>{
+        //console.log("get many, res="+resource+" params=",params);
+
+        /*return ({data:[{
+                id: 1, name: "hello"
+        }]});*/
+
+        let res=await this.simpleRestProvider.getMany(resource,params);
+
+        //console.log(res);
+
+    	return res;
     }
 
     getManyReference=(resource, params)=>{

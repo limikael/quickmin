@@ -59,7 +59,7 @@ function collectionEditor(collection, mode) {
             );
     }
 }
-
+                
 function collectionResource(collection) {
     return (
         <Resource
@@ -67,7 +67,8 @@ function collectionResource(collection) {
                 key={collection.key}
                 list={collectionList(collection)}
                 edit={collectionEditor(collection,"edit")}
-                create={collectionEditor(collection,"create")}/>
+                create={collectionEditor(collection,"create")}
+                />
     );
 }
 

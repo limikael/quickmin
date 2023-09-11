@@ -5,6 +5,7 @@ let DRIZZLE_TYPES={
     "text": text,
     "date": text,
     "datetime": text,
+    "integer": integer
 }
 
 export default class DrizzleDb {
