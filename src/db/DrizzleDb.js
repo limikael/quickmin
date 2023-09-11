@@ -30,14 +30,18 @@ export default class DrizzleDb {
         }
 	}
 
-    async findMany(modelName) {
-        return await this.drizzle
+    async findMany(modelName, query={}) {
+        let q=this.drizzle
             .select()
-            .from(this.tables[modelName])
-            .all();
+            .from(this.tables[modelName]);
+
+        for (let k in query)
+            q.where(eq(this.tables[modelName][k],query[k]))
+
+        return await q.all();
     }
 
-    async findOne(modelName, query) {
+    async findOne(modelName, query={}) {
         let q=this.drizzle
             .select()
             .from(this.tables[modelName]);
@@ -46,12 +50,6 @@ export default class DrizzleDb {
             q.where(eq(this.tables[modelName][k],query[k]))
 
         return await q.get();
-
-/*        return await this.drizzle
-            .select()
-            .from(this.tables[modelName])
-            .where(eq(this.tables[modelName].id,id))
-            .get();*/
     }
 
     async insert(modelName, data) {
@@ -64,21 +62,29 @@ export default class DrizzleDb {
         return insertResult.inserted;
     }
 
-    async update(modelName, id, data) {
-        let updateResult=await this.drizzle
+    async update(modelName, query, data) {
+        let q=this.drizzle
             .update(this.tables[modelName])
-            .set(data)
-            .where(eq(this.tables[modelName].id,id))
+            .set(data);
+
+        for (let k in query)
+            q.where(eq(this.tables[modelName][k],query[k]))
+
+        let updateResult=await q
             .returning({updated: this.tables[modelName]})
             .get();
 
         return updateResult.updated;
     }
 
-    async delete(modelName, id) {
-        let deleteResult=await this.drizzle
-            .delete(this.tables[modelName])
-            .where(eq(this.tables[modelName].id,id))
+    async delete(modelName, query) {
+        let q=this.drizzle
+            .delete(this.tables[modelName]);
+
+        for (let k in query)
+            q.where(eq(this.tables[modelName][k],query[k]))
+
+        let deleteResult=await q
             .returning({deleted: this.tables[modelName]})
             .get();
 

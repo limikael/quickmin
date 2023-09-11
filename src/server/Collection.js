@@ -1,19 +1,19 @@
 import {parse as parseXml} from "txml";
 
+let SQL_TYPES={
+    "text": "text",
+    "richtext": "text",
+    "date": "date",
+    "datetime": "datetime",
+    "select": "text",
+    "image": "text",
+    "authmethod": "text",
+    "roleselect": "text",
+    "reference": "integer"
+};
+
 export default class Collection {
 	constructor(id, conf, server) {
-        let SQL_TYPES={
-            "text": "text",
-            "richtext": "text",
-            "date": "date",
-            "datetime": "datetime",
-            "select": "text",
-            "image": "text",
-            "authmethod": "text",
-            "roleselect": "text",
-            "reference": "integer"
-        };
-
 		this.id=id;
         this.fields={};
         this.listFields=[];
@@ -35,6 +35,74 @@ export default class Collection {
 
         if (this.writeRoleLevel<this.roleLevel)
             this.writeRoleLevel=this.roleLevel;
+	}
+
+	getSchema() {
+		return {
+			id: this.id,
+        	fields: this.fields,
+        	listFields: this.listFields,
+        	roleLevel: this.roleLevel,
+        	writeRoleLevel: this.writeRoleLevel
+		}
+	}
+
+	async handleRequest(req, argv) {
+        await this.server.assertRequestRoleLevel(req,this.roleLevel);
+
+        // List.
+		if (req.method=="GET" && argv.length==0) {
+			let data=await this.server.db.findMany(
+                this.getTableName(),
+                this.getWhere()
+            );
+            return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
+		}
+
+		// Find.
+		if (req.method=="GET" && argv.length==1) {
+            let item=await this.server.db.findOne(this.getTableName(),{
+                id: argv[0]
+            });
+
+            if (!item)
+                return new Response("Not found",{status: 404});
+
+            return Response.json(item);
+        }
+
+        await this.server.assertRequestRoleLevel(req,this.writeRoleLevel);
+
+        // Create.
+        if (req.method=="POST" && argv.length==0) {
+            return Response.json(await this.server.db.insert(
+                this.getTableName(),
+                await this.server.getRequestFormData(req)
+            ));
+        }
+
+        // Update.
+        if (req.method=="PUT" && argv.length==1) {
+            return Response.json(await this.server.db.update(
+                this.getTableName(),
+                {id: argv[0]},
+                await this.server.getRequestFormData(req)
+            ));
+        }
+
+        // Delete.
+        if (req.method=="DELETE" && argv.length==1) {
+            return Response.json(await this.server.db.delete(
+                this.getTableName(),
+                {id: argv[0]},
+            ));
+        }
+	}
+}
+
+export class TableCollection extends Collection {
+    constructor(id, conf, server) {
+        super(id, conf, server);
 
         let fieldEls=parseXml(conf.fields);
         for (let fieldEl of fieldEls) {
@@ -68,64 +136,43 @@ export default class Collection {
 
         if (!this.listFields.length)
             this.listFields=Object.keys(this.fields);
-	}
+    }
 
-	getSchema() {
-		return {
-			id: this.id,
-        	fields: this.fields,
-        	listFields: this.listFields,
-        	roleLevel: this.roleLevel,
-        	writeRoleLevel: this.writeRoleLevel
-		}
-	}
+    getTableName() {
+        return this.id;
+    }
 
-	async handleRequest(req, argv) {
-        await this.server.assertRequestRoleLevel(req,this.roleLevel);
+    isView() {
+        return false;
+    }
 
-        // List.
-		if (req.method=="GET" && argv.length==0) {
-			let data=await this.server.db.findMany(this.id);
-            return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
-		}
+    getWhere() {
+        return {};
+    }
+}
 
-		// Find.
-		if (req.method=="GET" && argv.length==1) {
-            let item=await this.server.db.findOne(this.id,{
-                id: argv[0]
-            });
+export class ViewCollection extends Collection {
+    constructor(id, conf, server) {
+        super(id, conf, server);
 
-            if (!item)
-                return new Response("Not found",{status: 404});
+        if (this.server.collections[conf.from].isView())
+            throw new Error("Can't create a view from a view");
 
-            return Response.json(item);
-        }
+        this.where=conf.where;
+        this.from=conf.from;
+        this.fields=this.server.collections[conf.from].fields;
+        this.listFields=this.server.collections[conf.from].listFields;
+    }
 
-        await this.server.assertRequestRoleLevel(req,this.writeRoleLevel);
+    getTableName() {
+        return this.from;
+    }
 
-        // Create.
-        if (req.method=="POST" && argv.length==0) {
-            return Response.json(await this.server.db.insert(
-                this.id,
-                await this.server.getRequestFormData(req)
-            ));
-        }
+    isView() {
+        return true;
+    }
 
-        // Update.
-        if (req.method=="PUT" && argv.length==1) {
-            return Response.json(await this.server.db.update(
-                this.id,
-                argv[0],
-                await this.server.getRequestFormData(req)
-            ));
-        }
-
-        // Delete.
-        if (req.method=="DELETE" && argv.length==1) {
-            return Response.json(await this.server.db.delete(
-                this.id,
-                argv[0],
-            ));
-        }
-	}
+    getWhere() {
+        return this.where;
+    }
 }

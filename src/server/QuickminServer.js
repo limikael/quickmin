@@ -3,7 +3,7 @@ import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
-import Collection from "./Collection.js";
+import {TableCollection, ViewCollection} from "./Collection.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -19,11 +19,19 @@ export default class QuickminServer {
 
         this.collections={};
         for (let collectionId in this.conf.collections) {
-            this.collections[collectionId]=new Collection(
+            this.collections[collectionId]=new TableCollection(
                 collectionId,
                 this.conf.collections[collectionId],
                 this
-            )
+            );
+        }
+
+        for (let viewId in this.conf.views) {
+            this.collections[viewId]=new ViewCollection(
+                viewId,
+                this.conf.views[viewId],
+                this
+            );
         }
 
         if (!this.conf.apiPath)

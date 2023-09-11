@@ -34,3 +34,9 @@ collections:
       <Text id="name" username/>
       <AuthMethod id="google_auth" provider="google"/>
       <RoleSelect id="role"/>
+
+views:
+  published_posts:
+    from: posts
+    where:
+      status: published
