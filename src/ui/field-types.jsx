@@ -4,9 +4,16 @@ import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 
 function QuickminImageInput(props) {
+    let sx,options;
+    if (props.disabled) {
+        sx={"button": {display: "none"}};
+        options={disabled: true}
+    }
+
     return (
-        <ImageInput source={props.source} label={props.title}>
-           <ImageField source="src" title="title" />
+        <ImageInput source={props.source} label={props.title}
+                options={options} sx={sx}>
+           <ImageField source="src" title="title"/>
         </ImageInput>
     );
 }

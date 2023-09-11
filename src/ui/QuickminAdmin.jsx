@@ -35,6 +35,8 @@ function collectionEditor(collection, mode) {
             {Object.keys(collection.fields).map(fid=>{
                 let f=collection.fields[fid];
                 let Comp=FIELD_TYPES[f.type].edit;
+                //console.log(f);
+                //f.disabled=true;
                 return (
                     <Comp source={fid} key={fid} {...f}/>
                 );

@@ -16,7 +16,7 @@ import FormatAlignJustify from '@mui/icons-material/esm/FormatAlignJustify';
 import FormatListBulleted from '@mui/icons-material/esm/FormatListBulleted';
 import FormatListNumbered from '@mui/icons-material/esm/FormatListNumbered';
 
-export function FrugalTextInputToolbar({dispatcher}) {
+export function FrugalTextInputToolbar({dispatcher, disabled}) {
     let toolbarState=useRef({marks:[], level:"normal"});
     let forceUpdate=useForceUpdate();
 
@@ -94,7 +94,7 @@ export function FrugalTextInputToolbar({dispatcher}) {
         return Object.keys(buttons).map(btn=>{
             let Button=buttons[btn];
             return (
-                <ToggleButton key={btn} value={btn} onClick={onToggle}>
+                <ToggleButton key={btn} value={btn} onClick={onToggle} disabled={disabled}>
                     <Button />
                 </ToggleButton>
             );
@@ -105,7 +105,7 @@ export function FrugalTextInputToolbar({dispatcher}) {
         <Root className={classes.root}>
             <Select style={{width: "8em", height: "2.7em", "font-size": "0.8em"}}
                     value={toolbarState.current.level}
-                    onChange={onLevelSelect}>
+                    onChange={onLevelSelect} disabled={disabled}>
                 <MenuItem value="normal">Normal</MenuItem>
                 <MenuItem value="1">Header</MenuItem>
                 <MenuItem value="2">Subheader</MenuItem>

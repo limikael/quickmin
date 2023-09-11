@@ -17,16 +17,15 @@ collections:
     fields:
       <Text id="title" fullWidth listable/>
       <Image id="image"/>
-      <Select id="status" choices="draft,published" listable/>
+      <Select id="status" choices="draft,published" listable />
       <Date id="published" listable/>
       <RichText id="content" fullWidth/>
 
   pages:
     role: user
-    writeRole: admin
     fields:
       <Text id="title" fullWidth listable/>
-      <RichText id="content" />
+      <RichText id="content"/>
 
   users:
     fields:

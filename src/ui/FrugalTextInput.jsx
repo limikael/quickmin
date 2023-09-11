@@ -54,22 +54,22 @@ export const FrugalTextInput = (props) => {
                 resource={resource}
                 fullWidth={fullWidth}
             >
-                <FrugalTextInputContent field={field}/>
+                <FrugalTextInputContent field={field} disabled={disabled}/>
             </Labeled>
         </Root>
     );
 };
 
-function FrugalTextInputContent({field}) {
+function FrugalTextInputContent({field, disabled}) {
     let dispatcher=useMemo(()=>new EventTarget(),[]);
 
     return (<>
-        <FrugalTextInputToolbar dispatcher={dispatcher}/>
-        <FrugalTextInputEditor dispatcher={dispatcher} field={field}/>
+        <FrugalTextInputToolbar dispatcher={dispatcher} disabled={disabled}/>
+        <FrugalTextInputEditor dispatcher={dispatcher} field={field} disabled={disabled}/>
     </>);
 }
 
-function FrugalTextInputEditor({dispatcher, field}) {
+function FrugalTextInputEditor({dispatcher, field, disabled}) {
     const editor = useEditor({
         extensions: [
             StarterKit.configure({}),
@@ -95,7 +95,8 @@ function FrugalTextInputEditor({dispatcher, field}) {
         onTransaction({editor}) {
             dispatcher.editor=editor;
             dispatcher.dispatchEvent(new Event("transaction"))
-        }
+        },
+        editable: !disabled
     },[]);
 
     if (!editor)

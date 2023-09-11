@@ -41,14 +41,20 @@ export default class QuickminServer {
                 writeRole: collectionConf.writeRole
             }
 
-            if (!collection.writeRole)
-                collection.writeRole=collection.role;
+            if (collection.role && this.roles.indexOf(collection.role)<0)
+                throw new Error("Unknown role: "+collection.role);
 
-            if (collection.role && !this.roles.includes(collection.role))
-                throw new Error("Undefined role: "+collection.role);
+            if (collection.writeRole && this.roles.indexOf(collection.writeRole)<0)
+                throw new Error("Unknown write role: "+collection.writeRole);
 
-            if (collection.writeRole && !this.roles.includes(collection.writeRole))
-                throw new Error("Undefined role: "+collection.writeRole);
+            collection.roleLevel=this.roles.indexOf(collection.role);
+            collection.writeRoleLevel=this.roles.indexOf(collection.writeRole);
+
+            if (collection.writeRoleLevel<0)
+                collection.writeRoleLevel=0;
+
+            if (collection.writeRoleLevel<collection.roleLevel)
+                collection.writeRoleLevel=collection.roleLevel;
 
             let fieldEls=parseXml(collectionConf.fields);
             for (let fieldEl of fieldEls) {
@@ -187,7 +193,7 @@ export default class QuickminServer {
             let token=jwtSign(payload,this.conf.jwtSecret);
             return Response.json({
                 username: userRecord[usernameField],
-                role: await this.getUserRoleByPayload(payload),
+                roleLevel: await this.getRoleLevelByPayload(payload),
                 token: token
             });
         }
@@ -203,7 +209,7 @@ export default class QuickminServer {
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
                     username: this.conf.adminUser,
-                    role: await this.getUserRoleByPayload(payload),
+                    roleLevel: await this.getRoleLevelByPayload(payload),
                     token: token
                 });
             }
@@ -214,14 +220,16 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"GET",1)) {
-            await this.assertRequestCan(req,this.collections[req.argv[0]].role);
+            let c=this.collections[req.argv[0]];
+            await this.assertRequestRoleLevel(req,c.roleLevel);
             return Response.json(await this.db.findMany(
                 req.argv[0]
             ),{headers:{"Content-Range": "0-2/2"}});
         }
 
         else if (this.isModelRequest(req,"GET",2)) {
-            await this.assertRequestCan(req,this.collections[req.argv[0]].role);
+            let c=this.collections[req.argv[0]];
+            await this.assertRequestRoleLevel(req,c.roleLevel);
             let item=await this.db.findOne(req.argv[0],{
                 id: req.argv[1]
             });
@@ -233,7 +241,8 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"POST",1)) {
-            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
+            let c=this.collections[req.argv[0]];
+            await this.assertRequestRoleLevel(req,c.writeRoleLevel);
             return Response.json(await this.db.insert(
                 req.argv[0],
                 await this.getRequestFormData(req)
@@ -241,7 +250,8 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"PUT",2)) {
-            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
+            let c=this.collections[req.argv[0]];
+            await this.assertRequestRoleLevel(req,c.writeRoleLevel);
             return Response.json(await this.db.update(
                 req.argv[0],
                 req.argv[1],
@@ -250,7 +260,8 @@ export default class QuickminServer {
         }
 
         else if (this.isModelRequest(req,"DELETE",2)) {
-            await this.assertRequestCan(req,this.collections[req.argv[0]].writeRole);
+            let c=this.collections[req.argv[0]];
+            await this.assertRequestRoleLevel(req,c.writeRoleLevel);
             return Response.json(await this.db.delete(
                 req.argv[0],
                 req.argv[1],
@@ -258,43 +269,47 @@ export default class QuickminServer {
         }
     }
 
-    async getUserRoleByPayload(userPayload) {
+    async getRoleLevelByPayload(userPayload) {
+        let level;
+
         switch (userPayload.provider) {
             case "admin":
-                return this.roles[this.roles.length-1];
+                level=this.roles.length-1;
+                break;
 
             case "google":
                 let collectionId=this.authMethods.google.collectionId;
                 let userRecord=await this.db.findOne(collectionId,{id: userPayload.id});
                 let roleField=this.getTaggedCollectionField(collectionId,"role",true);
-                return userRecord[roleField];
+                level=this.roles.indexOf(userRecord[roleField]);
+                break;
+
+            default:
+                throw new Error("Unknown auth provider");
                 break;
         }
+
+        if (level<0)
+            level=0;
+
+        return level;
     }
 
-    async getRequestRole(req) {
+    async getRoleLevelByRequest(req) {
         if (!req.headers.get("authorization"))
-            throw new Error("Expected bearer authorization");
+            return -1;
 
         let authorization=req.headers.get("authorization").split(" ");
         if (authorization[0]!="Bearer")
             throw new Error("Expected bearer authorization");
 
        let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
-       return await this.getUserRoleByPayload(payload);
+       return await this.getRoleLevelByPayload(payload);
     }
 
-    async assertRequestCan(req, role) {
-        let requestRole=await this.getRequestRole(req);
-        let requestRoleIndex=this.roles.indexOf(requestRole)
-        if (requestRoleIndex<0)
-            requestRoleIndex=0
-
-        let requiredRoleIndex=this.roles.indexOf(role)
-        if (requiredRoleIndex<0)
-            requiredRoleIndex=0
-
-        if (requestRoleIndex<requiredRoleIndex)
+    async assertRequestRoleLevel(req, requiredLevel) {
+        let requestLevel=await this.getRoleLevelByRequest(req);
+        if (requestLevel<requiredLevel)
             throw new Error("Not authorized");
     }
 
