@@ -178,6 +178,9 @@ export default class QuickminServer {
             return this.roles.length-1;
         }
 
+        if (!this.authCollection)
+            return -1;
+
         let userRecord=await this.db.findOne(this.authCollection,{id: userId});
         if (!userRecord)
             return -1;

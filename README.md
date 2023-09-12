@@ -1,9 +1,13 @@
 Todo:
-- migration + example
-- date field
 x pass props
+x auth
+x views
+x date field
+x migration
 
 Stories:
-- auth
-- views
+- example
 - layout (sidebar, tab, section)
+- recordRepresentation
+- icons
+- hierarchial menu

@@ -128,7 +128,7 @@ switch (command) {
                     contentdir: path.join(__dirname,"../../dist/content"),
                     splitting: true,
                     quiet: true,
-                    minify: false
+                    //minify: false
                 });
             }
 
