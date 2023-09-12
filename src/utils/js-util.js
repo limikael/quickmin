@@ -9,6 +9,14 @@ export function jsonEq(a,b) {
 	return (JSON.stringify(a)==JSON.stringify(b));
 }
 
+export function jsonClone(o) {
+	return JSON.parse(JSON.stringify(o));
+}
+
+export function evalInScope(js, contextAsScope) {
+	return new Function(`with (this) { return (${js}); }`).call(contextAsScope);
+}
+
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);

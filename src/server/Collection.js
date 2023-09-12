@@ -1,4 +1,5 @@
 import {parse as parseXml} from "txml";
+import {jsonClone, evalInScope, jsonEq} from "../utils/js-util.js";
 
 let SQL_TYPES={
     "text": "text",
@@ -37,9 +38,20 @@ export default class Collection {
             this.writeRoleLevel=this.roleLevel;
 	}
 
+    getType() {
+        if (this.isView() && this.single)
+            return "singleView";
+
+        if (this.isView())
+            return "view";
+
+        return "table";
+    }
+
 	getSchema() {
 		return {
 			id: this.id,
+            type: this.getType(),
         	fields: this.fields,
         	listFields: this.listFields,
         	roleLevel: this.roleLevel,
@@ -54,7 +66,7 @@ export default class Collection {
 		if (req.method=="GET" && argv.length==0) {
 			let data=await this.server.db.findMany(
                 this.getTableName(),
-                this.getWhere()
+                await this.getWhere(req)
             );
             return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
 		}
@@ -63,7 +75,7 @@ export default class Collection {
 		if (req.method=="GET" && argv.length==1) {
             let item=await this.server.db.findOne(
                 this.getTableName(),
-                {id: argv[0], ...this.getWhere()}
+                {id: argv[0], ...await this.getWhere(req)}
             );
 
             if (!item)
@@ -79,7 +91,7 @@ export default class Collection {
             let data=await this.server.getRequestFormData(req);
             return Response.json(await this.server.db.insert(
                 this.getTableName(),
-                {...data, ...this.getWhere()}
+                {...data, ...await this.getWhere(req)}
             ));
         }
 
@@ -88,8 +100,8 @@ export default class Collection {
             let data=await this.server.getRequestFormData(req);
             return Response.json(await this.server.db.update(
                 this.getTableName(),
-                {id: argv[0], ...this.getWhere()},
-                {...data, ...this.getWhere()}
+                {id: argv[0], ...await this.getWhere(req)},
+                {...data, ...await this.getWhere(req)}
             ));
         }
 
@@ -97,7 +109,7 @@ export default class Collection {
         if (req.method=="DELETE" && argv.length==1) {
             return Response.json(await this.server.db.delete(
                 this.getTableName(),
-                {id: argv[0], ...this.getWhere()},
+                {id: argv[0], ...await this.getWhere(req)},
             ));
         }
 	}
@@ -163,8 +175,24 @@ export class ViewCollection extends Collection {
 
         this.where=conf.where;
         this.from=conf.from;
-        this.fields=this.server.collections[conf.from].fields;
-        this.listFields=this.server.collections[conf.from].listFields;
+        this.fields=jsonClone(this.server.collections[conf.from].fields);
+        this.listFields=jsonClone(this.server.collections[conf.from].listFields);
+
+        let exclude=conf.exclude;
+        if (!exclude)
+            exclude=[];
+
+        for (let k in this.where)
+            exclude.push(k);
+
+        for (let ex of exclude) {
+            if (this.listFields.includes(ex))
+                this.listFields.splice(this.listFields.indexOf(ex),1);
+
+            this.fields[ex].hidden=true;
+        }
+
+        this.single=conf.single;
     }
 
     getTableName() {
@@ -175,7 +203,58 @@ export class ViewCollection extends Collection {
         return true;
     }
 
-    getWhere() {
-        return this.where;
+    async getWhere(req) {
+        let userId=await this.server.getUserIdByRequest(req);
+        let retWhere={};
+
+        for (let k in this.where) {
+            retWhere[k]=evalInScope("`"+this.where[k]+"`",{userId: userId});
+        }
+
+        return retWhere;
+    }
+
+    async handleRequest(req, argv) {
+        if (this.getType()!="singleView")
+            return await super.handleRequest(req,argv);
+
+        await this.server.assertRequestRoleLevel(req,this.roleLevel);
+
+        // Find.
+        if (req.method=="GET" && jsonEq(argv,["single"])) {
+            let item=await this.server.db.findOne(
+                this.getTableName(),
+                await this.getWhere(req)
+            );
+
+            if (!item)
+                return Response.json({id: "single"});
+
+            return Response.json({...item, id: "single"});
+        }
+
+        await this.server.assertRequestRoleLevel(req,this.writeRoleLevel);
+
+        // Update.
+        if (req.method=="PUT" && jsonEq(argv,["single"])) {
+            let data=await this.server.getRequestFormData(req);
+            delete data.id;
+            let queryResult=await this.server.db.update(
+                this.getTableName(),
+                {...await this.getWhere(req)},
+                {...data, ...await this.getWhere(req)}
+            );
+
+            if (!queryResult) {
+                /*console.log("inserting...");
+                console.log({...data, ...await this.getWhere(req)});*/
+                queryResult=await this.server.db.insert(
+                    this.getTableName(),
+                    {...data, ...await this.getWhere(req)}
+                );
+            }
+
+            return Response.json({...queryResult, id: "single"});
+        }
     }
 }

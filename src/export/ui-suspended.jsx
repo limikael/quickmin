@@ -50,7 +50,10 @@ function Spinner() {
 }
 
 export default function({api}) {
+	//console.log("here.......");
+
 	let [adminLoaded,setAdminLoaded]=useState();
+//	let adminLoaded=false;
 
 	if (typeof window=="undefined")
 		return (<div></div>);

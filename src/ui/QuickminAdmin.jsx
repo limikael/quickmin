@@ -1,5 +1,4 @@
-import {Admin, Resource, List, Datagrid, 
-        Edit, SimpleForm, Create, withLifecycleCallbacks} from 'react-admin';
+import {Admin, Layout, Menu} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.jsx";
@@ -12,69 +11,11 @@ import DataProvider from "./DataProvider";
 import LoginPage from "./LoginPage.jsx";
 import {Button, CardContent, Link} from '@mui/material';
 import {Login, LoginForm} from "ra-ui-materialui";
-
-function collectionList(collection) {
-    return (
-        <List hasCreate={true} exporter={false}>
-            <Datagrid rowClick="edit" size="medium">
-                {collection.listFields.map(fid=>{
-                    let f=collection.fields[fid];
-                    let Comp=FIELD_TYPES[f.type].list;
-                    return (
-                        <Comp source={fid} {...f}/>
-                    );
-                })}
-            </Datagrid>
-        </List>
-    );
-}
-
-function collectionEditor(collection, mode) {
-    let content=(
-        <SimpleForm>
-            {Object.keys(collection.fields).map(fid=>{
-                let f=collection.fields[fid];
-                let Comp=FIELD_TYPES[f.type].edit;
-                f.disabled=collection.disabled;
-                return (
-                    <Comp source={fid} key={fid} {...f}/>
-                );
-            })}
-        </SimpleForm>
-    );
-
-    switch (mode) {
-        case "edit":
-            return (
-                <Edit mutationMode="pessimistic">
-                    {content}
-                </Edit>
-            );
-
-        case "create":
-            return (
-                <Create redirect="list">
-                    {content}
-                </Create>
-            );
-    }
-}
-
-// recordRepresentation                
-function collectionResource(collection) {
-    return (
-        <Resource
-                name={collection.key}
-                key={collection.key}
-                list={collectionList(collection)}
-                edit={collectionEditor(collection,"edit")}
-                create={collectionEditor(collection,"create")}
-        />
-    );
-}
+import {collectionResource} from "./collection-components.jsx";
+import LabelIcon from '@mui/icons-material/esm/Label';
 
 function loginForm(conf) {
-    return function MyLogin(props) {
+    return function QuickminLogin(props) {
         let [showUserPass,setShowUserPass]=useState(false);
         function onShowUserPassClick(ev) {
             ev.preventDefault();
@@ -173,11 +114,60 @@ async function fetchConf(apiUrl, setRoleLevel) {
     return conf;
 }
 
+function Spinner() {
+    return (
+        <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100vh"
+                }}>
+            <CircularProgress size="3em"/>
+        </div>
+    )
+}
+
+function createLayout(conf) {
+    return function QuickminLayout(props) {
+        let menuItems=[];
+
+        for (let cid in conf.collections) {
+            switch (conf.collections[cid].type) {
+                case "singleView":
+                    let text=cid;
+                    text=text.replaceAll("_"," ");
+                    text=text.charAt(0).toUpperCase()+text.slice(1);
+                    menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
+                        primaryText={text} 
+                        leftIcon={<LabelIcon/>}
+                    />);
+                    break;
+
+                default:
+                    menuItems.push(<Menu.ResourceItem name={cid} />);
+                    break;
+            }
+        }
+
+        function QuickminMenu() {
+            return (
+                <Menu>
+                    {menuItems}
+                </Menu>    
+            );
+        }
+
+        return (
+            <Layout {...props} menu={QuickminMenu}/>
+        )
+    }
+}
+
 export default function QuickminAdmin({api, onload}) {
     let [roleLevel,setRoleLevel]=useState(window.localStorage.getItem("roleLevel"));
     let conf=useAsyncMemo(async()=>{
         let conf=await fetchConf(api,setRoleLevel);
-
         if (onload)
             onload();
 
@@ -188,17 +178,7 @@ export default function QuickminAdmin({api, onload}) {
         if (onload)
             return;
 
-        return (
-            <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100vh"
-                    }}>
-                <CircularProgress size="3em"/>
-            </div>
-        );
+        return (<Spinner/>);
     }
 
     //console.log("creating res, roleLevel="+roleLevel);
@@ -219,7 +199,8 @@ export default function QuickminAdmin({api, onload}) {
         <Admin dataProvider={conf.dataProvider}
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
-                loginPage={loginForm(conf)}>
+                loginPage={loginForm(conf)}
+                layout={createLayout(conf)}>
             {resources}
         </Admin>
     </>);

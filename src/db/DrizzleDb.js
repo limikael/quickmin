@@ -75,6 +75,9 @@ export default class DrizzleDb {
             .returning({updated: this.tables[modelName]})
             .get();
 
+        if (!updateResult)
+            return;
+
         return updateResult.updated;
     }
 

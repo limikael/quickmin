@@ -48,13 +48,18 @@ export default class QuickminServer {
             driver(this);
 
         for (let cid in this.collections) {
-            for (let fid in this.collections[cid].fields) {
-                let field=this.collections[cid].fields[fid];
+            if (!this.collections[cid].isView()) {
+                for (let fid in this.collections[cid].fields) {
+                    let field=this.collections[cid].fields[fid];
 
-                if (field.type=="authmethod" &&
-                        this.authMethods[field.provider]) {
-                    this.authMethods[field.provider].collectionId=cid;
-                    this.authMethods[field.provider].fieldId=fid;
+                    if (field.type=="authmethod" &&
+                            this.authMethods[field.provider]) {
+                        if (this.authCollection && this.authCollection!=cid)
+                            throw new Error("Only one collection can be user for auth.");
+
+                        this.authCollection=cid;
+                        this.authMethods[field.provider].fieldId=fid;
+                    }
                 }
             }
         }
@@ -109,24 +114,22 @@ export default class QuickminServer {
             let q={};
             q[this.authMethods[provider].fieldId]=loginToken;
 
-            let collectionId=this.authMethods[provider].collectionId;
-            let userRecord=await this.db.findOne(collectionId,q);
+            let userRecord=await this.db.findOne(this.authCollection,q);
             if (!userRecord)
                 return new Response("Not authorized...",{
                     status: 403
                 });
 
-            let usernameField=this.getTaggedCollectionField(collectionId,"username",true);
+            let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
 
             let payload={
-                provider: provider,
-                id: userRecord.id,
+                userId: userRecord.id
             };
 
             let token=jwtSign(payload,this.conf.jwtSecret);
             return Response.json({
                 username: userRecord[usernameField],
-                roleLevel: await this.getRoleLevelByPayload(payload),
+                roleLevel: await this.getRoleLevelByUserId(payload.userId),
                 token: token
             });
         }
@@ -136,13 +139,13 @@ export default class QuickminServer {
             if (body.username==this.conf.adminUser &&
                     body.password==this.conf.adminPass) {
                 let payload={
-                    provider: "admin",
+                    userId: -1,
                 };
 
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
                     username: this.conf.adminUser,
-                    roleLevel: await this.getRoleLevelByPayload(payload),
+                    roleLevel: await this.getRoleLevelByUserId(payload.userId),
                     token: token
                 });
             }
@@ -158,46 +161,38 @@ export default class QuickminServer {
         }
     }
 
-    async getRoleLevelByPayload(userPayload) {
-        let level;
-
-        switch (userPayload.provider) {
-            case "admin":
-                level=this.roles.length-1;
-                break;
-
-            case "google":
-                let collectionId=this.authMethods.google.collectionId;
-                let userRecord=await this.db.findOne(collectionId,{id: userPayload.id});
-                let roleField=this.getTaggedCollectionField(collectionId,"role",true);
-                level=this.roles.indexOf(userRecord[roleField]);
-                break;
-
-            default:
-                throw new Error("Unknown auth provider");
-                break;
-        }
-
-        if (level<0)
-            level=0;
-
-        return level;
-    }
-
-    async getRoleLevelByRequest(req) {
+    getUserIdByRequest(req) {
         if (!req.headers.get("authorization"))
-            return -1;
+            return;
 
         let authorization=req.headers.get("authorization").split(" ");
         if (authorization[0]!="Bearer")
             throw new Error("Expected bearer authorization");
 
        let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
-       return await this.getRoleLevelByPayload(payload);
+       return payload.userId;
+    }
+
+    async getRoleLevelByUserId(userId) {
+        if (userId==-1) {
+            return this.roles.length-1;
+        }
+
+        let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+        if (!userRecord)
+            return -1;
+
+        let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+        let level=this.roles.indexOf(userRecord[roleField]);
+        if (level<0)
+            level=0;
+
+        return level;
     }
 
     async assertRequestRoleLevel(req, requiredLevel) {
-        let requestLevel=await this.getRoleLevelByRequest(req);
+        let userId=await this.getUserIdByRequest(req);
+        let requestLevel=await this.getRoleLevelByUserId(userId);
         if (requestLevel<requiredLevel)
             throw new Error("Not authorized");
     }
@@ -223,17 +218,19 @@ export default class QuickminServer {
     async sync(dryRun) {
         let tables={};
         for (let c in this.collections) {
-            tables[c]={
-                id: {
-                    type: "integer",
-                    pk: true
-                }
-            };
-            for (let f in this.collections[c].fields) {
-                tables[c][f]={
-                    ...this.collections[c].fields[f],
-                    pk: false,
-                    type: this.collections[c].fields[f].sqlType,
+            if (!this.collections[c].isView()) {
+                tables[c]={
+                    id: {
+                        type: "integer",
+                        pk: true
+                    }
+                };
+                for (let f in this.collections[c].fields) {
+                    tables[c][f]={
+                        ...this.collections[c].fields[f],
+                        pk: false,
+                        type: this.collections[c].fields[f].sqlType,
+                    }
                 }
             }
         }
