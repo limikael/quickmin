@@ -10,10 +10,10 @@ upload: "upload"
 googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
 googleClientSecret: "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"
 
-roles: [user,admin]
-
 collections:
   posts:
+    access: admin
+    readAccess: public
     fields:
       <Text id="title" fullWidth listable/>
       <Image id="image"/>
@@ -33,15 +33,17 @@ collections:
     fields:
       <Text id="name" username/>
       <AuthMethod id="google_auth" provider="google"/>
-      <RoleSelect id="role"/>
+      <Select id="role" choices="user,admin" role/>
 
 views:
   my_posts:
+    access: user
     from: posts
     where:
       author: ${userId}
 
   about_me:
+    readAccess: user
     single: true
     from: pages
     where:

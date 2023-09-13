@@ -12,6 +12,16 @@ let SQL_TYPES={
     "reference": "integer"
 };
 
+function arrayify(cand) {
+    if (!cand)
+        return [];
+
+    if (!Array.isArray(cand))
+        return [cand];
+
+    return cand;
+}
+
 export default class Collection {
 	constructor(id, conf, server) {
 		this.id=id;
@@ -19,12 +29,13 @@ export default class Collection {
         this.listFields=[];
         this.server=server;
 
-        this.access=conf.access;
-        if (!this.access)
-            this.access={
-                public: "r",
-                admin: "rw"
-            };
+        if (!conf.access && !conf.readAccess) {
+            conf.access="admin";
+            conf.readAccess="public";
+        }
+
+        this.access=arrayify(conf.access);
+        this.readAccess=[...this.access,...arrayify(conf.readAccess)];
 	}
 
     getType() {
@@ -43,25 +54,16 @@ export default class Collection {
             type: this.getType(),
         	fields: this.fields,
         	listFields: this.listFields,
-            access: this.access
+            access: this.access,
+            readAccess: this.readAccess
 		}
 	}
-
-    roleCan(role, action) {
-        if (!this.access[role])
-            return false;
-
-        if (!this.access[role].includes("r"))
-            return false;
-
-        return true;
-    }
 
 	async handleRequest(req, argv) {
         let role=await this.server.getRoleByRequest(req);
         //console.log("role: "+role);
 
-        if (!this.roleCan(role,"r"))
+        if (!this.readAccess.includes(role))
             return new Response("Not authorized",{status: 403});
 
         // List.
@@ -94,7 +96,7 @@ export default class Collection {
             return Response.json(item);
         }
 
-        if (!this.roleCan(role,"w"))
+        if (!this.access.includes(role))
             return new Response("Not authorized",{status: 403});
 
         // Create.
@@ -226,7 +228,7 @@ export class ViewCollection extends Collection {
             return await super.handleRequest(req,argv);
 
         let role=await this.server.getRoleByRequest(req);
-        if (!this.roleCan(role,"r"))
+        if (!this.readAccess.includes(role))
             return new Response("Not authorized",{status: 403});
 
         // Find.
@@ -242,7 +244,7 @@ export class ViewCollection extends Collection {
             return Response.json({...item, id: "single"});
         }
 
-        if (!this.roleCan(role,"w"))
+        if (!this.access.includes(role))
             return new Response("Not authorized",{status: 403});
 
         // Update.

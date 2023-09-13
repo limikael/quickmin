@@ -134,7 +134,7 @@ function createLayout(conf, role) {
 
         for (let cid in conf.collections) {
             let collection=conf.collections[cid];
-            if (collection.access[role]) {
+            if (collection.readAccess.includes(role)) {
                 switch (collection.type) {
                     case "singleView":
                         let text=cid;
@@ -189,12 +189,11 @@ export default function QuickminAdmin({api, onload}) {
     for (let cid in conf.collections) {
         let collection=conf.collections[cid];
 
-        if (collection.access[role]) {
-            if (!collection.access[role].includes("w"))
-                collection.disabled=true;
+        if (!collection.access.includes(role))
+            collection.disabled=true;
 
+        if (collection.readAccess.includes(role))
             resources.push(collectionResource({key: cid, ...collection}));
-        }
     }
 
     return (<>

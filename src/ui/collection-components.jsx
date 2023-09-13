@@ -21,9 +21,12 @@ function collectionEditor(collection, mode) {
     let fieldContent=[];
     for (let fid in collection.fields) {
         let f=collection.fields[fid];
+
+        if (collection.disabled)
+            f.disabled=true;
+
         if (!f.hidden) {
             let Comp=FIELD_TYPES[f.type].edit;
-            f.disabled=collection.disabled;
             fieldContent.push(
                 <Comp source={fid} key={fid} {...f}/>
             );
