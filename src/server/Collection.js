@@ -9,7 +9,6 @@ let SQL_TYPES={
     "select": "text",
     "image": "text",
     "authmethod": "text",
-    "roleselect": "text",
     "reference": "integer"
 };
 
@@ -18,24 +17,14 @@ export default class Collection {
 		this.id=id;
         this.fields={};
         this.listFields=[];
-        this.role=conf.role;
-        this.writeRole=conf.writeRole;
         this.server=server;
 
-        if (this.role && this.server.roles.indexOf(this.role)<0)
-            throw new Error("Unknown role: "+this.role);
-
-        if (this.writeRole && this.server.roles.indexOf(this.writeRole)<0)
-            throw new Error("Unknown write role: "+this.writeRole);
-
-        this.roleLevel=this.server.roles.indexOf(this.role);
-        this.writeRoleLevel=this.server.roles.indexOf(this.writeRole);
-
-        if (this.writeRoleLevel<0)
-            this.writeRoleLevel=0;
-
-        if (this.writeRoleLevel<this.roleLevel)
-            this.writeRoleLevel=this.roleLevel;
+        this.access=conf.access;
+        if (!this.access)
+            this.access={
+                public: "r",
+                admin: "rw"
+            };
 	}
 
     getType() {
@@ -54,19 +43,40 @@ export default class Collection {
             type: this.getType(),
         	fields: this.fields,
         	listFields: this.listFields,
-        	roleLevel: this.roleLevel,
-        	writeRoleLevel: this.writeRoleLevel
+            access: this.access
 		}
 	}
 
+    roleCan(role, action) {
+        if (!this.access[role])
+            return false;
+
+        if (!this.access[role].includes("r"))
+            return false;
+
+        return true;
+    }
+
 	async handleRequest(req, argv) {
-        await this.server.assertRequestRoleLevel(req,this.roleLevel);
+        let role=await this.server.getRoleByRequest(req);
+        //console.log("role: "+role);
+
+        if (!this.roleCan(role,"r"))
+            return new Response("Not authorized",{status: 403});
 
         // List.
 		if (req.method=="GET" && argv.length==0) {
+            let filter={};
+            let u=new URL(req.url);
+            let filterJson=u.searchParams.get("filter");
+            if (filterJson)
+                filter=JSON.parse(filterJson);
+
+            //console.log(filter);
+
 			let data=await this.server.db.findMany(
                 this.getTableName(),
-                await this.getWhere(req)
+                {...filter, ...await this.getWhere(req)}
             );
             return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
 		}
@@ -84,7 +94,8 @@ export default class Collection {
             return Response.json(item);
         }
 
-        await this.server.assertRequestRoleLevel(req,this.writeRoleLevel);
+        if (!this.roleCan(role,"w"))
+            return new Response("Not authorized",{status: 403});
 
         // Create.
         if (req.method=="POST" && argv.length==0) {
@@ -132,11 +143,6 @@ export class TableCollection extends Collection {
             if (!SQL_TYPES[type])
                 throw new Error("Unknown field type: "+type);
 
-            if (type=="roleselect") {
-                fieldEl.attributes.choices=this.server.conf.roles;
-                fieldEl.attributes.role=true;
-            }
-
             let el={
                 type: type,
                 sqlType: SQL_TYPES[type],
@@ -183,7 +189,8 @@ export class ViewCollection extends Collection {
             exclude=[];
 
         for (let k in this.where)
-            exclude.push(k);
+            if (k!="id")
+                exclude.push(k);
 
         for (let ex of exclude) {
             if (this.listFields.includes(ex))
@@ -218,7 +225,9 @@ export class ViewCollection extends Collection {
         if (this.getType()!="singleView")
             return await super.handleRequest(req,argv);
 
-        await this.server.assertRequestRoleLevel(req,this.roleLevel);
+        let role=await this.server.getRoleByRequest(req);
+        if (!this.roleCan(role,"r"))
+            return new Response("Not authorized",{status: 403});
 
         // Find.
         if (req.method=="GET" && jsonEq(argv,["single"])) {
@@ -233,12 +242,14 @@ export class ViewCollection extends Collection {
             return Response.json({...item, id: "single"});
         }
 
-        await this.server.assertRequestRoleLevel(req,this.writeRoleLevel);
+        if (!this.roleCan(role,"w"))
+            return new Response("Not authorized",{status: 403});
 
         // Update.
         if (req.method=="PUT" && jsonEq(argv,["single"])) {
             let data=await this.server.getRequestFormData(req);
             delete data.id;
+            //console.log(await this.getWhere(req));
             let queryResult=await this.server.db.update(
                 this.getTableName(),
                 {...await this.getWhere(req)},

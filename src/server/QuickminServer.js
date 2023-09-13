@@ -129,7 +129,7 @@ export default class QuickminServer {
             let token=jwtSign(payload,this.conf.jwtSecret);
             return Response.json({
                 username: userRecord[usernameField],
-                roleLevel: await this.getRoleLevelByUserId(payload.userId),
+                role: await this.getRoleByUserId(payload.userId),
                 token: token
             });
         }
@@ -145,7 +145,7 @@ export default class QuickminServer {
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
                     username: this.conf.adminUser,
-                    roleLevel: await this.getRoleLevelByUserId(payload.userId),
+                    role: await this.getRoleByUserId(payload.userId),
                     token: token
                 });
             }
@@ -173,10 +173,12 @@ export default class QuickminServer {
        return payload.userId;
     }
 
-    async getRoleLevelByUserId(userId) {
-        if (userId==-1) {
-            return this.roles.length-1;
-        }
+    async getRoleByUserId(userId) {
+        if (userId==-1)
+            return "admin";
+
+        if (!userId)
+            return "public";
 
         if (!this.authCollection)
             return -1;
@@ -186,18 +188,11 @@ export default class QuickminServer {
             return -1;
 
         let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
-        let level=this.roles.indexOf(userRecord[roleField]);
-        if (level<0)
-            level=0;
-
-        return level;
+        return userRecord[roleField];
     }
 
-    async assertRequestRoleLevel(req, requiredLevel) {
-        let userId=await this.getUserIdByRequest(req);
-        let requestLevel=await this.getRoleLevelByUserId(userId);
-        if (requestLevel<requiredLevel)
-            throw new Error("Not authorized");
+    async getRoleByRequest(req) {
+        return this.getRoleByUserId(this.getUserIdByRequest(req));
     }
 
     async getRequestFormData(req) {

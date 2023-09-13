@@ -2,7 +2,7 @@ import ClientOAuth2 from "client-oauth2";
 
 // should probably use: https://www.npmjs.com/package/simple-oauth2
 
-export default class GoogleAuth {
+export class GoogleAuth {
 	constructor(server) {
 		this.server=server;
 	}

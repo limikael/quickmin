@@ -55,6 +55,9 @@
     },
     "./r2-storage": {
       "import": "./src/export/r2-storage.js"
+    },
+    "./google-auth": {
+      "import": "./src/auth/google-auth.js"
     }
   }
 }

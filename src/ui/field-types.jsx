@@ -82,12 +82,6 @@ export const FIELD_TYPES={
         confProcessor: processSelectConf
     },
 
-    "roleselect": {
-        list: SelectField,
-        edit: SelectInput,
-        confProcessor: processSelectConf
-    },
-
     "reference": {
         list: ReferenceField,
         edit: ReferenceInput

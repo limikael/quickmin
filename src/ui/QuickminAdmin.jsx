@@ -62,7 +62,7 @@ function loginForm(conf) {
     }
 }
 
-async function fetchConf(apiUrl, setRoleLevel) {
+async function fetchConf(apiUrl, setRole) {
     let response=await fetchEx(urlJoin(apiUrl,"_schema"),{
         dataType: "json"
     });
@@ -79,7 +79,7 @@ async function fetchConf(apiUrl, setRoleLevel) {
 
     conf.apiUrl=apiUrl;
     if (conf.requireAuth) {
-        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),setRoleLevel);
+        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),setRole);
         conf.httpClient=conf.authProvider.httpClient;
     }
 
@@ -128,25 +128,28 @@ function Spinner() {
     )
 }
 
-function createLayout(conf) {
+function createLayout(conf, role) {
     return function QuickminLayout(props) {
         let menuItems=[];
 
         for (let cid in conf.collections) {
-            switch (conf.collections[cid].type) {
-                case "singleView":
-                    let text=cid;
-                    text=text.replaceAll("_"," ");
-                    text=text.charAt(0).toUpperCase()+text.slice(1);
-                    menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
-                        primaryText={text} 
-                        leftIcon={<LabelIcon/>}
-                    />);
-                    break;
+            let collection=conf.collections[cid];
+            if (collection.access[role]) {
+                switch (collection.type) {
+                    case "singleView":
+                        let text=cid;
+                        text=text.replaceAll("_"," ");
+                        text=text.charAt(0).toUpperCase()+text.slice(1);
+                        menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
+                            primaryText={text} 
+                            leftIcon={<LabelIcon/>}
+                        />);
+                        break;
 
-                default:
-                    menuItems.push(<Menu.ResourceItem name={cid} />);
-                    break;
+                    default:
+                        menuItems.push(<Menu.ResourceItem name={cid} />);
+                        break;
+                }
             }
         }
 
@@ -165,9 +168,9 @@ function createLayout(conf) {
 }
 
 export default function QuickminAdmin({api, onload}) {
-    let [roleLevel,setRoleLevel]=useState(window.localStorage.getItem("roleLevel"));
+    let [role,setRole]=useState(window.localStorage.getItem("role"));
     let conf=useAsyncMemo(async()=>{
-        let conf=await fetchConf(api,setRoleLevel);
+        let conf=await fetchConf(api,setRole);
         if (onload)
             onload();
 
@@ -186,13 +189,12 @@ export default function QuickminAdmin({api, onload}) {
     for (let cid in conf.collections) {
         let collection=conf.collections[cid];
 
-        //console.log("roleLevel "+roleLevel+" writeRoleLevel: "+collection.writeRoleLevel);
-        collection.disabled=false;
-        if (roleLevel<collection.writeRoleLevel)
-            collection.disabled=true;
+        if (collection.access[role]) {
+            if (!collection.access[role].includes("w"))
+                collection.disabled=true;
 
-        if (roleLevel>=collection.roleLevel)
             resources.push(collectionResource({key: cid, ...collection}));
+        }
     }
 
     return (<>
@@ -200,7 +202,7 @@ export default function QuickminAdmin({api, onload}) {
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
                 loginPage={loginForm(conf)}
-                layout={createLayout(conf)}>
+                layout={createLayout(conf,role)}>
             {resources}
         </Admin>
     </>);

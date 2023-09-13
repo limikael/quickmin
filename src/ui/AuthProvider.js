@@ -4,9 +4,9 @@ import {fetchUtils} from "ra-core";
 export class AuthError extends Error {};
 
 export default class AuthProvider {
-	constructor(url, setRoleLevel) {
+	constructor(url, setRole) {
 		this.url=url;
-		this.setRoleLevel=setRoleLevel;
+		this.setRole=setRole;
 	}
 
 	async checkAuth() {
@@ -17,10 +17,10 @@ export default class AuthProvider {
 	setLoggedIn(userData) {
     	window.localStorage.setItem("token",userData.token);
     	window.localStorage.setItem("username",userData.username);
-    	window.localStorage.setItem("roleLevel",userData.roleLevel);
+    	window.localStorage.setItem("role",userData.role);
 
-		console.log("logging in role level: "+userData.roleLevel);
-    	this.setRoleLevel(userData.roleLevel);
+		console.log("logging in role: "+userData.role);
+    	this.setRole(userData.role);
 	}
 
     login=async (params)=>{
@@ -46,8 +46,8 @@ export default class AuthProvider {
     async logout() {
     	window.localStorage.removeItem("token");
     	window.localStorage.removeItem("username");
-    	window.localStorage.removeItem("roleLevel");
-    	this.setRoleLevel(-1);
+    	window.localStorage.removeItem("role");
+    	this.setRole(null);
     } 
 
     async getIdentity() {
