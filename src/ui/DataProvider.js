@@ -53,13 +53,13 @@ export default class DataProvider {
     }
 
     getList=(resource, params)=>{
-        //console.log("get list...");
+        console.log("get list...");
 
     	return this.simpleRestProvider.getList(resource,params);
     }
 
     getOne=async (resource, params)=>{
-        //console.log("get one...");
+        console.log("get one...");
 
         let response=await this.simpleRestProvider.getOne(resource,params);
         response.data=this.processRead(resource,response.data);
@@ -67,6 +67,7 @@ export default class DataProvider {
     }
 
     getMany=async (resource, params)=>{
+        console.log("get many...");
         //console.log("get many, res="+resource+" params=",params);
 
         /*return ({data:[{
@@ -105,10 +106,19 @@ export default class DataProvider {
             body: formData,
         });
 
-        return {
+        console.log("update: ",response.json);
+
+/*        return {
             data: response.json
+        }*/
+
+        return {
+            data: this.processRead(resource,response.json)
         }
     }
+
+//        response.data=this.processRead(resource,response.data);
+
 
     updateMany=(resource, params)=>{
     	return this.simpleRestProvider.updateMany(resource,params);

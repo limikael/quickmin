@@ -9,5 +9,9 @@ Stories:
 - example
 - layout (sidebar, tab, section)
 - recordRepresentation
-- icons
+- menu icons
 - hierarchial menu
+
+Bugs:
+- The image dissappears!!!
+- Oauth not working in Wrangler

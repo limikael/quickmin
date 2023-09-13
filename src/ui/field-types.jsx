@@ -91,6 +91,8 @@ export const FIELD_TYPES={
 //        list: QuickminImageField,
         edit: QuickminImageInput,
         readProcessor(data, conf) {
+            console.log("got data: "+data);
+
             let url="";
             if (data)
                 url=urlJoin(conf.apiUrl,"_content",data);
