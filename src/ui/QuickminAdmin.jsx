@@ -1,8 +1,9 @@
-import {Admin, Layout, Menu} from 'react-admin';
+import {Admin, Layout, Menu, Resource, Title} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.jsx";
 import CircularProgress from '@mui/material/CircularProgress';
+import Card from "@mui/material/Card";
 import Box from '@mui/material/Box';
 import urlJoin from 'url-join';
 import {useMemo, useState, useCallback} from "react";
@@ -12,7 +13,7 @@ import LoginPage from "./LoginPage.jsx";
 import {Button, CardContent, Link} from '@mui/material';
 import {Login, LoginForm} from "ra-ui-materialui";
 import {collectionResource} from "./collection-components.jsx";
-import LabelIcon from '@mui/icons-material/esm/Label';
+import ViewListIcon from '@mui/icons-material/esm/ViewList';
 
 function loginForm(conf) {
     return function QuickminLogin(props) {
@@ -132,6 +133,8 @@ function createLayout(conf, role) {
     return function QuickminLayout(props) {
         let menuItems=[];
 
+        menuItems.push(<Menu.DashboardItem/>);
+
         for (let cid in conf.collections) {
             let collection=conf.collections[cid];
             if (collection.readAccess.includes(role)) {
@@ -142,7 +145,7 @@ function createLayout(conf, role) {
                         text=text.charAt(0).toUpperCase()+text.slice(1);
                         menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
                             primaryText={text} 
-                            leftIcon={<LabelIcon/>}
+                            leftIcon={<ViewListIcon/>}
                         />);
                         break;
 
@@ -152,6 +155,9 @@ function createLayout(conf, role) {
                 }
             }
         }
+
+        if (!menuItems.length)
+            menuItems.push(<Menu.DashboardItem/>);
 
         function QuickminMenu() {
             return (
@@ -167,7 +173,20 @@ function createLayout(conf, role) {
     }
 }
 
-export default function QuickminAdmin({api, onload}) {
+function wrapDashboard(dashboard) {
+    let Dashboard=dashboard;
+
+    return function() {
+        return (<>
+            <div style="margin: 1em">
+                <Title title="Admin" />
+                <Dashboard/>
+            </div>
+        </>)
+    }
+}
+
+export default function QuickminAdmin({api, onload, dashboard}) {
     let [role,setRole]=useState(window.localStorage.getItem("role"));
     let conf=useAsyncMemo(async()=>{
         let conf=await fetchConf(api,setRole);
@@ -189,19 +208,22 @@ export default function QuickminAdmin({api, onload}) {
     for (let cid in conf.collections) {
         let collection=conf.collections[cid];
 
-        if (!collection.access.includes(role))
-            collection.disabled=true;
+        collection.disabled=!collection.access.includes(role);
 
         if (collection.readAccess.includes(role))
             resources.push(collectionResource({key: cid, ...collection}));
     }
+
+    if (!resources.length)
+        resources.push(<Resource/>);
 
     return (<>
         <Admin dataProvider={conf.dataProvider}
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
                 loginPage={loginForm(conf)}
-                layout={createLayout(conf,role)}>
+                layout={createLayout(conf,role)}
+                dashboard={wrapDashboard(dashboard)}>
             {resources}
         </Admin>
     </>);

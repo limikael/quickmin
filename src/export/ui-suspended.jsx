@@ -49,7 +49,7 @@ function Spinner() {
 	</>)
 }
 
-export default function({api}) {
+export default function(props) {
 	//console.log("here.......");
 
 	let [adminLoaded,setAdminLoaded]=useState();
@@ -61,7 +61,7 @@ export default function({api}) {
 	return (<>
 		{!adminLoaded && <Spinner/>}
 		<Suspense>
-			<QuickminAdmin api={api} onload={()=>setAdminLoaded(true)}/>
+			<QuickminAdmin onload={()=>setAdminLoaded(true)} {...props}/>
 		</Suspense>
 	</>);
 }
