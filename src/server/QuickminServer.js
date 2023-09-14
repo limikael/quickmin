@@ -202,6 +202,7 @@ export default class QuickminServer {
             if (data instanceof File) {
                 console.log("processing file: "+data.name);
                 await this.storage.putFile(data);
+                //console.log("done putting...");
                 record[name]=data.name;
             }
 

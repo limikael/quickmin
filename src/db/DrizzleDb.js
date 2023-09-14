@@ -70,7 +70,7 @@ export default class DrizzleDb {
     }
 
     async update(modelName, query, data) {
-        let updateResult=this.drizzle
+        let updateResult=await this.drizzle
             .update(this.tables[modelName])
             .set(data)
             .where(this.buildWhere(modelName,query))
@@ -84,7 +84,7 @@ export default class DrizzleDb {
     }
 
     async delete(modelName, query) {
-        let deleteResult=this.drizzle
+        let deleteResult=await this.drizzle
             .delete(this.tables[modelName])
             .where(this.buildWhere(modelName,query))
             .returning({deleted: this.tables[modelName]})

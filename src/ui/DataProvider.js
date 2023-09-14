@@ -106,19 +106,10 @@ export default class DataProvider {
             body: formData,
         });
 
-        console.log("update: ",response.json);
-
-/*        return {
-            data: response.json
-        }*/
-
         return {
             data: this.processRead(resource,response.json)
         }
     }
-
-//        response.data=this.processRead(resource,response.data);
-
 
     updateMany=(resource, params)=>{
     	return this.simpleRestProvider.updateMany(resource,params);

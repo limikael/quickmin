@@ -111,6 +111,7 @@ export default class Collection {
         // Update.
         if (req.method=="PUT" && argv.length==1) {
             let data=await this.server.getRequestFormData(req);
+
             return Response.json(await this.server.db.update(
                 this.getTableName(),
                 {id: argv[0], ...await this.getWhere(req)},

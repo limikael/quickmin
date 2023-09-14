@@ -4,7 +4,8 @@ export default class R2Storage {
     }
 
     async putFile(f) {
-        let object=await this.r2.put(f.name,await f.arrayBuffer());
+        let arrayBuffer=await f.arrayBuffer();
+        let object=await this.r2.put(f.name,arrayBuffer);
     }
 
     async getResponse(key, req) {
@@ -22,7 +23,7 @@ export default class R2Storage {
 
         const headers = new Headers();
         object.writeHttpMetadata(headers);
-//        headers.set('etag', object.httpEtag.replaceAll('"',""));
+        //headers.set('etag', object.httpEtag.replaceAll('"',""));
         headers.set('etag', object.httpEtag);
 
         if (!object.body)
