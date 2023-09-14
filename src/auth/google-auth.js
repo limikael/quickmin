@@ -1,6 +1,6 @@
-import ClientOAuth2 from "client-oauth2";
-
-// should probably use: https://www.npmjs.com/package/simple-oauth2
+function auth (username, password) {
+    return 'Basic ' + btoa(username + ':' + password)
+}
 
 export class GoogleAuth {
 	constructor(server) {
@@ -19,22 +19,55 @@ export class GoogleAuth {
     }
 
 	async getLoginUrl(reurl) {
-        let authUrl=await this.createGoogleAuthClient(reurl).code.getUri({
-            state: "google"
-        });
-        authUrl+="&prompt=select_account";
+        let u=new URL("https://accounts.google.com/o/oauth2/auth");
+        u.searchParams.set("client_id",this.server.conf.googleClientId);
+        u.searchParams.set("response_type","code");
+        u.searchParams.set("state","google");
+        u.searchParams.set("scope","https://www.googleapis.com/auth/userinfo.email");
+        u.searchParams.set("prompt","select_account");
+        u.searchParams.set("redirect_uri",reurl);
 
+        let authUrl=u.toString();
+
+        //console.log("google login url: "+authUrl);
         return authUrl;
 	}
 
-	async process(reurl, url) {
-        let res=await this.createGoogleAuthClient(reurl).code.getToken(url);
-        let apiUrl="https://oauth2.googleapis.com/tokeninfo?"+new URLSearchParams({
-            id_token: res.data.id_token
-        });
+	async process(url) {
+        let u=new URL(url);
+        let redirect_uri=u.origin+u.pathname;
+        let code=u.searchParams.get("code");
 
-        let response=await fetch(apiUrl);
-        let tokenInfo=await response.json();
+        //console.log("redirect_uri: "+redirect_uri);
+
+        let headers=new Headers();
+        headers.set("accept","application/json");
+        headers.set("content-type","application/x-www-form-urlencoded");
+        headers.set("authorization",auth(
+            this.server.conf.googleClientId,
+            this.server.conf.googleClientSecret
+        ));
+
+        let bodyParams=new URLSearchParams();
+        bodyParams.set("code",code);
+        bodyParams.set("grant_type","authorization_code");
+        bodyParams.set("redirect_uri",redirect_uri);
+
+        let fetchUrl="https://oauth2.googleapis.com/token";
+        let fetchOptions={
+            method: "POST",
+            headers: headers,
+            body: bodyParams.toString()
+        };
+
+        let tokenResponse=await fetch(fetchUrl,fetchOptions);
+        let tokenBody=await tokenResponse.json();
+
+        let infoUrl=new URL("https://oauth2.googleapis.com/tokeninfo");
+        infoUrl.searchParams.set("id_token",tokenBody.id_token);
+
+        let infoResponse=await fetch(infoUrl.toString());
+        let tokenInfo=await infoResponse.json();
 
         return tokenInfo.email;
 	}

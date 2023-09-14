@@ -107,9 +107,9 @@ export default class QuickminServer {
         else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
             let body=await req.json();
             let provider=body.state;
-            let u=new URL(req.headers.get("referer"))
-            let reurl=u.origin+u.pathname;
-            let loginToken=await this.authMethods[provider].process(reurl, body.url);
+            /*let u=new URL(req.headers.get("referer"))
+            let reurl=u.origin+u.pathname;*/
+            let loginToken=await this.authMethods[provider].process(body.url);
 
             let q={};
             q[this.authMethods[provider].fieldId]=loginToken;

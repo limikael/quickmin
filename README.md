@@ -13,5 +13,5 @@ Stories:
 - hierarchial menu
 
 Bugs:
-- The image dissappears!!!
+x The image dissappears!!!
 - Oauth not working in Wrangler

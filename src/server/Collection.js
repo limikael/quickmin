@@ -214,10 +214,18 @@ export class ViewCollection extends Collection {
 
     async getWhere(req) {
         let userId=await this.server.getUserIdByRequest(req);
-        let retWhere={};
+        let replacements={
+            "${userId}": userId,
+            "$userId": userId
+        }
 
-        for (let k in this.where) {
-            retWhere[k]=evalInScope("`"+this.where[k]+"`",{userId: userId});
+        let retWhere={};
+        for (let whereK in this.where) {
+            let v=this.where[whereK];
+            for (let replacementK in replacements)
+                v=v.replaceAll(replacementK,replacements[replacementK]);
+
+            retWhere[whereK]=v;
         }
 
         return retWhere;
