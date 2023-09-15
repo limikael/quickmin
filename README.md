@@ -1,12 +1,3 @@
-Done:
-x pass props
-x auth
-x views
-x date field
-x migration
-x The image dissappears!!!
-x Oauth not working in Wrangler
-
 Todo:
 - search
 - indices
@@ -18,3 +9,13 @@ Todo:
 - uuid for filenames
 
 Bugs:
+
+Done:
+x pass props
+x auth
+x views
+x date field
+x migration
+x The image dissappears!!!
+x Oauth not working in Wrangler
+
