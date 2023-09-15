@@ -8,6 +8,8 @@ x The image dissappears!!!
 x Oauth not working in Wrangler
 
 Todo:
+- search
+- indices
 - example
 - layout (sidebar, tab, section)
 - recordRepresentation
