@@ -202,6 +202,13 @@ export class ViewCollection extends Collection {
             this.fields[ex].hidden=true;
         }
 
+        if (conf.modify) {
+            for (let modifyFid in conf.modify) {
+                for (let modifyProp in conf.modify[modifyFid])
+                    this.fields[modifyFid][modifyProp]=conf.modify[modifyFid][modifyProp];
+            }
+        }
+
         this.single=conf.single;
     }
 

@@ -1,5 +1,6 @@
 import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton} from "react-admin";
 import FIELD_TYPES from "./field-types.jsx";
+import {jsonClone} from "../utils/js-util.js";
 
 function collectionList(collection) {
     return (
@@ -20,9 +21,9 @@ function collectionList(collection) {
 function collectionEditor(collection, mode) {
     let fieldContent=[];
     for (let fid in collection.fields) {
-        let f=collection.fields[fid];
+        let f=jsonClone(collection.fields[fid]);
 
-        //if (collection.disabled)
+        if (collection.disabled)
             f.disabled=collection.disabled;
 
         if (!f.hidden) {
