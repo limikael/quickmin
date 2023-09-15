@@ -1,16 +1,14 @@
 import {useInput,useResourceContext} from 'react-admin';
 import {styled} from '@mui/material/styles';
 import clsx from 'clsx';
-import {Labeled} from 'ra-ui-materialui';
-//import Document from '@tiptap/extension-document'
-//import Paragraph from '@tiptap/extension-paragraph'
-//import Text from '@tiptap/extension-text'
+import {Labeled, InputHelperText} from 'ra-ui-materialui';
 import {EditorContent, useEditor} from '@tiptap/react'
 import React from 'react'
 import StarterKit from '@tiptap/starter-kit'
 import {FrugalTextInputToolbar} from "./FrugalTextInputToolbar";
 import {useState,useMemo} from "react";
 import TextAlign from '@tiptap/extension-text-align';
+import {FormHelperText} from '@mui/material';
 
 export const FrugalTextInput = (props) => {
     const {
@@ -37,35 +35,41 @@ export const FrugalTextInput = (props) => {
 
     return (
         <Root
-            className={clsx(
-                'ra-input',
-                `ra-input-${source}`,
-                className,
-                fullWidth ? 'fullWidth' : ''
-            )}
-            sx={sx}
-        >
+               className={clsx(
+                    'ra-input',
+                    `ra-input-${source}`,
+                    className,
+                    fullWidth ? 'fullWidth' : ''
+                )}
+                sx={sx}>
             <Labeled
-                isRequired={isRequired}
-                label={label}
-                id={`${id}-label`}
-                color={fieldState?.invalid ? 'error' : undefined}
-                source={source}
-                resource={resource}
-                fullWidth={fullWidth}
-            >
-                <FrugalTextInputContent field={field} disabled={disabled}/>
+                    isRequired={isRequired}
+                    label={label}
+                    id={`${id}-label`}
+                    color={fieldState?.invalid ? 'error' : undefined}
+                    source={source}
+                    resource={resource}
+                    fullWidth={fullWidth}>
+                <FrugalTextInputContent 
+                        field={field} 
+                        disabled={disabled} 
+                        helperText={helperText}/>
             </Labeled>
         </Root>
     );
 };
 
-function FrugalTextInputContent({field, disabled}) {
+function FrugalTextInputContent({field, disabled, helperText}) {
     let dispatcher=useMemo(()=>new EventTarget(),[]);
 
     return (<>
         <FrugalTextInputToolbar dispatcher={dispatcher} disabled={disabled}/>
         <FrugalTextInputEditor dispatcher={dispatcher} field={field} disabled={disabled}/>
+        {helperText &&
+            <FormHelperText style="margin-left: 14px">
+                <InputHelperText helperText={helperText}/>
+            </FormHelperText>
+        }
     </>);
 }
 
