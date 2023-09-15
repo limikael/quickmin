@@ -36,10 +36,6 @@ export default class AuthProvider {
 	    	throw new Error("Unable to log in");
 
 	    this.setLoggedIn(result.data);
-	    /*setTimeout(()=>{
-		    let u=new URL(window.location);
-		    window.location=u.origin+u.pathname+"#/my_posts";
-	    },0);*/
     }
 
     async checkError(error) {

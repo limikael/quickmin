@@ -57,6 +57,9 @@
     },
     "./google-auth": {
       "import": "./src/auth/google-auth.js"
+    },
+    "./api": {
+      "import": "./src/export/api.jsx"
     }
   }
 }

@@ -4,6 +4,7 @@ import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 import {TableCollection, ViewCollection} from "./Collection.js";
+import urlJoin from "url-join";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -85,13 +86,38 @@ export default class QuickminServer {
             return await this.storage.getResponse(argv[1],req);
         }
 
+        else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
+            let reqUrl=new URL(req.url);
+            let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
+
+            let refererUrl=new URL(referer);
+            refererUrl.search=reqUrl.searchParams;
+
+            let headers=new Headers();
+            headers.set("location",refererUrl);
+            return new Response("Moved",{
+                status: 302,
+                headers: headers
+            });
+        }
+
         else if (req.method=="GET" && jsonEq(argv,["_schema"])) {
-            let u=new URL(req.headers.get("referer"))
-            let reurl=u.origin+u.pathname;
+            //let u=new URL(req.headers.get("referer"))
+
+            let reqUrl=new URL(req.url);
+            if (reqUrl.searchParams.get("oauthHostname"))
+                reqUrl.hostname=reqUrl.searchParams.get("oauthHostname");
+
+            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
 
             let authButtons={};
-            for (let method in this.authMethods)
-                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl);
+            for (let method in this.authMethods) {
+                let state=JSON.stringify({
+                    referer: req.headers.get("referer"),
+                    provider: method
+                });
+                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl,state);
+            }
 
             let collectionsSchema={};
             for (let cid in this.collections)
@@ -105,11 +131,15 @@ export default class QuickminServer {
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
+            let reqUrl=new URL(req.url);
             let body=await req.json();
-            let provider=body.state;
-            /*let u=new URL(req.headers.get("referer"))
-            let reurl=u.origin+u.pathname;*/
-            let loginToken=await this.authMethods[provider].process(body.url);
+            let {provider}=JSON.parse(body.state);
+
+            if (body.oauthHostname)
+                reqUrl.hostname=body.oauthHostname;
+
+            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
+            let loginToken=await this.authMethods[provider].process(body.url,reurl);
 
             let q={};
             q[this.authMethods[provider].fieldId]=loginToken;

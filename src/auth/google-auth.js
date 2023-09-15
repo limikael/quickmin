@@ -18,11 +18,12 @@ export class GoogleAuth {
         });
     }
 
-	async getLoginUrl(reurl) {
+	async getLoginUrl(reurl, state) {
         let u=new URL("https://accounts.google.com/o/oauth2/auth");
         u.searchParams.set("client_id",this.server.conf.googleClientId);
         u.searchParams.set("response_type","code");
-        u.searchParams.set("state","google");
+        //u.searchParams.set("state","google");
+        u.searchParams.set("state",state);
         u.searchParams.set("scope","https://www.googleapis.com/auth/userinfo.email");
         u.searchParams.set("prompt","select_account");
         u.searchParams.set("redirect_uri",reurl);
@@ -33,10 +34,11 @@ export class GoogleAuth {
         return authUrl;
 	}
 
-	async process(url) {
+	async process(url, redirect_uri) {
         let u=new URL(url);
-        let redirect_uri=u.origin+u.pathname;
         let code=u.searchParams.get("code");
+
+        //let redirect_uri=u.origin+u.pathname;
 
         //console.log("redirect_uri: "+redirect_uri);
 

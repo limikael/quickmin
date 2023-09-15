@@ -63,8 +63,12 @@ function loginForm(conf) {
     }
 }
 
-async function fetchConf(apiUrl, setRole) {
-    let response=await fetchEx(urlJoin(apiUrl,"_schema"),{
+async function fetchConf(apiUrl, setRole, oauthHostname) {
+    let confUrl=urlJoin(apiUrl,"_schema");
+    if (oauthHostname)
+        confUrl+="?oauthHostname="+oauthHostname;
+
+    let response=await fetchEx(confUrl,{
         dataType: "json"
     });
 
@@ -97,12 +101,14 @@ async function fetchConf(apiUrl, setRole) {
                 headers:{'content-type': 'application/json'},
                 body: JSON.stringify({
                     "url": window.location.toString(),
-                    "state": u.searchParams.get("state")
+                    "state": u.searchParams.get("state"),
+                    "oauthHostname": oauthHostname
                 }),
                 dataType: "json"
             });
 
             conf.authProvider.setLoggedIn(result.data);
+            //history.replaceState(null,"",u.origin+u.pathname);
             window.location=u.origin+u.pathname;
             return;
         }
@@ -186,10 +192,10 @@ function wrapDashboard(dashboard) {
     }
 }
 
-export default function QuickminAdmin({api, onload, dashboard}) {
+export default function QuickminAdmin({api, onload, dashboard, oauthHostname}) {
     let [role,setRole]=useState(window.localStorage.getItem("role"));
     let conf=useAsyncMemo(async()=>{
-        let conf=await fetchConf(api,setRole);
+        let conf=await fetchConf(api,setRole,oauthHostname);
         if (onload)
             onload();
 
