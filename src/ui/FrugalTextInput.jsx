@@ -2,13 +2,14 @@ import {useInput,useResourceContext} from 'react-admin';
 import {styled} from '@mui/material/styles';
 import clsx from 'clsx';
 import {Labeled, InputHelperText} from 'ra-ui-materialui';
-import {EditorContent, useEditor} from '@tiptap/react'
-import React from 'react'
 import StarterKit from '@tiptap/starter-kit'
 import {FrugalTextInputToolbar} from "./FrugalTextInputToolbar";
 import {useState,useMemo} from "react";
-import TextAlign from '@tiptap/extension-text-align';
 import {FormHelperText} from '@mui/material';
+import React from 'react'
+import {EditorContent, useEditor} from '@tiptap/react'
+import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link'
 
 export const FrugalTextInput = (props) => {
     const {
@@ -79,6 +80,9 @@ function FrugalTextInputEditor({dispatcher, field, disabled}) {
             StarterKit.configure({}),
             TextAlign.configure({
                 types: ['heading', 'paragraph'],
+            }),
+            Link.configure({
+                openOnClick: false
             }),
         ],
         content: field.value,

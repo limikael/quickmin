@@ -15,6 +15,7 @@ import FormatAlignRight from '@mui/icons-material/esm/FormatAlignRight';
 import FormatAlignJustify from '@mui/icons-material/esm/FormatAlignJustify';
 import FormatListBulleted from '@mui/icons-material/esm/FormatListBulleted';
 import FormatListNumbered from '@mui/icons-material/esm/FormatListNumbered';
+import Link from '@mui/icons-material/esm/Link';
 
 export function FrugalTextInputToolbar({dispatcher, disabled}) {
     let toolbarState=useRef({marks:[], level:"normal"});
@@ -25,7 +26,7 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
             marks: []
         };
 
-        let marks=["bold","italic","strike","code","bulletList","orderedList"];
+        let marks=["bold","italic","strike","code","bulletList","orderedList","link"];
         for (let mark of marks)
             if (dispatcher.editor.isActive(mark))
                 newState.marks.push(mark);
@@ -76,6 +77,25 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
                 dispatcher.editor.commands.toggleOrderedList();
                 break;
 
+            case "link":
+                let editor=dispatcher.editor;
+                const previousUrl=editor.getAttributes('link').href;
+                const url=window.prompt('URL', previousUrl);
+
+                if (url===null)
+                    return;
+
+                if (url==='') {
+                    editor.chain().focus()
+                        .extendMarkRange('link').unsetLink()
+                        .run();
+                    return;
+                }
+
+                editor.chain().focus()
+                    .extendMarkRange('link').setLink({href: url})
+                    .run();
+                break;
         }
 
         dispatcher.editor.commands.focus();
@@ -133,6 +153,12 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
                 {markButtons({
                     "bulletList": FormatListBulleted,
                     "orderedList": FormatListNumbered,
+                })}
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup value={toolbarState.current.marks}>
+                {markButtons({
+                    "link": Link,
                 })}
             </ToggleButtonGroup>
         </Root>
