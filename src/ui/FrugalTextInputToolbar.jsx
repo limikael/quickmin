@@ -3,6 +3,7 @@ import {ToggleButton,ToggleButtonGroup} from '@mui/material';
 import { List, ListItem, ListItemText, Menu, MenuItem, Select } from '@mui/material';
 import {useEventListener, useForceUpdate} from "../utils/react-util.jsx";
 import {useState, useRef} from "react";
+import urlJoin from "url-join";
 
 import FormatBold from '@mui/icons-material/esm/FormatBold';
 import FormatItalic from '@mui/icons-material/esm/FormatItalic';
@@ -16,10 +17,12 @@ import FormatAlignJustify from '@mui/icons-material/esm/FormatAlignJustify';
 import FormatListBulleted from '@mui/icons-material/esm/FormatListBulleted';
 import FormatListNumbered from '@mui/icons-material/esm/FormatListNumbered';
 import Link from '@mui/icons-material/esm/Link';
+import Image from '@mui/icons-material/esm/Image';
 
-export function FrugalTextInputToolbar({dispatcher, disabled}) {
+export function FrugalTextInputToolbar({dispatcher, disabled, apiPath, httpClient}) {
     let toolbarState=useRef({marks:[], level:"normal"});
     let forceUpdate=useForceUpdate();
+    let fileInputRef=useRef();
 
     function updateToolbarState() {
         let newState={
@@ -51,6 +54,29 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
 
     useEventListener(dispatcher,"create",updateToolbarState);
     useEventListener(dispatcher,"transaction",updateToolbarState);
+
+    async function onFileInputChange(ev) {
+        let editor=dispatcher.editor;
+        ev.preventDefault();
+
+        let formData=new FormData();
+        formData.append("file",fileInputRef.current.files[0]);
+
+        //console.log("sending to: "+urlJoin(apiPath,"_upload"));
+        let response=await httpClient(urlJoin(apiPath,"_upload"),{
+            method: "post",
+            body: formData
+        });
+
+        let file=response.json.file;
+        let fileUrl=urlJoin(apiPath,"_content",file);
+
+        editor.chain().focus().setImage({src: fileUrl}).run();
+
+        console.log("uploaded: "+fileUrl);
+
+        fileInputRef.current.value="";
+    }
 
     function onToggle(ev, value) {
         switch (value) {
@@ -95,6 +121,11 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
                 editor.chain().focus()
                     .extendMarkRange('link').setLink({href: url})
                     .run();
+                break;
+
+            case "image":
+                fileInputRef.current.value="";
+                fileInputRef.current.click();
                 break;
         }
 
@@ -159,8 +190,13 @@ export function FrugalTextInputToolbar({dispatcher, disabled}) {
             <ToggleButtonGroup value={toolbarState.current.marks}>
                 {markButtons({
                     "link": Link,
+                    "image": Image
                 })}
             </ToggleButtonGroup>
+
+            <input type="file" style="display:none"
+                    ref={fileInputRef} 
+                    onchange={onFileInputChange}/>
         </Root>
     );
 }

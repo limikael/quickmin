@@ -1,5 +1,5 @@
 import {parse as parseXml} from "txml";
-import {jsonClone, evalInScope, jsonEq} from "../utils/js-util.js";
+import {jsonClone, jsonEq} from "../utils/js-util.js";
 
 let SQL_TYPES={
     "text": "text",

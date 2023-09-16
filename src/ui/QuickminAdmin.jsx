@@ -14,6 +14,7 @@ import {Button, CardContent, Link} from '@mui/material';
 import {Login, LoginForm} from "ra-ui-materialui";
 import {collectionResource} from "./collection-components.jsx";
 import ViewListIcon from '@mui/icons-material/esm/ViewList';
+import {fetchUtils} from "ra-core";
 
 function loginForm(conf) {
     return function QuickminLogin(props) {
@@ -73,22 +74,27 @@ async function fetchConf(apiUrl, setRole, oauthHostname) {
     });
 
     let conf=response.data;
-    for (let cid in conf.collections) {
-        for (let fid in conf.collections[cid].fields) {
-            let type=conf.collections[cid].fields[fid].type;
-            let processor=FIELD_TYPES[type].confProcessor;
-            if (processor) 
-                processor(conf.collections[cid].fields[fid]);
-        }
-    }
-
     conf.apiUrl=apiUrl;
+
     if (conf.requireAuth) {
         conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),setRole);
         conf.httpClient=conf.authProvider.httpClient;
     }
 
+    else {
+        conf.httpClient=fetchUtils.fetchJson;
+    }
+
     conf.dataProvider=new DataProvider(conf);
+
+    for (let cid in conf.collections) {
+        for (let fid in conf.collections[cid].fields) {
+            let type=conf.collections[cid].fields[fid].type;
+            let processor=FIELD_TYPES[type].confProcessor;
+            if (processor) 
+                processor(conf.collections[cid].fields[fid],conf);
+        }
+    }
 
     let u=new URL(window.location);
     if (u.searchParams.get("code") &&

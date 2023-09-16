@@ -59,6 +59,12 @@ export const FIELD_TYPES={
     "richtext": {
         list: TextField,
         edit: FrugalTextInput,
+        confProcessor(field, conf) {
+            //console.log("setting: ",conf.httpClient);
+            field.apiPath=conf.apiUrl;
+            field.httpClient=conf.httpClient;
+            return field;
+        }
     },
 
     "date": {
@@ -113,7 +119,7 @@ export const FIELD_TYPES={
             }
 
             return null;
-        }
+        },
     },
 };
 

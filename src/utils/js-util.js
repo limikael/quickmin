@@ -13,9 +13,16 @@ export function jsonClone(o) {
 	return JSON.parse(JSON.stringify(o));
 }
 
-export function evalInScope(js, contextAsScope) {
-	return new Function(`with (this) { return (${js}); }`).call(contextAsScope);
+export function getFileExt(fn) {
+	if (fn.lastIndexOf(".")<0)
+		throw new Error("Filename doesn't contain a dot.");
+
+	return fn.slice(fn.lastIndexOf("."));
 }
+
+/*export function evalInScope(js, contextAsScope) {
+	return new Function(`with (this) { return (${js}); }`).call(contextAsScope);
+}*/
 
 export async function fetchEx(url, options={}) {
 	if (options.query) {

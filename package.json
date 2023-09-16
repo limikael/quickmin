@@ -13,6 +13,7 @@
     "@hono/node-server": "^1.1.1",
     "@mui/icons-material": "^5.14.6",
     "@mui/material": "^5.14.6",
+    "@tiptap/extension-image": "^2.1.10",
     "@tiptap/extension-link": "^2.1.10",
     "@tiptap/extension-text-align": "^2.1.6",
     "@tiptap/pm": "^2.1.6",

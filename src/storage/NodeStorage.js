@@ -9,8 +9,8 @@ export default class NodeStorage {
 		this.storagePath=storagePath;
 	}
 
-	async putFile(f) {
-		let target=path.join(this.storagePath,f.name);
+	async putFile(name, f) {
+		let target=path.join(this.storagePath,name);
 		let data=Buffer.from(await f.arrayBuffer());
         fs.writeFileSync(target,data);
 	}

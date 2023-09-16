@@ -1,4 +1,4 @@
-import {netTry, splitPath, jsonEq} from "../utils/js-util.js";
+import {netTry, splitPath, jsonEq, getFileExt} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
@@ -80,6 +80,8 @@ export default class QuickminServer {
 
             argv.shift();
         }
+
+        //console.log(argv);
 
         if (argv[0]=="_content") {
             let path=new URL(req.url).pathname;
@@ -185,6 +187,18 @@ export default class QuickminServer {
             }
         }
 
+        else if (req.method=="POST" && jsonEq(argv,["_upload"])) {
+            if (!await this.getUserIdByRequest(req))
+                return new Response("Forbidden",{
+                    status: 403
+                });
+
+            let data=await this.getRequestFormData(req);
+            return Response.json({
+                file: data.file
+            });
+        }
+
         else if (this.collections[argv[0]]) {
             let collection=this.collections[argv[0]];
             return await collection.handleRequest(req, argv.slice(1));
@@ -230,10 +244,11 @@ export default class QuickminServer {
         let record={};
         for (let [name,data] of formData.entries()) {
             if (data instanceof File) {
-                console.log("processing file: "+data.name);
-                await this.storage.putFile(data);
+                //console.log("processing file: "+data.name);
+                let fn=crypto.randomUUID()+getFileExt(data.name);
+                await this.storage.putFile(fn,data);
                 //console.log("done putting...");
-                record[name]=data.name;
+                record[name]=fn;
             }
 
             else {

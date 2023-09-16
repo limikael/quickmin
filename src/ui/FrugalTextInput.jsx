@@ -10,6 +10,7 @@ import React from 'react'
 import {EditorContent, useEditor} from '@tiptap/react'
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
 
 export const FrugalTextInput = (props) => {
     const {
@@ -23,6 +24,8 @@ export const FrugalTextInput = (props) => {
         source,
         sx,
         toolbar,
+        apiPath,
+        httpClient
     } = props;
 
     const resource = useResourceContext(props);
@@ -54,18 +57,29 @@ export const FrugalTextInput = (props) => {
                 <FrugalTextInputContent 
                         field={field} 
                         disabled={disabled} 
-                        helperText={helperText}/>
+                        helperText={helperText}
+                        apiPath={apiPath}
+                        httpClient={httpClient}/>
             </Labeled>
         </Root>
     );
 };
 
-function FrugalTextInputContent({field, disabled, helperText}) {
+function FrugalTextInputContent({field, disabled, helperText, apiPath, httpClient}) {
     let dispatcher=useMemo(()=>new EventTarget(),[]);
 
     return (<>
-        <FrugalTextInputToolbar dispatcher={dispatcher} disabled={disabled}/>
-        <FrugalTextInputEditor dispatcher={dispatcher} field={field} disabled={disabled}/>
+        <FrugalTextInputToolbar 
+                dispatcher={dispatcher} 
+                disabled={disabled} 
+                apiPath={apiPath} 
+                httpClient={httpClient}/>
+
+        <FrugalTextInputEditor 
+                dispatcher={dispatcher} 
+                field={field} 
+                disabled={disabled}/>
+
         {helperText &&
             <FormHelperText style="margin-left: 14px">
                 <InputHelperText helperText={helperText}/>
@@ -82,8 +96,9 @@ function FrugalTextInputEditor({dispatcher, field, disabled}) {
                 types: ['heading', 'paragraph'],
             }),
             Link.configure({
-                openOnClick: false
+                //openOnClick: false
             }),
+            Image.configure({})
         ],
         content: field.value,
         onUpdate({editor}) {

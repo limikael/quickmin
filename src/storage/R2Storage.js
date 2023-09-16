@@ -3,9 +3,9 @@ export default class R2Storage {
         this.r2=r2;
     }
 
-    async putFile(f) {
+    async putFile(name, f) {
         let arrayBuffer=await f.arrayBuffer();
-        let object=await this.r2.put(f.name,arrayBuffer);
+        let object=await this.r2.put(name,arrayBuffer);
     }
 
     async getResponse(key, req) {

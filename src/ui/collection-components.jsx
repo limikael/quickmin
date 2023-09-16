@@ -21,7 +21,7 @@ function collectionList(collection) {
 function collectionEditor(collection, mode) {
     let fieldContent=[];
     for (let fid in collection.fields) {
-        let f=jsonClone(collection.fields[fid]);
+        let f={...collection.fields[fid]};
 
         if (collection.disabled)
             f.disabled=collection.disabled;
