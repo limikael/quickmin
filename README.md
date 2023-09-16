@@ -6,11 +6,11 @@ Todo:
 - recordRepresentation
 - menu icons
 - hierarchial menu
-- uuid for filenames
 
 Bugs:
 
 Done:
+x uuid for filenames
 x pass props
 x auth
 x views

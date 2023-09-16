@@ -20,10 +20,6 @@ export function getFileExt(fn) {
 	return fn.slice(fn.lastIndexOf("."));
 }
 
-/*export function evalInScope(js, contextAsScope) {
-	return new Function(`with (this) { return (${js}); }`).call(contextAsScope);
-}*/
-
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);
@@ -47,7 +43,7 @@ export async function fetchEx(url, options={}) {
 	return result;
 }
 
-export function netTry(res, fn) {
+/*export function netTry(res, fn) {
 	fn().catch(e=>{
 		res.status(500);
 		if (e instanceof Error) {
@@ -61,7 +57,7 @@ export function netTry(res, fn) {
 		else
 			res.end(e);
 	});
-}
+}*/
 
 export function trimChar(string, charToRemove) {
 	if (!string)
@@ -76,4 +72,11 @@ export function trimChar(string, charToRemove) {
     }
 
     return string;
+}
+
+export function makeNameFromSymbol(symbol) {
+    symbol=symbol.replaceAll("_"," ");
+    symbol=symbol.charAt(0).toUpperCase()+symbol.slice(1);
+
+    return symbol;
 }

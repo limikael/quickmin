@@ -36,6 +36,7 @@ export default class Collection {
 
         this.access=arrayify(conf.access);
         this.readAccess=[...this.access,...arrayify(conf.readAccess)];
+        this.helperText=conf.helperText;
 	}
 
     getType() {
@@ -55,7 +56,8 @@ export default class Collection {
         	fields: this.fields,
         	listFields: this.listFields,
             access: this.access,
-            readAccess: this.readAccess
+            readAccess: this.readAccess,
+            helperText: this.helperText
 		}
 	}
 

@@ -1,6 +1,6 @@
 import {Admin, Layout, Menu, Resource, Title} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
-import {fetchEx} from "../utils/js-util.js";
+import {fetchEx, makeNameFromSymbol} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.jsx";
 import CircularProgress from '@mui/material/CircularProgress';
 import Card from "@mui/material/Card";
@@ -10,11 +10,15 @@ import {useMemo, useState, useCallback} from "react";
 import AuthProvider from "./AuthProvider";
 import DataProvider from "./DataProvider";
 import LoginPage from "./LoginPage.jsx";
-import {Button, CardContent, Link} from '@mui/material';
+import {Button, CardContent, Link, CardActions} from '@mui/material';
 import {Login, LoginForm} from "ra-ui-materialui";
 import {collectionResource} from "./collection-components.jsx";
 import ViewListIcon from '@mui/icons-material/esm/ViewList';
 import {fetchUtils} from "ra-core";
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import {styled} from '@mui/material/styles';
 
 function loginForm(conf) {
     return function QuickminLogin(props) {
@@ -152,11 +156,8 @@ function createLayout(conf, role) {
             if (collection.readAccess.includes(role)) {
                 switch (collection.type) {
                     case "singleView":
-                        let text=cid;
-                        text=text.replaceAll("_"," ");
-                        text=text.charAt(0).toUpperCase()+text.slice(1);
                         menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
-                            primaryText={text} 
+                            primaryText={makeNameFromSymbol(cid)} 
                             leftIcon={<ViewListIcon/>}
                         />);
                         break;
@@ -185,14 +186,57 @@ function createLayout(conf, role) {
     }
 }
 
-function wrapDashboard(dashboard) {
-    let Dashboard=dashboard;
+function createDashboard(conf, role) {
+    let dashboardItems=[];
+    for (let cid in conf.collections) {
+        let collection=conf.collections[cid];
+        if (collection.readAccess.includes(role)
+                && collection.helperText) {
+            let link="#/"+collection.id;
+            if (collection.type=="singleView")
+                link="#/"+collection.id+"/single";
+
+            dashboardItems.push(
+                <Grid item xs={12} md={6}>
+                    <Paper>
+                        <CardContent>
+                            <Typography gutterBottom variant="h5" component="div">
+                                {makeNameFromSymbol(collection.id)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {collection.helperText}
+                            </Typography>
+                        </CardContent>
+                        <CardActions>
+                            {collection.type=="singleView" && <>
+                                <Button size="small" href={`#/${collection.id}/single`}>
+                                    EDIT
+                                </Button>
+                            </>}
+                            {collection.type!="singleView" && <>
+                                <Button size="small" href={`#/${collection.id}`}>
+                                    VIEW ALL
+                                </Button>
+                                <Button size="small" href={`#/${collection.id}/create`}>
+                                    CREATE NEW
+                                </Button>
+                            </>}
+                        </CardActions>
+                    </Paper>
+                </Grid>
+            );
+        }
+    }
 
     return function() {
         return (<>
             <div style="margin: 1em">
                 <Title title="Admin" />
-                <Dashboard/>
+                <Typography variant="h3" gutterBottom>Admin</Typography>
+
+                <Grid container spacing={3}>
+                    {dashboardItems}
+                </Grid>
             </div>
         </>)
     }
@@ -235,7 +279,7 @@ export default function QuickminAdmin({api, onload, dashboard, oauthHostname}) {
                 requireAuth={conf.requireAuth}
                 loginPage={loginForm(conf)}
                 layout={createLayout(conf,role)}
-                dashboard={wrapDashboard(dashboard)}>
+                dashboard={createDashboard(conf,role)}>
             {resources}
         </Admin>
     </>);

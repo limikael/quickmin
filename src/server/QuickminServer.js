@@ -1,4 +1,4 @@
-import {netTry, splitPath, jsonEq, getFileExt} from "../utils/js-util.js";
+import {splitPath, jsonEq, getFileExt} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
