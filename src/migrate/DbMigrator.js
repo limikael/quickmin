@@ -8,7 +8,7 @@ export default class DbMigrator {
 		for (let tableName in this.tables)
 			this.tableSpecs[tableName]=new TableSpec(
 				tableName,
-				this.tables[tableName],
+				this.tables[tableName].fields,
 				this
 			);
 
@@ -25,7 +25,7 @@ export default class DbMigrator {
 
 	async sync() {
 		for (let tableName in this.tableSpecs)
-			await this.tableSpecs[tableName].sync();
+			await this.tableSpecs[tableName].sync(this.force);
 	}
 
 	log(s) {

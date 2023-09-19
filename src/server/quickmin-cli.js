@@ -53,6 +53,11 @@ let yargsConf=yargs(hideBin(process.argv))
             +"No schema modifications made.",
         type: "boolean"
     })
+    .option("force",{
+        description: "Re-create tables and copy data, even if the schema seems up do date. "
+            +"Needed in order to apply foreign key constraints on an existing schema.",
+        type: "boolean"
+    })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
     .strict()
@@ -165,7 +170,10 @@ switch (command) {
         break;
 
     case "migrate":
-        await quickmin.sync(options.dryRun);
+        await quickmin.sync({
+            dryRun: options.dryRun,
+            force: options.force
+        });
         break;
 }
 

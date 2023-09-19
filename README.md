@@ -8,6 +8,7 @@ Todo:
 - hierarchial menu
 - cascading delete
 - actions
+- content garbage collecting
 
 Bugs:
 

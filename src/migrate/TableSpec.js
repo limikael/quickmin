@@ -41,7 +41,7 @@ export default class TableSpec {
 		return true;
 	}
 
-	async sync() {
+	async sync(force) {
 		let existingSpecs=await this.describe();
 
 		// If it doesn't exist, create.
@@ -52,7 +52,7 @@ export default class TableSpec {
 		}
 
 		// If up to date, don't do anything.
-		if (this.isCurrent(existingSpecs)) {
+		if (this.isCurrent(existingSpecs) && !force) {
 			this.migrator.log("[current]  "+this.name);
 			return;
 		}
@@ -77,19 +77,18 @@ export default class TableSpec {
 	}
 
 	async createTable(suffix="") {
-		let qs=`CREATE TABLE ${this.name+suffix} (`;
-
-		let first=true;
+		let parts=[];
 		for (let fieldName in this.fieldSpecs) {
-			if (!first)
-				qs+=",";
-
-			first=false;
-			qs+=`\`${fieldName}\` ${this.fieldSpecs[fieldName].getSql()}`;
+			parts.push(this.fieldSpecs[fieldName].getSql());
 		}
 
-		qs+=")";
+		for (let fieldName in this.fieldSpecs) {
+			let extraSql=this.fieldSpecs[fieldName].getExtraSql();
+			if (extraSql)
+				parts.push(extraSql);
+		}
 
+		let qs=`CREATE TABLE ${this.name+suffix} (${parts.join(",")})`;
 		await this.migrator.runSql(qs);
 	}
 }

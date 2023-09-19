@@ -6,6 +6,8 @@ export default class FieldSpec {
 			name: spec.name,
 			type: spec.type,
 			pk: spec.pk,
+			reference_table: spec.reference_table,
+			reference_field: spec.reference_field
 		});
 	}
 
@@ -30,11 +32,22 @@ export default class FieldSpec {
 	}
 
 	getSql() {
-		let s=this.type;
+		let s="`"+this.name+"` ";
+		s+=this.type;
 		s+=(this.null?" null":" not null");
 		if (this.pk)
 			s+=" primary key";
 
 		return s;
+	}
+
+	getExtraSql() {
+		if (this.reference_table)
+			return (
+//				`constraint \`${this.name}\` `+
+				`foreign key (\`${this.name}\`) `+
+				`references ${this.reference_table}(\`${this.reference_field}\`) `+
+				`on delete cascade`
+			);
 	}
 }

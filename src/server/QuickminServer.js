@@ -240,6 +240,7 @@ export default class QuickminServer {
     }
 
     async getRequestFormData(req) {
+        let exts=[".jpg",".jpeg",".png"];
         let contentType=req.headers.get("content-type").split(";")[0];
 
         switch (contentType) {
@@ -248,10 +249,14 @@ export default class QuickminServer {
                 let record={};
                 for (let [name,data] of formData.entries()) {
                     if (data instanceof File) {
-                        //console.log("processing file: "+data.name);
-                        let fn=crypto.randomUUID()+getFileExt(data.name);
+                        //console.log("putting: "+data.name+" size: "+data.size);
+
+                        let ext=getFileExt(data.name).toLowerCase();
+                        if (!exts.includes(ext))
+                            throw new Error("Unknown file type: "+ext);
+
+                        let fn=crypto.randomUUID()+ext;
                         await this.storage.putFile(fn,data);
-                        //console.log("done putting...");
                         record[name]=fn;
                     }
 
@@ -271,31 +276,44 @@ export default class QuickminServer {
         throw new Error("Unexpected content type: "+contentType);
     }
 
-    async sync(dryRun) {
+    async sync({dryRun, force}) {
         let tables={};
         for (let c in this.collections) {
             if (!this.collections[c].isView()) {
                 tables[c]={
-                    id: {
-                        type: "integer",
-                        pk: true
-                    }
+                    fields: {
+                        id: {
+                            type: "integer",
+                            pk: true
+                        }
+                    },
                 };
                 for (let f in this.collections[c].fields) {
-                    tables[c][f]={
-                        ...this.collections[c].fields[f],
+                    let field=this.collections[c].fields[f];
+                    let fieldSpec={
+                        ...field,
                         pk: false,
-                        type: this.collections[c].fields[f].sqlType,
+                        type: field.sqlType,
+                    };
+
+                    if (field.type=="reference") {
+                        fieldSpec.reference_table=fieldSpec.reference;
+                        fieldSpec.reference_field="id";
                     }
+
+                    tables[c].fields[f]=fieldSpec;
                 }
             }
         }
+
+        //console.log(JSON.stringify(tables,null,2));
 
         let migrator=new DbMigrator({
             getSql: this.db.getSql,
             runSql: this.db.runSql,
             tables: tables,
-            dryRun: dryRun
+            dryRun: dryRun,
+            force: force
         });
 
         await migrator.sync();
