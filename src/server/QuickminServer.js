@@ -240,23 +240,35 @@ export default class QuickminServer {
     }
 
     async getRequestFormData(req) {
-        let formData=await req.formData();
-        let record={};
-        for (let [name,data] of formData.entries()) {
-            if (data instanceof File) {
-                //console.log("processing file: "+data.name);
-                let fn=crypto.randomUUID()+getFileExt(data.name);
-                await this.storage.putFile(fn,data);
-                //console.log("done putting...");
-                record[name]=fn;
-            }
+        let contentType=req.headers.get("content-type").split(";")[0];
 
-            else {
-                record[name]=JSON.parse(data);
-            }
+        switch (contentType) {
+            case "multipart/form-data":
+                let formData=await req.formData();
+                let record={};
+                for (let [name,data] of formData.entries()) {
+                    if (data instanceof File) {
+                        //console.log("processing file: "+data.name);
+                        let fn=crypto.randomUUID()+getFileExt(data.name);
+                        await this.storage.putFile(fn,data);
+                        //console.log("done putting...");
+                        record[name]=fn;
+                    }
+
+                    else {
+                        record[name]=JSON.parse(data);
+                    }
+                }
+
+                return record;
+                break;
+
+            case "application/json":
+                return await req.json();
+                break;
         }
 
-        return record;
+        throw new Error("Unexpected content type: "+contentType);
     }
 
     async sync(dryRun) {

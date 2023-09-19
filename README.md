@@ -6,6 +6,8 @@ Todo:
 - recordRepresentation
 - menu icons
 - hierarchial menu
+- cascading delete
+- actions
 
 Bugs:
 
