@@ -30,11 +30,6 @@ let yargsConf=yargs(hideBin(process.argv))
         default: "quickmin.yaml",
         description: "Config file.",
     })
-    .option("ui",{
-        description: "Serve web UI.",
-        type: "boolean",
-        default: true
-    })
     .option("driver",{
         description: "Database driver to use.",
         choices: ["sequelize","drizzle","wrangler","wrangler-local"],
@@ -51,17 +46,21 @@ let yargsConf=yargs(hideBin(process.argv))
         type: "boolean"
     })
     .option("force",{
-        description: "Re-create tables and copy data, even if the schema seems up do date. "
+        description: "Recreate tables and copy data, even if the schema seems up do date. "
             +"Needed in order to apply foreign key constraints on an existing schema.",
         type: "boolean"
     })
-    .option("build-ui-outfile",{
-        description: "Target for build-ui.",
-        default: path.join(__dirname,"../../dist/quickmin-bundle.js"),
+    .option("uidir",{
+        description: "Where to build and look for quickmin-bundle.js",
+        default: path.join(__dirname,"../../dist/"),
+    })
+    .option("rebuild",{
+        description: "Rebuild UI files even if they exist.",
+        type: "boolean"
     })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
-    .command("build-ui","Create quickmin-bundle.js for local serving.")
+    .command("makeui","Create quickmin-bundle.js for local serving.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -72,13 +71,20 @@ let command=options._[0];
 if (!command)
     command="serve";
 
-async function buildUi() {
-    console.log("Creating client bundle: "+options.buildUiOutfile);
+async function makeUi() {
+    let outfile=path.join(options.uidir,"quickmin-bundle.js");
+
+    if (fs.existsSync(outfile) && !options.rebuild) {
+        console.log("Using existing UI: "+outfile);
+        return;
+    }
+
+    console.log("Creating client bundle: "+outfile);
 
     let esbuild=await import("esbuild");
     await esbuild.build({
         entryPoints: [path.join(__dirname,"../ui/QuickminAdmin.jsx")],
-        outfile: options.buildUiOutfile,
+        outfile: outfile,
         bundle: true,
         format: "esm",
         inject: ["isoq/preact-shim"],
@@ -95,10 +101,8 @@ async function buildUi() {
     });
 }
 
-if (command=="build-ui") {
-    await buildUi();
-    console.log("Done.");
-
+if (command=="makeui") {
+    await makeUi();
     process.exit();
 }
 
@@ -143,11 +147,9 @@ let quickmin=new QuickminServer(confYaml,drivers);
 
 switch (command) {
     case "serve":
-        if (!fs.existsSync(path.join(__dirname,"../../dist/quickmin-bundle.js")))
-            await buildUi();
+        await makeUi();
 
         let app=new Hono();
-
         app.use("*",async (c, next)=>{
             res=await quickmin.handleRequest(c.req.raw);
 

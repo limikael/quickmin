@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "yarn build:ui && yarn build:loader && ./src/server/quickmin-cli.js --port=3000",
     "build:loader": "isoq --outdir=src/loader --mw=raw src/ui/QuickminLoader.jsx",
-    "build:ui": "./src/server/quickmin-cli.js build-ui --build-ui-outfile=dist/quickmin-bundle.js"
+    "build:ui": "./src/server/quickmin-cli.js makeui --uidir=dist"
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",
