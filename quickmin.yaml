@@ -4,7 +4,7 @@ r2Bucket: "BUCKET"
 jwtSecret: "hvljYEUOLHKqWP8UNxI4HwZvXS6de903"
 adminUser: "admin"
 adminPass: "admin"
-apiPath: "admin"
+#apiPath: "admin"
 upload: "upload"
 oauthHostname: localhost
 

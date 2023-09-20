@@ -159,19 +159,16 @@ switch (command) {
             return await next();
         });
 
-        let p=path.join(__dirname,"../../dist/");
-        app.use("*", serveStatic({root: path.relative("",p)}))
+        app.use("*", serveStatic({root: path.relative("",options.uidir)}));
 
         let res=serve({
             fetch: app.fetch,
             port: options.port
         },(info)=>{
             let base=`http://localhost:${info.port}`
-            if (options.ui) {
-                console.log("UI available at:");
-                console.log(`  ${urlJoin(base,quickmin.conf.apiPath)}/`);
-                console.log();
-            }
+            console.log("UI available at:");
+            console.log(`  ${urlJoin(base,quickmin.conf.apiPath)}/`);
+            console.log();
             console.log("REST endpoints at:");
             for (let k in quickmin.collections)
                 console.log(`  ${urlJoin(base,quickmin.conf.apiPath,k)}`);
