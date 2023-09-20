@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import {styled} from '@mui/material/styles';
+import {render} from "preact";
 
 function loginForm(conf) {
     return function QuickminLogin(props) {
@@ -68,11 +69,8 @@ function loginForm(conf) {
     }
 }
 
-async function fetchConf(apiUrl, setRole, oauthHostname) {
+async function fetchConf(apiUrl, setRole) {
     let confUrl=urlJoin(apiUrl,"_schema");
-    if (oauthHostname)
-        confUrl+="?oauthHostname="+oauthHostname;
-
     let response=await fetchEx(confUrl,{
         dataType: "json"
     });
@@ -112,7 +110,6 @@ async function fetchConf(apiUrl, setRole, oauthHostname) {
                 body: JSON.stringify({
                     "url": window.location.toString(),
                     "state": u.searchParams.get("state"),
-                    "oauthHostname": oauthHostname
                 }),
                 dataType: "json"
             });
@@ -242,10 +239,10 @@ function createDashboard(conf, role) {
     }
 }
 
-export default function QuickminAdmin({api, onload, dashboard, oauthHostname}) {
+function QuickminAdmin({api, onload}) {
     let [role,setRole]=useState(window.localStorage.getItem("role"));
     let conf=useAsyncMemo(async()=>{
-        let conf=await fetchConf(api,setRole,oauthHostname);
+        let conf=await fetchConf(api,setRole);
         if (onload)
             onload();
 
@@ -283,4 +280,8 @@ export default function QuickminAdmin({api, onload, dashboard, oauthHostname}) {
             {resources}
         </Admin>
     </>);
+}
+
+export function renderQuickminAdmin(props, el) {
+    render(<QuickminAdmin {...props}/>,el);
 }

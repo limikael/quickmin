@@ -5,6 +5,8 @@ import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 import {TableCollection, ViewCollection} from "./Collection.js";
 import urlJoin from "url-join";
+import {handleRequest as handleIsoqRequest} from "../loader/isoq-raw.js";
+import {minimatch} from 'minimatch';
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -17,6 +19,10 @@ export default class QuickminServer {
         this.roles=this.conf.roles;
         if (!this.roles)
             this.roles=[];
+
+        this.hostConf=this.conf.hostConf;
+        if (!this.hostConf)
+            this.hostConf=[];
 
         this.collections={};
         for (let collectionId in this.conf.collections) {
@@ -66,6 +72,15 @@ export default class QuickminServer {
         }
     }
 
+    getHostConf(hostname) {
+        for (let hostConf of this.hostConf) {
+            if (minimatch(hostname,hostConf.host))
+                return {...this.conf,...hostConf};
+        }
+
+        return this.conf;
+    }
+
     getTaggedCollectionField(collectionId, tag, value) {
         for (let fieldId in this.collections[collectionId].fields)
             if (this.collections[collectionId].fields[fieldId][tag]==value)
@@ -74,6 +89,7 @@ export default class QuickminServer {
 
     handleRequest=async (req)=>{
         let argv=splitPath(new URL(req.url).pathname);
+
         if (this.conf.apiPath) {
             if (argv[0]!=this.conf.apiPath)
                 return;
@@ -81,9 +97,18 @@ export default class QuickminServer {
             argv.shift();
         }
 
-        //console.log(argv);
+        if (argv.length==0 || jsonEq(argv,["quickmin-client.js"])) {
+            let u=new URL(req.url)
+            return await handleIsoqRequest(req,{
+                clientPathname: urlJoin("/",this.conf.apiPath,"quickmin-client.js"),
+                props: {
+                    quickminBundleUrl: "/quickmin-bundle.js",
+                    api: urlJoin(u.origin,this.conf.apiPath)
+                }
+            });
+        }
 
-        if (argv[0]=="_content") {
+        else if (argv[0]=="_content") {
             let path=new URL(req.url).pathname;
             return await this.storage.getResponse(argv[1],req);
         }
@@ -104,11 +129,10 @@ export default class QuickminServer {
         }
 
         else if (req.method=="GET" && jsonEq(argv,["_schema"])) {
-            //let u=new URL(req.headers.get("referer"))
-
             let reqUrl=new URL(req.url);
-            if (reqUrl.searchParams.get("oauthHostname"))
-                reqUrl.hostname=reqUrl.searchParams.get("oauthHostname");
+            let hostConf=this.getHostConf(reqUrl.hostname);
+            if (hostConf.oauthHostname)
+                reqUrl.hostname=hostConf.oauthHostname;
 
             let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
 
@@ -128,7 +152,7 @@ export default class QuickminServer {
             return Response.json({
                 collections: collectionsSchema,
                 requireAuth: this.requireAuth,
-                authButtons: authButtons
+                authButtons: authButtons,
             });
         }
 
@@ -137,8 +161,9 @@ export default class QuickminServer {
             let body=await req.json();
             let {provider}=JSON.parse(body.state);
 
-            if (body.oauthHostname)
-                reqUrl.hostname=body.oauthHostname;
+            let hostConf=this.getHostConf(reqUrl.hostname);
+            if (hostConf.oauthHostname)
+                reqUrl.hostname=hostConf.oauthHostname;
 
             let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
             let loginToken=await this.authMethods[provider].process(body.url,reurl);

@@ -1,6 +1,5 @@
-import {lazy, Suspense, useState, useEffect, useRef} from "react";
-
-const QuickminAdmin=lazy(()=>import("quickmin/ui"));
+import {useState, useEffect, useRef} from "react";
+import {useIsoContext} from "isoq";
 
 function Spinner() {
 	let [t,setT]=useState(0);
@@ -49,19 +48,24 @@ function Spinner() {
 	</>)
 }
 
-export default function(props) {
-	//console.log("here.......");
-
+export default function QuickminLoader(props) {
 	let [adminLoaded,setAdminLoaded]=useState();
-//	let adminLoaded=false;
+	let iso=useIsoContext();
+	let ref=useRef();
+	useEffect(()=>{
+		if (iso.isSsr())
+			return;
 
-	if (typeof window=="undefined")
-		return (<div></div>);
+		(async()=>{
+			let adminModule=await import(props.quickminBundleUrl);
+
+			props={...props,onload: ()=>setAdminLoaded(true)};
+			adminModule.renderQuickminAdmin(props,ref.current);
+		})();
+	},[]);
 
 	return (<>
+		<div ref={ref} />
 		{!adminLoaded && <Spinner/>}
-		<Suspense>
-			<QuickminAdmin onload={()=>setAdminLoaded(true)} {...props}/>
-		</Suspense>
 	</>);
 }

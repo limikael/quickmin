@@ -7,7 +7,9 @@
     "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "./src/server/quickmin-cli.js --rebuild-ui --port=3000"
+    "dev": "yarn build:ui && yarn build:loader && ./src/server/quickmin-cli.js --port=3000",
+    "build:loader": "isoq --outdir=src/loader --mw=raw src/ui/QuickminLoader.jsx",
+    "build:ui": "./src/server/quickmin-cli.js build-ui --build-ui-outfile=dist/quickmin-bundle.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",
@@ -22,8 +24,10 @@
     "better-sqlite3": "^8.5.2",
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.28.5",
+    "esbuild": "^0.19.3",
     "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
+    "minimatch": "^9.0.3",
     "preact": "^10.16.0",
     "ra-core": "^4.13.1",
     "ra-data-simple-rest": "^4.13.0",
@@ -36,12 +40,6 @@
     "yargs": "^17.7.2"
   },
   "exports": {
-    "./ui": {
-      "import": "./src/export/ui.jsx"
-    },
-    "./ui-suspended": {
-      "import": "./src/export/ui-suspended.jsx"
-    },
     "./hono-middleware": {
       "import": "./src/export/hono-middleware.js"
     },

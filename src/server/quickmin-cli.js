@@ -16,6 +16,7 @@ import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
 import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
+import {moduleAlias} from "isoq/esbuild-util";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -33,10 +34,6 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Serve web UI.",
         type: "boolean",
         default: true
-    })
-    .option("rebuild-ui",{
-        description: "Rebuild web UI even if it exists.",
-        type: "boolean",
     })
     .option("driver",{
         description: "Database driver to use.",
@@ -58,8 +55,13 @@ let yargsConf=yargs(hideBin(process.argv))
             +"Needed in order to apply foreign key constraints on an existing schema.",
         type: "boolean"
     })
+    .option("build-ui-outfile",{
+        description: "Target for build-ui.",
+        default: path.join(__dirname,"../../dist/quickmin-bundle.js"),
+    })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
+    .command("build-ui","Create quickmin-bundle.js for local serving.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -69,6 +71,36 @@ let options=yargsConf.parse();
 let command=options._[0];
 if (!command)
     command="serve";
+
+async function buildUi() {
+    console.log("Creating client bundle: "+options.buildUiOutfile);
+
+    let esbuild=await import("esbuild");
+    await esbuild.build({
+        entryPoints: [path.join(__dirname,"../ui/QuickminAdmin.jsx")],
+        outfile: options.buildUiOutfile,
+        bundle: true,
+        format: "esm",
+        inject: ["isoq/preact-shim"],
+        jsxFactory: "h",
+        jsxFragment: "Fragment",
+        minify: true,
+        plugins: [
+            moduleAlias({
+                "react": "preact/compat",
+                "react-dom": "preact/compat",
+                "react/jsx-runtime": "preact/jsx-runtime"
+            })
+        ],
+    });
+}
+
+if (command=="build-ui") {
+    await buildUi();
+    console.log("Done.");
+
+    process.exit();
+}
 
 if (!fs.existsSync(options.conf)) {
     console.log("Can't find config file:",options.conf);
@@ -111,6 +143,9 @@ let quickmin=new QuickminServer(confYaml,drivers);
 
 switch (command) {
     case "serve":
+        if (!fs.existsSync(path.join(__dirname,"../../dist/quickmin-bundle.js")))
+            await buildUi();
+
         let app=new Hono();
 
         app.use("*",async (c, next)=>{
@@ -122,36 +157,8 @@ switch (command) {
             return await next();
         });
 
-        if (options.ui) {
-            if (!fs.existsSync(path.join(__dirname,"../../dist"))
-                    || options.rebuildUi) {
-                console.log("Bundling client...");
-
-                await isoqBundler({
-                    entryPoint: path.join(__dirname,"../ui/main.jsx"),
-                    outdir: path.join(__dirname,"../../dist"),
-                    contentdir: path.join(__dirname,"../../dist/content"),
-                    splitting: true,
-                    quiet: true,
-                    //minify: false
-                });
-            }
-
-            let p=path.join(__dirname,"../../dist/content");
-            app.use("*", serveStatic({root: path.relative("",p)}))
-
-            function getProps(req) {
-                let u=new URL(req.url);
-                return {api: urlJoin(u.origin,quickmin.conf.apiPath)};
-            }
-
-            let mwPath=path.join(__dirname,"../../dist/isoq-hono.js");
-            let mwModule=await import(mwPath);
-            app.use("*",mwModule.default({
-                localFetch: app.fetch,
-                props: getProps
-            }));
-        }
+        let p=path.join(__dirname,"../../dist/");
+        app.use("*", serveStatic({root: path.relative("",p)}))
 
         let res=serve({
             fetch: app.fetch,
@@ -160,7 +167,7 @@ switch (command) {
             let base=`http://localhost:${info.port}`
             if (options.ui) {
                 console.log("UI available at:");
-                console.log(`  ${base}/`);
+                console.log(`  ${urlJoin(base,quickmin.conf.apiPath)}/`);
                 console.log();
             }
             console.log("REST endpoints at:");

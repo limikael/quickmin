@@ -4,14 +4,16 @@ r2Bucket: "BUCKET"
 jwtSecret: "hvljYEUOLHKqWP8UNxI4HwZvXS6de903"
 adminUser: "admin"
 adminPass: "admin"
-apiPath: "api"
+apiPath: "admin"
 upload: "upload"
+oauthHostname: localhost
 
 googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
 googleClientSecret: "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"
 
 collections:
   posts:
+    helperText: "Here are some posts..."
     access: admin
     readAccess: public
     fields:
