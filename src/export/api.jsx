@@ -20,6 +20,17 @@ class QuickminApi {
 
 		return results[0];
 	}
+
+	async getAuthUrls(referer, state={}) {
+		let response=await this.fetch(urlJoin(this.url,"_authUrls"),{
+			method: "post",
+			body: JSON.stringify({
+				...state,
+				referer: referer,
+			})
+		});
+		return await response.json();
+	}
 }
 
 let QuickminApiContext=createContext();
@@ -37,17 +48,3 @@ export function QuickminApiProvider({fetch, url, children}) {
 export function useQuickminApi() {
 	return useContext(QuickminApiContext);
 }
-
-/*export function useQuickminFindOne(table, query={}) {
-	let api=useQuickminApi();
-	return api.
-	let res=useIsoFetch(baseUrl+"?filter="+JSON.stringify(filter));
-	if (res)
-		return res[0];
-}
-
-export function useQuickminFindMany(table, query={}) {
-
-export function useQuickminItems(baseUrl, filter={}) {
-	return useIsoFetch(baseUrl+"?filter="+JSON.stringify(filter));
-}*/

@@ -7,6 +7,7 @@ import {TableCollection, ViewCollection} from "./Collection.js";
 import urlJoin from "url-join";
 import {handleRequest as handleIsoqRequest} from "../loader/isoq-raw.js";
 import {minimatch} from 'minimatch';
+import QuickminServerApi from "./QuickminServerApi.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -70,6 +71,8 @@ export default class QuickminServer {
                 }
             }
         }
+
+        this.api=new QuickminServerApi(this);
     }
 
     getHostConf(hostname) {
@@ -126,6 +129,30 @@ export default class QuickminServer {
                 status: 302,
                 headers: headers
             });
+        }
+
+        else if (req.method=="POST" && jsonEq(argv,["_authUrls"])) {
+            let body=await req.json();
+            if (!body.referer)
+                throw new Error("Expected referer");
+
+            let reqUrl=new URL(req.url);
+            let hostConf=this.getHostConf(reqUrl.hostname);
+            if (hostConf.oauthHostname)
+                reqUrl.hostname=hostConf.oauthHostname;
+
+            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
+
+            let authButtons={};
+            for (let method in this.authMethods) {
+                let state=JSON.stringify({
+                    ...body,
+                    provider: method
+                });
+                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl,state);
+            }
+
+            return Response.json(authButtons);
         }
 
         else if (req.method=="GET" && jsonEq(argv,["_schema"])) {

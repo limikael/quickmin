@@ -61,6 +61,10 @@ export default class Collection {
 		}
 	}
 
+    filterItem=(item)=>{
+        return item;
+    }
+
 	async handleRequest(req, argv) {
         let role=await this.server.getRoleByRequest(req);
         //console.log("role: "+role);
@@ -82,6 +86,9 @@ export default class Collection {
                 this.getTableName(),
                 {...filter, ...await this.getWhere(req)}
             );
+
+            data=data.map(this.filterItem);
+
             return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
 		}
 
@@ -95,7 +102,7 @@ export default class Collection {
             if (!item)
                 return new Response("Not found",{status: 404});
 
-            return Response.json(item);
+            return Response.json(this.filterItem(item));
         }
 
         if (!this.access.includes(role))
@@ -201,7 +208,8 @@ export class ViewCollection extends Collection {
             if (this.listFields.includes(ex))
                 this.listFields.splice(this.listFields.indexOf(ex),1);
 
-            this.fields[ex].hidden=true;
+            delete this.fields[ex];
+            //this.fields[ex].hidden=true;
         }
 
         if (conf.modify) {
@@ -287,5 +295,13 @@ export class ViewCollection extends Collection {
 
             return Response.json({...queryResult, id: "single"});
         }
+    }
+
+    filterItem=(item)=>{
+        for (let k in item) {
+            if (k!="id" && !this.fields[k])
+                delete item[k];
+        }
+        return item;
     }
 }

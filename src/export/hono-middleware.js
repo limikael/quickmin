@@ -34,6 +34,8 @@ export function quickmin(conf,drivers) {
 		if (response)
 			return response;
 
+		c.set("quickmin",quickmin.api);
+
 		return await next();
 	}
 }
