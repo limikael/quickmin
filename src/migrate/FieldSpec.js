@@ -42,12 +42,12 @@ export default class FieldSpec {
 	}
 
 	getExtraSql() {
-		if (this.reference_table)
+		/*if (this.reference_table)
 			return (
-//				`constraint \`${this.name}\` `+
+				//`constraint \`${this.name}\` `+
 				`foreign key (\`${this.name}\`) `+
 				`references ${this.reference_table}(\`${this.reference_field}\`) `+
 				`on delete cascade`
-			);
+			);*/
 	}
 }

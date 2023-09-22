@@ -7,8 +7,9 @@ export function drizzleSqliteDriver(server) {
     if (dsnUrl.protocol!="sqlite:")
         throw new Error("Only sqlite supported with drizzle");
 
-	server.drizzle=drizzle(new Database(dsnUrl.pathname));
-	server.db=new DrizzleDb(server);
+    server.databaseConnection=new Database(dsnUrl.pathname);
+	server.drizzle=drizzle(server.databaseConnection);
+	server.db=new DrizzleDb(server,true);
 }
 
 export default drizzleSqliteDriver;

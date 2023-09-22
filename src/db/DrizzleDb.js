@@ -9,7 +9,8 @@ let DRIZZLE_TYPES={
 }
 
 export default class DrizzleDb {
-	constructor(server) {
+	constructor(server, transactionSupport) {
+        this.transactionSupport=transactionSupport;
         this.server=server;
         this.drizzle=server.drizzle;
         this.tables={};
@@ -90,6 +91,9 @@ export default class DrizzleDb {
             .returning({deleted: this.tables[modelName]})
             .get();
 
+        if (!deleteResult)
+            return;
+
         return deleteResult.deleted;
     }
 
@@ -97,21 +101,22 @@ export default class DrizzleDb {
         return this.tables.hasOwnProperty(modelName);
     }
 
-    getSql=async (sql, ...params)=>{
-        let res=await this.drizzle.session.client
-            .prepare(sql)
-            .bind(...params)
-            .all();
+    runQueries=async (queries)=>{
+        let result=[];
+        for (let query of queries) {
+            let stmt=this.drizzle.session.client.prepare(query);
 
-        if (Array.isArray(res))
-            return res;
+            if (stmt.reader)
+                result.push(await stmt.all());
 
-        return res.results;
+            else
+                result.push(await stmt.run());
+        }
+
+        return result;
     }
 
-    runSql=async (sql, ...params)=> {
-        return await this.drizzle.session.client
-            .prepare(sql)
-            .run(...params);
+    hasTransactionSupport() {
+        return this.transactionSupport;
     }
 }

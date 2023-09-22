@@ -130,10 +130,27 @@ export default class Collection {
 
         // Delete.
         if (req.method=="DELETE" && argv.length==1) {
-            return Response.json(await this.server.db.delete(
+            let item=await this.server.db.findOne(
                 this.getTableName(),
-                {id: argv[0], ...await this.getWhere(req)},
-            ));
+                {id: argv[0], ...await this.getWhere(req)}
+            );
+
+            if (!item)
+                return new Response("Not found",{status: 404});
+
+            let tableName=this.getTableName();
+            let references=this.server.findReferencesForTable(tableName);
+            for (let reference of references) {
+                let query={};
+                query[reference.fieldId]=argv[0];
+                await this.server.db.delete(reference.collectionId,query);
+            }
+
+            await this.server.db.delete(this.getTableName(),{
+                id: argv[0]
+            });
+
+            return Response.json(item);
         }
 	}
 }

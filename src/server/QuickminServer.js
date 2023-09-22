@@ -75,6 +75,25 @@ export default class QuickminServer {
         this.api=new QuickminServerApi(this);
     }
 
+    findReferencesForTable(tableName) {
+        let res=[];
+
+        for (let collectionId in this.collections) {
+            let collection=this.collections[collectionId];
+            for (let fieldId in collection.fields) {
+                let field=collection.fields[fieldId];
+                if (field.type=="reference"
+                        && field.reference==tableName)
+                    res.push({
+                        collectionId: collectionId,
+                        fieldId: fieldId
+                    });
+            }
+        }
+
+        return res;
+    }
+
     getHostConf(hostname) {
         for (let hostConf of this.hostConf) {
             if (minimatch(hostname,hostConf.host))
@@ -358,14 +377,12 @@ export default class QuickminServer {
             }
         }
 
-        //console.log(JSON.stringify(tables,null,2));
-
         let migrator=new DbMigrator({
-            getSql: this.db.getSql,
-            runSql: this.db.runSql,
+            runQueries: this.db.runQueries,
             tables: tables,
             dryRun: dryRun,
-            force: force
+            force: force,
+            transaction: this.db.hasTransactionSupport()
         });
 
         await migrator.sync();
