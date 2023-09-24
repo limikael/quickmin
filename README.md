@@ -6,13 +6,13 @@ Todo:
 - recordRepresentation
 - menu icons
 - hierarchial menu
-- cascading delete
 - actions
 - content garbage collecting
 
 Bugs:
 
 Done:
+x cascading delete
 x uuid for filenames
 x pass props
 x auth
