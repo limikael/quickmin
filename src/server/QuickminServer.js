@@ -277,6 +277,12 @@ export default class QuickminServer {
     }
 
     getUserIdByRequest(req) {
+        if (req.headers.get("x-api-key")
+                && this.conf.apiKey
+                && req.headers.get("x-api-key")==this.conf.apiKey) {
+            return -1;
+        }
+
         if (!req.headers.get("authorization"))
             return;
 

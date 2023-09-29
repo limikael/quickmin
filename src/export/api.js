@@ -1,9 +1,21 @@
 import urlJoin from "url-join";
 
 export class QuickminApi {
-	constructor({fetch, url}) {
+	constructor(options={}) {
 		this.fetch=fetch;
-		this.url=url;
+		if (options.fetch)
+			this.fetch=options.fetch;
+
+		this.url=options.url;
+		if (!this.url)
+			throw new Error("Need url for QuickminApi");
+
+		this.headers=new Headers();
+		if (options.headers)
+			this.headers=options.headers;
+
+		if (options.apiKey)
+			this.headers.set("x-api-key",options.apiKey);
 	}
 
 	async findMany(table, query={}) {
@@ -30,4 +42,37 @@ export class QuickminApi {
 		});
 		return await response.json();
 	}
+
+	async insert(tableName, data) {
+		let h=new Headers(this.headers);
+		h.set("content-type","application/json");
+
+		let response=await this.fetch(urlJoin(this.url,tableName),{
+			method: "POST",
+			body: JSON.stringify(data),
+			headers: h
+		});
+
+		if (response.status!=200)
+			throw new Error(await response.text());
+
+		return await response.json();
+	}
+
+	/*async uploadJpgImage(fn) {
+		let buffer=fs.readFileSync(fn);
+		let file=new File([buffer],"image.jpg");
+
+        let formData=new FormData();
+        formData.append("file",file);
+        let uploadResponse=await fetch(urlJoin(this.conf.api,"_upload"),{
+        	method: "post",
+        	body: formData,
+			headers: new Headers({
+				authorization: "Bearer "+this.token,
+			})
+        });
+        let uploadResult=await uploadResponse.json();
+        return uploadResult.file;
+	}*/
 }
