@@ -80,16 +80,26 @@ export default class Collection {
             if (filterJson)
                 filter=JSON.parse(filterJson);
 
-            //console.log(filter);
+            let range;
+            if (u.searchParams.get("range"))
+                range=JSON.parse(u.searchParams.get("range"));
 
+            //console.log("range: "+range);
+
+            let options={range: range};
 			let data=await this.server.db.findMany(
                 this.getTableName(),
-                {...filter, ...await this.getWhere(req)}
+                {...filter, ...await this.getWhere(req)},
+                options
             );
+
+            //console.log("count: "+options.count);
 
             data=data.map(this.filterItem);
 
-            return Response.json(data,{headers:{"Content-Range": "0-2/2"}});
+            return Response.json(data,{headers:{
+                "Content-Range": `${options.range[0]}-${options.range[1]}/${options.count}`
+            }});
 		}
 
 		// Find.

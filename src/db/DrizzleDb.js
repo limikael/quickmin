@@ -1,5 +1,5 @@
 import {sqliteTable, text, integer} from 'drizzle-orm/sqlite-core';
-import {and, asc, desc, eq, or, inArray} from 'drizzle-orm';
+import {and, asc, desc, eq, or, inArray, sql} from 'drizzle-orm';
 
 let DRIZZLE_TYPES={
     "text": text,
@@ -44,12 +44,30 @@ export default class DrizzleDb {
         return and(...parts);
     }
 
-    async findMany(modelName, query={}) {
-        return await this.drizzle
-            .select()
+    async findMany(modelName, query={}, options={}) {
+        let countRes=await this.drizzle
+            .select({count: sql`count(*)`})
             .from(this.tables[modelName])
             .where(this.buildWhere(modelName,query))
-            .all();
+            .get();
+
+        options.count=countRes.count;
+
+        let q=this.drizzle
+            .select()
+            .from(this.tables[modelName])
+            .where(this.buildWhere(modelName,query));
+
+        if (options.range) {
+            q.offset(options.range[0]);
+            q.limit(options.range[1]-options.range[0]+1);
+        }
+
+        else {
+            options.range=[0,options.count-1];
+        }
+
+        return await q.all();
     }
 
     async findOne(modelName, query={}) {
