@@ -59,20 +59,16 @@ export class QuickminApi {
 		return await response.json();
 	}
 
-	/*async uploadJpgImage(fn) {
-		let buffer=fs.readFileSync(fn);
-		let file=new File([buffer],"image.jpg");
-
+	async uploadFile(file) {
         let formData=new FormData();
         formData.append("file",file);
-        let uploadResponse=await fetch(urlJoin(this.conf.api,"_upload"),{
+
+        let uploadResponse=await fetch(urlJoin(this.url,"_upload"),{
         	method: "post",
         	body: formData,
-			headers: new Headers({
-				authorization: "Bearer "+this.token,
-			})
+			headers: new Headers(this.headers)
         });
         let uploadResult=await uploadResponse.json();
         return uploadResult.file;
-	}*/
+	}
 }

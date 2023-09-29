@@ -61,6 +61,7 @@ export default class DrizzleDb {
     }
 
     async insert(modelName, data) {
+        //console.log("insert",modelName,data);
         let insertResult=await this.drizzle
             .insert(this.tables[modelName])
             .values(data)
