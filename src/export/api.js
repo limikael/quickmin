@@ -1,7 +1,6 @@
-import {createContext, useContext} from "react";
 import urlJoin from "url-join";
 
-class QuickminApi {
+export class QuickminApi {
 	constructor({fetch, url}) {
 		this.fetch=fetch;
 		this.url=url;
@@ -31,20 +30,4 @@ class QuickminApi {
 		});
 		return await response.json();
 	}
-}
-
-let QuickminApiContext=createContext();
-
-export function QuickminApiProvider({fetch, url, children}) {
-	let api=new QuickminApi({fetch, url});
-
-	return (<>
-		<QuickminApiContext.Provider value={api}>
-			{children}
-		</QuickminApiContext.Provider>
-	</>);
-}
-
-export function useQuickminApi() {
-	return useContext(QuickminApiContext);
 }

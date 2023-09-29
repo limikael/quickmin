@@ -8,6 +8,7 @@ Todo:
 - hierarchial menu
 - actions
 - content garbage collecting
+- conditional fields
 
 Bugs:
 

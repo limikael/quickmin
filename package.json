@@ -59,7 +59,10 @@
       "import": "./src/auth/google-auth.js"
     },
     "./api": {
-      "import": "./src/export/api.jsx"
+      "import": "./src/export/api.js"
+    },
+    "./use-api": {
+      "import": "./src/export/use-api.jsx"
     }
   }
 }
