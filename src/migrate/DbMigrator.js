@@ -28,11 +28,13 @@ export default class DbMigrator {
 		for (let nameRow of nameRows)
 			infoQueries.push(`PRAGMA table_info (${nameRow.name})`)
 
-		let infoRes=await this.runQueries(infoQueries);
-		for (let i in nameRows) {
-			let tableName=nameRows[i].name;
-			if (this.tableSpecs[tableName])
-				this.tableSpecs[tableName].processDescribeRows(infoRes[i]);
+		if (infoQueries.length) {
+			let infoRes=await this.runQueries(infoQueries);
+			for (let i in nameRows) {
+				let tableName=nameRows[i].name;
+				if (this.tableSpecs[tableName])
+					this.tableSpecs[tableName].processDescribeRows(infoRes[i]);
+			}
 		}
 
 		let queries=[

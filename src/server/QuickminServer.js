@@ -119,6 +119,8 @@ export default class QuickminServer {
             argv.shift();
         }
 
+        //await new Promise(r=>setTimeout(r,1000));
+
         if (argv.length==0 || jsonEq(argv,["quickmin-client.js"])) {
             let u=new URL(req.url)
             return await handleIsoqRequest(req,{
