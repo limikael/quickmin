@@ -2,7 +2,7 @@ import {Sequelize, DataTypes} from "sequelize";
 import {spawn} from "child_process";
 
 async function runCommand(command, args) {
-	const child=spawn('wrangler', args);
+	const child=spawn(command, args);
 	let out="";
 
 	await new Promise((resolve,reject)=>{

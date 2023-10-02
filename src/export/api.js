@@ -59,6 +59,22 @@ export class QuickminApi {
 		return await response.json();
 	}
 
+	async update(tableName, id, data) {
+		let h=new Headers(this.headers);
+		h.set("content-type","application/json");
+
+		let response=await this.fetch(urlJoin(this.url,tableName,String(id)),{
+			method: "PUT",
+			body: JSON.stringify(data),
+			headers: h
+		});
+
+		if (response.status!=200)
+			throw new Error(await response.text());
+
+		return await response.json();
+	}
+
 	async uploadFile(file) {
         let formData=new FormData();
         formData.append("file",file);

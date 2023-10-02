@@ -319,7 +319,7 @@ export default class QuickminServer {
     }
 
     async getRequestFormData(req) {
-        let exts=[".jpg",".jpeg",".png"];
+        let exts=[".jpg",".jpeg",".png",".webp"];
         let contentType=req.headers.get("content-type").split(";")[0];
 
         switch (contentType) {
