@@ -1,5 +1,5 @@
 import {sqliteTable, text, integer} from 'drizzle-orm/sqlite-core';
-import {and, asc, desc, eq, or, inArray, sql} from 'drizzle-orm';
+import {and, asc, desc, eq, or, inArray, sql, like} from 'drizzle-orm';
 
 let DRIZZLE_TYPES={
     "text": text,
@@ -34,7 +34,23 @@ export default class DrizzleDb {
     buildWhere(modelName, query) {
         let parts=[];
         for (let k in query) {
-            if (Array.isArray(query[k]))
+            let operand=query[k];
+            let op;
+            if ("~".includes(k.slice(-1))) {
+                op=k.slice(-1);
+                k=k.slice(0,-1);
+            }
+
+            if (!this.tables[modelName][k])
+                throw new Error("No such column for where: "+k);
+
+            if (op=="~")
+                parts.push(like(
+                    this.tables[modelName][k],
+                    "%"+operand.replace("%","\\%")+"%"
+                ));
+
+            else if (Array.isArray(query[k]))
                 parts.push(inArray(this.tables[modelName][k],query[k]))
 
             else

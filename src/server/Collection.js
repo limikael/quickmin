@@ -37,6 +37,7 @@ export default class Collection {
         this.access=arrayify(conf.access);
         this.readAccess=[...this.access,...arrayify(conf.readAccess)];
         this.helperText=conf.helperText;
+        this.recordRepresentation=conf.recordRepresentation;
 	}
 
     getType() {
@@ -57,7 +58,8 @@ export default class Collection {
         	listFields: this.listFields,
             access: this.access,
             readAccess: this.readAccess,
-            helperText: this.helperText
+            helperText: this.helperText,
+            recordRepresentation: this.recordRepresentation
 		}
 	}
 
@@ -79,6 +81,13 @@ export default class Collection {
             let filterJson=u.searchParams.get("filter");
             if (filterJson)
                 filter=JSON.parse(filterJson);
+
+            if (filter.q) {
+                filter[this.recordRepresentation+"~"]=filter.q;
+                delete filter.q;
+            }
+
+            //console.log("filter: ",filter);
 
             let range;
             if (u.searchParams.get("range"))
@@ -247,6 +256,10 @@ export class ViewCollection extends Collection {
         }
 
         this.single=conf.single;
+
+        this.recordRepresentation=conf.recordRepresentation;
+        if (!this.recordRepresentation)
+            this.recordRepresentation=this.server.collections[conf.from].recordRepresentation;
     }
 
     getTableName() {

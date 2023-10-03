@@ -67,16 +67,7 @@ export default class DataProvider {
     }
 
     getMany=async (resource, params)=>{
-        //console.log("get many...");
-        //console.log("get many, res="+resource+" params=",params);
-
-        /*return ({data:[{
-                id: 1, name: "hello"
-        }]});*/
-
         let res=await this.simpleRestProvider.getMany(resource,params);
-
-        //console.log(res);
 
     	return res;
     }
