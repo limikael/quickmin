@@ -18,6 +18,10 @@ export class QuickminApi {
 			this.headers.set("x-api-key",options.apiKey);
 	}
 
+	setApiKey(apiKey) {
+		this.headers.set("x-api-key",apiKey);
+	}
+
 	async findMany(table, query={}) {
 		let url=urlJoin(this.url,table)+"?filter="+JSON.stringify(query);
 		let resultsResponse=await this.fetch(url,{});
