@@ -1,4 +1,4 @@
-import {useEffect, useState, useMemo, useRef, useCallback} from "preact/compat";
+import {useEffect, useState, useMemo, useRef, useCallback, useLayoutEffect} from "preact/compat";
 import {fetchEx} from "./js-util.js";
 
 export function useAsyncMemo(fn, deps) {
@@ -39,18 +39,19 @@ export function useAsyncMemo(fn, deps) {
 	return val;
 }
 
-export function useEventListener(target, event, func) {
-	useEffect(()=>{
-		function onEvent(...params) {
-			func(...params);
+export function useEventListener(o, ev, fn) {
+	useLayoutEffect(()=>{
+		o.addEventListener(ev,fn);
+		return ()=>{
+			o.removeEventListener(ev,fn);
 		}
+	},[o,ev,fn]);
+}
 
-		target.addEventListener(event,onEvent);
-
-		return (()=>{
-			target.removeEventListener(event,onEvent);
-		});
-	},[target,event]);
+export function useEventUpdate(o, ev) {
+	let [_,setDummyState]=useState();
+	let forceUpdate=useCallback(()=>setDummyState({}));
+	useEventListener(o,ev,forceUpdate);
 }
 
 export function useForceUpdate() {

@@ -3,7 +3,6 @@ Todo:
 - indices
 - example
 - layout (sidebar, tab, section)
-- recordRepresentation
 - menu icons
 - hierarchial menu
 - actions
@@ -13,6 +12,7 @@ Todo:
 Bugs:
 
 Done:
+x recordRepresentation
 x cascading delete
 x uuid for filenames
 x pass props

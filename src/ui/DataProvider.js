@@ -26,16 +26,21 @@ export default class DataProvider {
         return data;
     }
 
-    createFormData(resource, data) {
+    createFormData=(resource, data)=>{
         const formData=new FormData();
         for (let fid in data) {
             let fieldData=data[fid];
 
+            //console.log("createFormData, resource="+resource);
+            //console.log("data: ",data);
+
             if (fid!="id") {
-                let type=this.collections[resource].fields[fid].type;
-                let processor=FIELD_TYPES[type].writeProcessor;
-                if (processor)
-                    fieldData=processor(fieldData,this.conf);
+                if (this.collections[resource].fields[fid]) {
+                    let type=this.collections[resource].fields[fid].type;
+                    let processor=FIELD_TYPES[type].writeProcessor;
+                    if (processor)
+                        fieldData=processor(fieldData,this.conf);
+                }
             }
 
             if (!(fieldData instanceof File)) {
@@ -47,6 +52,7 @@ export default class DataProvider {
             }
 
             formData.append(fid,fieldData);
+            //console.log("append done...");
         }
 
         return formData;

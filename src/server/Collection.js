@@ -38,6 +38,10 @@ export default class Collection {
         this.readAccess=[...this.access,...arrayify(conf.readAccess)];
         this.helperText=conf.helperText;
         this.recordRepresentation=conf.recordRepresentation;
+        this.actions=conf.actions;
+
+        if (!this.actions)
+            this.actions=[];
 	}
 
     getType() {
@@ -59,7 +63,8 @@ export default class Collection {
             access: this.access,
             readAccess: this.readAccess,
             helperText: this.helperText,
-            recordRepresentation: this.recordRepresentation
+            recordRepresentation: this.recordRepresentation,
+            actions: this.actions
 		}
 	}
 

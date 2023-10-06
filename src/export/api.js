@@ -22,6 +22,10 @@ export class QuickminApi {
 		this.headers.set("x-api-key",apiKey);
 	}
 
+	setHeader(header, value) {
+		this.headers.set(header,value);
+	}
+
 	async findMany(table, query={}) {
 		let url=urlJoin(this.url,table)+"?filter="+JSON.stringify(query);
 		let resultsResponse=await this.fetch(url,{});
