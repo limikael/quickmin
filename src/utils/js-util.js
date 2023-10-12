@@ -43,22 +43,6 @@ export async function fetchEx(url, options={}) {
 	return result;
 }
 
-/*export function netTry(res, fn) {
-	fn().catch(e=>{
-		res.status(500);
-		if (e instanceof Error) {
-			console.error(e);
-			res.json({
-				message: e.message,
-				stack: e.stack
-			});
-		}
-
-		else
-			res.end(e);
-	});
-}*/
-
 export function trimChar(string, charToRemove) {
 	if (!string)
 		return "";
@@ -79,4 +63,18 @@ export function makeNameFromSymbol(symbol) {
     symbol=symbol.charAt(0).toUpperCase()+symbol.slice(1);
 
     return symbol;
+}
+
+export function parseCookie(str) {
+	return (
+	  	str
+		    .split(';')
+		    .map(v => v.split('='))
+		    .reduce((acc, v) => {
+		    	if (v.length==2)
+					acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+
+				return acc;
+		    }, {})
+	)
 }

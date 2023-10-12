@@ -26,6 +26,13 @@ export class QuickminApi {
 		this.headers.set(header,value);
 	}
 
+	async getCurrentUser() {
+		let response=await this.fetch(urlJoin(this.url,"_getCurrentUser"));
+		let reply=await response.json();
+
+		return reply;
+	}
+
 	async findMany(table, query={}) {
 		let url=urlJoin(this.url,table)+"?filter="+JSON.stringify(query);
 		let resultsResponse=await this.fetch(url,{});
@@ -45,7 +52,7 @@ export class QuickminApi {
 			method: "post",
 			body: JSON.stringify({
 				...state,
-				referer: referer,
+				referer: referer.toString(),
 			})
 		});
 		return await response.json();

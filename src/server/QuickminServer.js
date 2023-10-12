@@ -1,4 +1,4 @@
-import {splitPath, jsonEq, getFileExt} from "../utils/js-util.js";
+import {splitPath, jsonEq, getFileExt, parseCookie} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
@@ -16,6 +16,8 @@ export default class QuickminServer {
 
         this.conf=confYaml;
         this.authMethods={};
+
+        this.signupRole=this.conf.signupRole;
 
         this.roles=this.conf.roles;
         if (!this.roles)
@@ -137,19 +139,80 @@ export default class QuickminServer {
             return await this.storage.getResponse(argv[1],req);
         }
 
+        else if (jsonEq(argv,["_getCurrentUser"])) {
+            //console.log("headers in _getCurrentUser: ",req.headers);
+
+            let userId=this.getUserIdByRequest(req);
+            let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+            if (!userRecord)
+                return Response.json(null);//new Response("Not found",{status: 404});
+
+            //console.log("id: ",userId," record: ",userRecord);
+
+            return Response.json(userRecord);
+        }
+
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
-            let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
+            let {provider,referer,login}=JSON.parse(reqUrl.searchParams.get("state"));
 
-            let refererUrl=new URL(referer);
-            refererUrl.search=reqUrl.searchParams;
+            console.log("doing login: "+login);
 
-            let headers=new Headers();
-            headers.set("location",refererUrl);
-            return new Response("Moved",{
-                status: 302,
-                headers: headers
-            });
+            if (login) {
+                let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
+                let loginToken=await this.authMethods[provider].process(reqUrl,reurl);
+
+                let q={};
+                q[this.authMethods[provider].fieldId]=loginToken;
+
+                let userRecord=await this.db.findOne(this.authCollection,q);
+                if (!userRecord) {
+                    if (!this.signupRole) {
+                        return new Response("Not authorized...",{
+                            status: 403
+                        });
+                    }
+
+                    let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+                    let q={};
+                    q[roleField]=this.signupRole;
+                    q[this.authMethods[provider].fieldId]=loginToken;
+
+                    userRecord=await this.db.insert(this.authCollection,q);
+                }
+
+                //let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+
+                let payload={
+                    userId: userRecord.id
+                };
+
+                let token=jwtSign(payload,this.conf.jwtSecret);
+
+                let headers=new Headers();
+                headers.set("location",referer);
+                headers.set("set-cookie","qmtoken="+token+"; path=/");
+                /*headers.set("access-control-expose-headers","Set-Cookie");
+                headers.set("Access-Control-Allow-Credentials",true);
+                headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
+
+                return new Response("Moved",{
+                    status: 302,
+                    headers: headers
+                });
+            }
+
+            else {
+                let refererUrl=new URL(referer);
+                refererUrl.search=reqUrl.searchParams;
+
+                let headers=new Headers();
+                headers.set("location",refererUrl);
+                return new Response("Moved",{
+                    status: 302,
+                    headers: headers
+                });
+            }
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_authUrls"])) {
@@ -285,15 +348,23 @@ export default class QuickminServer {
             return -1;
         }
 
-        if (!req.headers.get("authorization"))
-            return;
+        if (req.headers.get("authorization")) {
+            let authorization=req.headers.get("authorization").split(" ");
+            if (authorization[0]!="Bearer")
+                throw new Error("Expected bearer authorization");
 
-        let authorization=req.headers.get("authorization").split(" ");
-        if (authorization[0]!="Bearer")
-            throw new Error("Expected bearer authorization");
+            let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
+            return payload.userId;
+        }
 
-       let payload=jwtVerify(authorization[1],this.conf.jwtSecret);
-       return payload.userId;
+        if (req.headers.get("cookie")) {
+            let cookies=parseCookie(req.headers.get("cookie"));
+            if (cookies.qmtoken) {
+                let payload=jwtVerify(cookies.qmtoken,this.conf.jwtSecret);
+                if (payload.userId)
+                    return payload.userId;
+            }
+        }
     }
 
     async getRoleByUserId(userId) {
