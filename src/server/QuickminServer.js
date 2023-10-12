@@ -143,9 +143,12 @@ export default class QuickminServer {
             //console.log("headers in _getCurrentUser: ",req.headers);
 
             let userId=this.getUserIdByRequest(req);
+            if (!userId)
+                return Response.json(null);
+
             let userRecord=await this.db.findOne(this.authCollection,{id: userId});
             if (!userRecord)
-                return Response.json(null);//new Response("Not found",{status: 404});
+                return Response.json(null);
 
             //console.log("id: ",userId," record: ",userRecord);
 
