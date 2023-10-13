@@ -90,6 +90,17 @@ export class QuickminApi {
 		return await response.json();
 	}
 
+	async delete(tableName, id) {
+		let response=await this.fetch(urlJoin(this.url,tableName,String(id)),{
+			method: "DELETE",
+		});
+
+		if (response.status!=200)
+			throw new Error(await response.text());
+
+		return await response.json();
+	}
+
 	async uploadFile(file) {
         let formData=new FormData();
         formData.append("file",file);
