@@ -370,6 +370,15 @@ export default class QuickminServer {
         }
     }
 
+    async getUserByRequest(req) {
+        let userId=this.getUserIdByRequest(req);
+        if (!userId)
+            return;
+
+        let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+        return userRecord;
+    }
+
     async getRoleByUserId(userId) {
         if (userId==-1)
             return "admin";

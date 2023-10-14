@@ -17,6 +17,14 @@ export default class QuickminServerApi {
 		return await this.server.db.update(table,query,data);
 	}
 
+	async insert(table, data) {
+		return await this.server.db.insert(table,data);
+	}
+
+	async getUserByRequest(req) {
+		return await this.server.getUserByRequest(req);
+	}
+
 	async verifyAuthRedirectedUrl(redirectedUrl) {
 		let url=new URL(redirectedUrl);
 		let state=JSON.parse(url.searchParams.get("state"));
