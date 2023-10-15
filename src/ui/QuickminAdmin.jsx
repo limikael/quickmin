@@ -242,6 +242,7 @@ function createDashboard(conf, role) {
 function QuickminAdmin({api, onload}) {
     let [role,setRole]=useState(window.localStorage.getItem("role"));
     let conf=useAsyncMemo(async()=>{
+        console.log("loading conf...");
         let conf=await fetchConf(api,setRole);
         if (onload)
             onload();
