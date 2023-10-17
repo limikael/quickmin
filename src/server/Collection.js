@@ -73,11 +73,12 @@ export default class Collection {
     }
 
 	async handleRequest(req, argv) {
-        let role=await this.server.getRoleByRequest(req);
-        //console.log("role: "+role);
-
-        if (!this.readAccess.includes(role))
-            return new Response("Not authorized",{status: 403});
+        let role;
+        if (!this.readAccess.includes("public")) {
+            role=role||await this.server.getRoleByRequest(req);
+            if (!this.readAccess.includes(role))
+                return new Response("Not authorized",{status: 403});
+        }
 
         // List.
 		if (req.method=="GET" && argv.length==0) {
@@ -129,6 +130,7 @@ export default class Collection {
             return Response.json(this.filterItem(item));
         }
 
+        role=role||await this.server.getRoleByRequest(req);
         if (!this.access.includes(role))
             return new Response("Not authorized",{status: 403});
 
@@ -298,9 +300,12 @@ export class ViewCollection extends Collection {
         if (this.getType()!="singleView")
             return await super.handleRequest(req,argv);
 
-        let role=await this.server.getRoleByRequest(req);
-        if (!this.readAccess.includes(role))
-            return new Response("Not authorized",{status: 403});
+        let role;
+        if (!this.readAccess.includes("public")) {
+            role=role||await this.server.getRoleByRequest(req);
+            if (!this.readAccess.includes(role))
+                return new Response("Not authorized",{status: 403});
+        }
 
         // Find.
         if (req.method=="GET" && jsonEq(argv,["single"])) {
@@ -315,6 +320,7 @@ export class ViewCollection extends Collection {
             return Response.json({...item, id: "single"});
         }
 
+        role=role||await this.server.getRoleByRequest(req);
         if (!this.access.includes(role))
             return new Response("Not authorized",{status: 403});
 

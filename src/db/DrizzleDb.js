@@ -61,6 +61,8 @@ export default class DrizzleDb {
     }
 
     async findMany(modelName, query={}, options={}) {
+        //console.log("DB: findMany: "+modelName);
+
         let countRes=await this.drizzle
             .select({count: sql`count(*)`})
             .from(this.tables[modelName])
@@ -87,6 +89,8 @@ export default class DrizzleDb {
     }
 
     async findOne(modelName, query={}) {
+        //console.log("DB: findOne: "+modelName);
+
         return await this.drizzle
             .select()
             .from(this.tables[modelName])

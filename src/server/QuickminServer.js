@@ -112,6 +112,8 @@ export default class QuickminServer {
     }
 
     handleRequest=async (req)=>{
+        //await new Promise(resolve=>setTimeout(resolve,500));
+
         let argv=splitPath(new URL(req.url).pathname);
 
         if (this.conf.apiPath) {
@@ -387,11 +389,11 @@ export default class QuickminServer {
             return "public";
 
         if (!this.authCollection)
-            return -1;
+            return "public";
 
         let userRecord=await this.db.findOne(this.authCollection,{id: userId});
         if (!userRecord)
-            return -1;
+            return "public";
 
         let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
         return userRecord[roleField];
