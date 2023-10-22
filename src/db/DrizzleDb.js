@@ -1,11 +1,12 @@
-import {sqliteTable, text, integer} from 'drizzle-orm/sqlite-core';
+import {sqliteTable, text, integer, real} from 'drizzle-orm/sqlite-core';
 import {and, asc, desc, eq, or, inArray, sql, like} from 'drizzle-orm';
 
 let DRIZZLE_TYPES={
     "text": text,
     "date": text,
     "datetime": text,
-    "integer": integer
+    "integer": integer,
+    "real": real
 }
 
 export default class DrizzleDb {

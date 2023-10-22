@@ -1,6 +1,7 @@
 import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
-        ReferenceField, ReferenceInput} from "react-admin";
+        ReferenceField, ReferenceInput,
+        NumberField, NumberInput} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 
@@ -54,6 +55,16 @@ export const FIELD_TYPES={
     "text": {
         list: TextField,
         edit: TextInput,
+    },
+
+    "integer": {
+        list: NumberField,
+        edit: NumberInput,
+    },
+
+    "real": {
+        list: NumberField,
+        edit: NumberInput,
     },
 
     "richtext": {

@@ -9,6 +9,8 @@ let SQL_TYPES={
     "select": "text",
     "image": "text",
     "authmethod": "text",
+    "integer": "integer",
+    "real": "real",
     "reference": "integer"
 };
 
