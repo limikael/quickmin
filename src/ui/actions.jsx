@@ -57,10 +57,11 @@ class ActionState extends EventTarget {
 
         this.result=data.result;
         this.error=data.error;
-        if (!this.result && !this.error)
-            this.result="Action complete.";
-
         this.complete=true;
+
+        if (!this.result && !this.error)
+            this.close();
+
         this.dispatchEvent(new Event("change"));
     }
 
