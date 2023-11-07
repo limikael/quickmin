@@ -454,18 +454,20 @@ export default class QuickminServer {
                 };
                 for (let f in this.collections[c].fields) {
                     let field=this.collections[c].fields[f];
-                    let fieldSpec={
-                        ...field,
-                        pk: false,
-                        type: field.sqlType,
-                    };
+                    if (field.id!="id") {
+                        let fieldSpec={
+                            ...field,
+                            pk: false,
+                            type: field.sqlType,
+                        };
 
-                    if (field.type=="reference") {
-                        fieldSpec.reference_table=fieldSpec.reference;
-                        fieldSpec.reference_field="id";
+                        if (field.type=="reference") {
+                            fieldSpec.reference_table=fieldSpec.reference;
+                            fieldSpec.reference_field="id";
+                        }
+
+                        tables[c].fields[f]=fieldSpec;
                     }
-
-                    tables[c].fields[f]=fieldSpec;
                 }
             }
         }
