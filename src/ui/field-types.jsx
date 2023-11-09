@@ -96,6 +96,7 @@ export const FIELD_TYPES={
     "select": {
         list: SelectField,
         edit: SelectInput,
+        filter: SelectInput,
         confProcessor: processSelectConf
     },
 

@@ -65,6 +65,25 @@ class ActionState extends EventTarget {
         this.dispatchEvent(new Event("change"));
     }
 
+    async runGlobalAction(action) {
+        this.currentAction=action;
+        this.complete=false;
+        this.result=null;
+        this.error=null;
+        this.dispatchEvent(new Event("change"));
+
+        let data=await this.runSingleAction(action);
+
+        this.result=data.result;
+        this.error=data.error;
+        this.complete=true;
+
+        if (!this.result && !this.error)
+            this.close();
+
+        this.dispatchEvent(new Event("change"));
+    }
+
     close=()=>{
         if (!this.complete)
             return;
