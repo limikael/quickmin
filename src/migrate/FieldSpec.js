@@ -12,6 +12,9 @@ export default class FieldSpec {
 	}
 
 	equals(that) {
+		if (!that)
+			return false;
+
 		return (
 			this.name==that.name
 			&& this.type==that.type

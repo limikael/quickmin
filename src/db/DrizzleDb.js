@@ -86,6 +86,25 @@ export default class DrizzleDb {
             options.range=[0,options.count-1];
         }
 
+        if (options.sort) {
+            if (options.sort.length!=2)
+                throw new Error("Expected sort to contain 2 items");
+
+            let sortField=this.tables[modelName][options.sort[0]];
+            switch (options.sort[1].toUpperCase()) {
+                case "ASC":
+                    q.orderBy(asc(sortField));
+                    break;
+
+                case "DESC":
+                    q.orderBy(desc(sortField));
+                    break;
+
+                default:
+                    throw new Error("Unknown sort direction: "+options.sort[1]);
+            }
+        }
+
         return await q.all();
     }
 

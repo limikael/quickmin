@@ -101,9 +101,13 @@ export default class Collection {
             if (u.searchParams.get("range"))
                 range=JSON.parse(u.searchParams.get("range"));
 
-            //console.log("range: "+range);
+            let sort;
+            if (u.searchParams.get("sort"))
+                sort=JSON.parse(u.searchParams.get("sort"));
 
-            let options={range: range};
+            //console.log("sort: "+sort);
+
+            let options={range: range, sort: sort};
 			let data=await this.server.db.findMany(
                 this.getTableName(),
                 {...filter, ...await this.getWhere(req)},
