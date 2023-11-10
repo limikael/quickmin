@@ -340,6 +340,22 @@ export default class QuickminServer {
             });
         }
 
+        else if (req.method=="POST" && jsonEq(argv,["_gc"])) {
+            let role=await this.getRoleByRequest(req);
+            //console.log("role: "+role);
+            if (role!="admin") {
+                return new Response("Forbidden",{
+                    status: 403
+                });
+            }
+
+            let u=new URL(req.url);
+            let dryRun=u.searchParams.get("dryRun");
+
+            let result=await this.garbageCollect({dryRun});
+            return Response.json(result);
+        }
+
         else if (this.collections[argv[0]]) {
             let collection=this.collections[argv[0]];
             return await collection.handleRequest(req, argv.slice(1));
@@ -481,5 +497,39 @@ export default class QuickminServer {
         });
 
         await migrator.sync();
+    }
+
+    async garbageCollect({dryRun}) {
+        dryRun=!!dryRun;
+        console.log("Garbage collect, dryRun="+dryRun);
+
+        let contentFiles=[];
+        for (let c in this.collections) {
+            let collection=this.collections[c];
+            if (!collection.isView())
+                contentFiles=[
+                    ...contentFiles,
+                    ...await collection.getContentFiles()
+                ];
+        }
+
+        let storageFiles=await this.storage.listFiles();
+
+        let sync=storageFiles.filter(f=>contentFiles.includes(f));
+        let garbage=storageFiles.filter(f=>!contentFiles.includes(f));
+        let missing=contentFiles.filter(f=>!storageFiles.includes(f));
+
+        if (!dryRun) {
+            for (let f of garbage) {
+                await this.storage.deleteFile(f);
+            }
+        }
+
+        return {
+            sync: sync.length,
+            garbage: garbage.length,
+            missing: missing.length,
+            dryRun: dryRun
+        }
     }
 }

@@ -41,8 +41,9 @@ let yargsConf=yargs(hideBin(process.argv))
         default: "node"
     })
     .option("dry-run",{
-        description: "Show SQL queries that would be performed by migration. "
-            +"No schema modifications made.",
+        description: "Show SQL queries that would be performed by migration, "+
+            "or report files that would be deleted. "+
+            +"No schema modifications made or files affected.",
         type: "boolean"
     })
     .option("force",{
@@ -58,9 +59,13 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Rebuild UI files even if they exist.",
         type: "boolean"
     })
+    .option("remote",{
+        description: "URL for performing operations on remote instance.",
+    })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
     .command("makeui","Create quickmin-bundle.js for local serving.")
+    .command("gc","Garbage collect uploaded content.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -180,6 +185,40 @@ switch (command) {
             dryRun: options.dryRun,
             force: options.force
         });
+        break;
+
+    case "gc":
+        let result;
+        if (options.remote) {
+            let u=new URL(urlJoin(options.remote,"_gc"));
+
+            if (options.dryRun)
+                u.searchParams.set("dryRun",options.dryRun);
+
+            let headers=new Headers();
+            if (quickmin.conf.apiKey)
+                headers.set("x-api-key",quickmin.conf.apiKey);
+
+            let response=await fetch(u.toString(),{
+                method: "POST",
+                headers: headers
+            });
+
+            if (response.status!=200) {
+                console.log(response.status,await response.text());
+                process.exit(1);
+            }
+
+            result=await response.json();
+        }
+
+        else {
+            result=await quickmin.garbageCollect({
+                dryRun: options.dryRun
+            });
+        }
+
+        console.log(JSON.stringify(result,null,2));
         break;
 }
 

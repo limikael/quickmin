@@ -21,4 +21,12 @@ export default class NodeStorage {
 
 		return new Response(data);
 	}
+
+	async listFiles() {
+		return fs.readdirSync(this.storagePath);
+	}
+
+	async deleteFile(name) {
+		fs.unlinkSync(path.join(this.storagePath,name));
+	}
 }

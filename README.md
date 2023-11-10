@@ -1,17 +1,17 @@
 Todo:
-- search
 - indices
 - example
 - layout (sidebar, tab, section)
 - menu icons
 - hierarchial menu
-- actions
 - content garbage collecting
 - conditional fields
 
 Bugs:
 
 Done:
+x search
+x actions
 x recordRepresentation
 x cascading delete
 x uuid for filenames

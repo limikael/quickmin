@@ -77,7 +77,7 @@ export class GoogleAuth {
 
 export function googleAuthDriver(server) {
 	if (server.conf.googleClientId && server.conf.googleClientSecret) {
-		console.log("Initializing Google Auth...");
+		//console.log("Initializing Google Auth...");
 		server.authMethods.google=new GoogleAuth(server);
 	}
 }

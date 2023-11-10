@@ -36,4 +36,20 @@ export default class R2Storage {
             headers,
         });
     }
+
+    async listFiles() {
+        let list=await this.r2.list();
+        let objects=list.objects;
+
+        while (list.truncated) {
+            list=await this.r2.list({cursor: list.cursor});
+            objects.push(...list.objects);
+        }
+
+        return objects.map(o=>o.key);
+    }
+
+    async deleteFile(fn) {
+        await this.r2.delete(fn);
+    }
 }
