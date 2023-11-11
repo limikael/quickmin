@@ -97,6 +97,7 @@ export class QuickminApi {
 	async delete(tableName, id) {
 		let response=await this.fetch(urlJoin(this.url,tableName,String(id)),{
 			method: "DELETE",
+			headers: new Headers(this.headers)
 		});
 
 		if (response.status!=200)
