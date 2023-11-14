@@ -161,7 +161,7 @@ export default class QuickminServer {
             let reqUrl=new URL(req.url);
             let {provider,referer,login}=JSON.parse(reqUrl.searchParams.get("state"));
 
-            console.log("doing login: "+login);
+            //console.log("doing login: ",{login,provider,referer});
 
             if (login) {
                 let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
@@ -173,8 +173,11 @@ export default class QuickminServer {
                 let userRecord=await this.db.findOne(this.authCollection,q);
                 if (!userRecord) {
                     if (!this.signupRole) {
-                        return new Response("Not authorized...",{
-                            status: 403
+                        let headers=new Headers();
+                        headers.set("location",referer);
+                        return new Response("Moved",{
+                            status: 302,
+                            headers: headers
                         });
                     }
 

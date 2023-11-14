@@ -264,7 +264,8 @@ function QuickminAdmin({api, onload}) {
 
         collection.disabled=!collection.access.includes(role);
 
-        if (collection.readAccess.includes(role))
+        if (collection.readAccess.includes(role) &&
+                !collection.hidden)
             resources.push(collectionResource({key: cid, ...collection}));
     }
 
