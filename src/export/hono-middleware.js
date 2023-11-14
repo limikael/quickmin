@@ -17,7 +17,7 @@ class WeakMemo {
 	}
 }
 
-export function quickmin(conf,drivers) {
+export function quickmin(conf, drivers) {
 	let quickminMemo=new WeakMemo();
 
 	return async (c, next)=>{
@@ -38,6 +38,16 @@ export function quickmin(conf,drivers) {
 
 		return await next();
 	}
+}
+
+export function createQuickminApiForEnv(env, conf, drivers) {
+	if (typeof conf=="string")
+		conf=parseYaml(conf);
+
+	conf={...conf,env: env};
+
+	let server=new QuickminServer(conf,drivers);
+	return server.api;
 }
 
 export default quickmin;
