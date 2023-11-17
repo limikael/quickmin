@@ -17,6 +17,7 @@ import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {moduleAlias} from "isoq/esbuild-util";
+import {QuickminApi} from "../export/api.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,7 +44,7 @@ let yargsConf=yargs(hideBin(process.argv))
     .option("dry-run",{
         description: "Show SQL queries that would be performed by migration, "+
             "or report files that would be deleted. "+
-            +"No schema modifications made or files affected.",
+            "No schema modifications made or files affected.",
         type: "boolean"
     })
     .option("force",{
@@ -62,10 +63,15 @@ let yargsConf=yargs(hideBin(process.argv))
     .option("remote",{
         description: "URL for performing operations on remote instance.",
     })
+    .option("tables",{
+        description: "Comma separated list of tables, for import and export commands."
+    })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
     .command("makeui","Create quickmin-bundle.js for local serving.")
     .command("gc","Garbage collect uploaded content.")
+    .command("export <filename>","Export data to file.")
+    .command("import <filename>","Import data from file.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -149,6 +155,13 @@ drivers.push(googleAuthDriver);
 
 let confYaml=fs.readFileSync(options.conf,"utf8");
 let quickmin=new QuickminServer(confYaml,drivers);
+let api=quickmin.api;
+if (options.remote) {
+    api=new QuickminApi({
+        url: options.remote,
+        apiKey: quickmin.conf.apiKey
+    });
+}
 
 switch (command) {
     case "serve":
@@ -186,6 +199,35 @@ switch (command) {
             force: options.force
         });
         break;
+
+    case "export":
+        if (!options.tables) {
+            console.log("Need tables option.")
+            process.exit();
+        }
+
+        let tables=options.tables.split(",");
+        console.log("Exporting to: "+options.filename+", tables: "+tables.join(tables));
+
+        let data={};
+        for (let table of tables)
+            data[table]=await api.findMany(table);
+
+        fs.writeFileSync(options.filename,JSON.stringify(data,null,2));
+        break;
+
+    case "import":
+        console.log("Importing data from: "+options.filename);
+
+        let tableData=JSON.parse(fs.readFileSync(options.filename,"utf8"));
+        for (let table in tableData) {
+            console.log("Importing table: "+table);
+            let datas=tableData[table]
+            for (let data of datas)
+                await api.insert(table,data);
+        }
+        break;
+
 
     case "gc":
         let result;
