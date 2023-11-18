@@ -26,7 +26,7 @@ export default class DbMigrator {
 		console.log("Getting existing schema, pass 2...");
 		let infoQueries=[];
 		for (let nameRow of nameRows)
-			infoQueries.push(`PRAGMA table_info (${nameRow.name})`)
+			infoQueries.push(`PRAGMA table_info (\`${nameRow.name}\`)`)
 
 		if (infoQueries.length) {
 			let infoRes=await this.runQueries(infoQueries);

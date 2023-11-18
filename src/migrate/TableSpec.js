@@ -62,13 +62,13 @@ export default class TableSpec {
 
 		if (copyFields.length) {
 			let copyS=copyFields.join(",");
-			let sq=`INSERT INTO ${this.name+"_new"} (${copyS}) SELECT ${copyS} FROM ${this.name}`;
+			let sq=`INSERT INTO \`${this.name+"_new"}\` (${copyS}) SELECT ${copyS} FROM \`${this.name}\``;
 			queries.push(sq);
 		}
 
-		queries.push(`ALTER TABLE ${this.name} RENAME TO ${this.name+"_old"}`);
-		queries.push(`ALTER TABLE ${this.name+"_new"} RENAME TO ${this.name}`);
-		queries.push(`DROP TABLE ${this.name+"_old"}`);
+		queries.push(`ALTER TABLE \`${this.name}\` RENAME TO \`${this.name+"_old"}\``);
+		queries.push(`ALTER TABLE \`${this.name+"_new"}\` RENAME TO \`${this.name}\``);
+		queries.push(`DROP TABLE \`${this.name+"_old"}\``);
 
 		/*queries.push(`DROP TABLE ${this.name}`);
 		queries.push(`ALTER TABLE ${this.name+"_new"} RENAME TO ${this.name}`);*/
@@ -88,6 +88,6 @@ export default class TableSpec {
 				parts.push(extraSql);
 		}
 
-		return `CREATE TABLE ${this.name+suffix} (${parts.join(",")})`;
+		return `CREATE TABLE \`${this.name+suffix}\` (${parts.join(",")})`;
 	}
 }
