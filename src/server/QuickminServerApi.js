@@ -21,6 +21,10 @@ export default class QuickminServerApi {
 		return await this.server.db.insert(table,data);
 	}
 
+	async delete(table, query) {
+		return await this.server.db.delete(table,query);
+	}
+
 	async getUserByRequest(req) {
 		return await this.server.getUserByRequest(req);
 	}

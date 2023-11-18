@@ -70,8 +70,9 @@ let yargsConf=yargs(hideBin(process.argv))
     .command("migrate","Perform database migration.")
     .command("makeui","Create quickmin-bundle.js for local serving.")
     .command("gc","Garbage collect uploaded content.")
-    .command("export <filename>","Export data to file.")
-    .command("import <filename>","Import data from file.")
+    /*.command("export <filename>","Export data to file.")
+    .command("import <filename>","Import data from file.")*/
+    .command("pull","Pull data from remote.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -155,9 +156,10 @@ drivers.push(googleAuthDriver);
 
 let confYaml=fs.readFileSync(options.conf,"utf8");
 let quickmin=new QuickminServer(confYaml,drivers);
-let api=quickmin.api;
+//let api=quickmin.api;
+let remoteApi;
 if (options.remote) {
-    api=new QuickminApi({
+    remoteApi=new QuickminApi({
         url: options.remote,
         apiKey: quickmin.conf.apiKey
     });
@@ -200,7 +202,7 @@ switch (command) {
         });
         break;
 
-    case "export":
+    /*case "export":
         if (!options.tables) {
             console.log("Need tables option.")
             process.exit();
@@ -226,8 +228,22 @@ switch (command) {
             for (let data of datas)
                 await api.insert(table,data);
         }
-        break;
+        break;*/
 
+    case "pull":
+        if (!options.tables) {
+            console.log("Need tables option.")
+            process.exit();
+        }
+
+        for (let table of options.tables.split(",")) {
+            console.log("Pulling tabe: "+table);
+            let tableDatas=await remoteApi.findMany(table);
+            await quickmin.api.delete(table);
+            for (let data of tableDatas)
+                await quickmin.api.insert(table,data);
+        }
+        break;
 
     case "gc":
         let result;
