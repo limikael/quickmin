@@ -237,7 +237,7 @@ switch (command) {
         }
 
         for (let table of options.tables.split(",")) {
-            console.log("Pulling tabe: "+table);
+            console.log("Pulling table: "+table);
             let tableDatas=await remoteApi.findMany(table);
             await quickmin.api.delete(table);
             for (let data of tableDatas)
