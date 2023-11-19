@@ -13,20 +13,24 @@ export default class QuickminServerApi {
 		return await this.server.db.findMany(table,query);
 	}
 
-	async update(table, query, data) {
-		return await this.server.db.update(table,query,data);
+	async update(table, id, data) {
+		return await this.server.db.update(table,{id: String(id)},data);
 	}
 
 	async insert(table, data) {
 		return await this.server.db.insert(table,data);
 	}
 
-	async delete(table, query) {
-		return await this.server.db.delete(table,query);
+	async delete(table, id) {
+		return await this.server.db.delete(table,{id: String(id)});
 	}
 
 	async getUserByRequest(req) {
 		return await this.server.getUserByRequest(req);
+	}
+
+	async getRoleByRequest(req) {
+		return await this.server.getRoleByRequest(req);
 	}
 
 	async verifyAuthRedirectedUrl(redirectedUrl) {
