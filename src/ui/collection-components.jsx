@@ -1,11 +1,13 @@
 import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton, BulkDeleteButton,
-        Button, useListContext, DeleteButton, useSaveContext, FilterButton, CreateButton} from "react-admin";
+        Button, useListContext, DeleteButton, useSaveContext, FilterButton, CreateButton,
+        useRecordContext, useRefresh} from "react-admin";
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
-import {jsonClone} from "../utils/js-util.js";
+import {jsonClone, arrayOnlyUnique} from "../utils/js-util.js";
 import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
+import { useWatch } from 'react-hook-form';
 
 function GlobalActionButton({action, actionState}) {
     async function onClick() {
@@ -42,159 +44,198 @@ function EditActionButton({action, actionState}) {
     );
 }
 
-function collectionList(collection) {
-    return ()=>{
-        let actionState=useActionState();
+function CollectionList({collection}) {
+    let refresh=useRefresh();
+    let actionState=useActionState(refresh);
 
-        function BulkActions() {
-            let actionItems=[];
-            for (let action of collection.actions) {
-                if (!action.global) {
-                    actionItems.push(
-                        <ListActionButton 
-                                action={action} 
-                                actionState={actionState}/>
-                    );
-                }
-            }
-
-            return (<>
-                {actionItems}
-                <BulkDeleteButton/>
-            </>);
-        }
-
-        let filters=[];
-        for (let fid in collection.fields) {
-            let f=collection.fields[fid];
-            if (f.filter) {
-                if (!FIELD_TYPES[f.type].filter)
-                    throw new Error("Can't filter on that");
-
-                let alwaysOn=true;
-                if (f.filter=="optional")
-                    alwaysOn=false;
-
-                let Comp=FIELD_TYPES[f.type].filter;
-                filters.push(
-                     <Comp source={fid} {...f} alwaysOn={alwaysOn}/>,
-                );
-            }
-        }
-
-        let globalActionItems=[];
+    function BulkActions() {
+        let actionItems=[];
         for (let action of collection.actions) {
-            if (action.global) {
-                globalActionItems.push(
-                    <GlobalActionButton 
-                            action={action}
+            if (!action.global) {
+                actionItems.push(
+                    <ListActionButton 
+                            action={action} 
                             actionState={actionState}/>
                 );
             }
         }
 
-        let actions=(
-            <div style="width: 100%; text-align: right">
-                {globalActionItems}
-                <FilterButton/>
-                <CreateButton/>
-            </div>
-        );
-
         return (<>
-            <ActionDialog actionState={actionState}/>
-            <List hasCreate={true} exporter={false}
-                    filters={filters} actions={actions}>
-                <Datagrid rowClick="edit" size="medium"
-                        bulkActionButtons={<BulkActions/>}>
-                    {collection.listFields.map(fid=>{
-                        let f=collection.fields[fid];
-                        let Comp=FIELD_TYPES[f.type].list;
-                        return (
-                            <Comp source={fid} {...f}/>
-                        );
-                    })}
-                </Datagrid>
-            </List>
+            {actionItems}
+            <BulkDeleteButton/>
         </>);
     }
+
+    let filters=[];
+    for (let fid in collection.fields) {
+        let f=collection.fields[fid];
+        if (f.filter) {
+            if (!FIELD_TYPES[f.type].filter)
+                throw new Error("Can't filter on that");
+
+            let alwaysOn=true;
+            if (f.filter=="optional")
+                alwaysOn=false;
+
+            let Comp=FIELD_TYPES[f.type].filter;
+            filters.push(
+                 <Comp source={fid} {...f} alwaysOn={alwaysOn}/>,
+            );
+        }
+    }
+
+    let globalActionItems=[];
+    for (let action of collection.actions) {
+        if (action.global) {
+            globalActionItems.push(
+                <GlobalActionButton 
+                        action={action}
+                        actionState={actionState}/>
+            );
+        }
+    }
+
+    let actions=(
+        <div style="width: 100%; text-align: right">
+            {globalActionItems}
+            <FilterButton/>
+            <CreateButton/>
+        </div>
+    );
+
+    return (<>
+        <ActionDialog actionState={actionState}/>
+        <List hasCreate={true} exporter={false}
+                filters={filters} actions={actions}>
+            <Datagrid rowClick="edit" size="medium"
+                    bulkActionButtons={<BulkActions/>}>
+                {collection.listFields.map(fid=>{
+                    let f=collection.fields[fid];
+                    let Comp=FIELD_TYPES[f.type].list;
+                    return (
+                        <Comp source={fid} {...f}/>
+                    );
+                })}
+            </Datagrid>
+        </List>
+    </>);
 }
 
-function collectionEditor(collection, mode) {
-    return ()=>{
-        let actionState=useActionState();
+function parseCondition(s) {
+    return Object.fromEntries(s.split(",").map(c=>c.split("=")));
+}
 
-        let fieldContent=[];
-        for (let fid in collection.fields) {
-            let f={...collection.fields[fid]};
+function getConditionDeps(condition) {
+    return condition.map(c=>c[0]);
+}
 
-            if (collection.disabled)
-                f.disabled=collection.disabled;
+function matchCondition(record, where) {
+    for (let k in where)
+        if (record[k]!=where[k])
+            return false;
 
-            if (!f.hidden) {
-                let Comp=FIELD_TYPES[f.type].edit;
-                fieldContent.push(
-                    <Comp source={fid} key={fid} {...f}/>
+    return true;
+}
+
+function CollectionEditorFields({collection}) {
+    let conditionDeps=[];
+    for (let fid in collection.fields) {
+        let f=collection.fields[fid];
+        if (f.condition) {
+            conditionDeps=[
+                ...conditionDeps,
+                ...Object.keys(parseCondition(f.condition))
+            ];
+        }
+    }
+
+    conditionDeps=arrayOnlyUnique(conditionDeps);
+    let watch=useWatch({name: conditionDeps});
+    let watchRecord=Object.fromEntries(
+        [...Array(conditionDeps.length).keys()].map(i=>[conditionDeps[i],watch[i]])
+    );
+
+    let fieldContent=[];
+    for (let fid in collection.fields) {
+        let f={...collection.fields[fid]};
+
+        if (collection.disabled)
+            f.disabled=collection.disabled;
+
+        let matched=true;
+        if (f.condition)
+            matched=matchCondition(watchRecord,parseCondition(f.condition));
+
+        if (!f.hidden && matched) {
+            let Comp=FIELD_TYPES[f.type].edit;
+            fieldContent.push(
+                <Comp source={fid} key={fid} {...f}/>
+            );
+        }
+    }
+
+    return fieldContent;
+}
+
+function CollectionEditor({collection, mode}) {
+    let refresh=useRefresh();
+    let actionState=useActionState(refresh);
+
+    let redirect;
+    let toolbarItems=[];
+    toolbarItems.push(<SaveButton/>);
+
+    if (mode=="edit") {
+        for (let action of collection.actions) {
+            if (!action.global) {
+                toolbarItems.push(
+                    <EditActionButton 
+                            action={action}
+                            actionState={actionState}/>
                 );
             }
         }
+    }
 
-        let redirect;
-        let toolbarItems=[];
-        toolbarItems.push(<SaveButton/>);
+    toolbarItems.push(<div style="flex-grow: 1"></div>);
 
-        if (mode=="edit") {
-            for (let action of collection.actions) {
-                if (!action.global) {
-                    toolbarItems.push(
-                        <EditActionButton 
-                                action={action}
-                                actionState={actionState}/>
-                    );
-                }
-            }
-        }
+    if (collection.type=="singleView") {
+        redirect=`/${collection.id}/single`;
+    }
 
-        toolbarItems.push(<div style="flex-grow: 1"></div>);
+    else {
+        toolbarItems.push(<DeleteButton/>);
+    }
 
-        if (collection.type=="singleView") {
-            redirect=`/${collection.id}/single`;
-        }
+    let toolbar=(
+        <Toolbar>
+            <div class="RaToolbar-defaultToolbar">
+                {toolbarItems}
+            </div>
+        </Toolbar>
+    );
 
-        else {
-            toolbarItems.push(<DeleteButton/>);
-        }
+    let content=(
+        <SimpleForm toolbar={toolbar}>
+            <CollectionEditorFields collection={collection}/>
+        </SimpleForm>
+    );
 
-        let toolbar=(
-            <Toolbar>
-                <div class="RaToolbar-defaultToolbar">
-                    {toolbarItems}
-                </div>
-            </Toolbar>
-        );
+    switch (mode) {
+        case "edit":
+            return (<>
+                <ActionDialog actionState={actionState}/>
+                <Edit mutationMode="pessimistic" redirect={redirect}>
+                    {content}
+                </Edit>
+            </>);
 
-        let content=(
-            <SimpleForm toolbar={toolbar}>
-                {fieldContent}
-            </SimpleForm>
-        );
-
-        switch (mode) {
-            case "edit":
-                return (<>
-                    <ActionDialog actionState={actionState}/>
-                    <Edit mutationMode="pessimistic" redirect={redirect}>
-                        {content}
-                    </Edit>
-                </>);
-
-            case "create":
-                return (
-                    <Create redirect="list">
-                        {content}
-                    </Create>
-                );
-        }
+        case "create":
+            return (
+                <Create redirect="list">
+                    {content}
+                </Create>
+            );
     }
 }
 
@@ -203,9 +244,9 @@ export function collectionResource(collection) {
         <Resource
                 name={collection.key}
                 key={collection.key}
-                list={collectionList(collection)}
-                edit={collectionEditor(collection,"edit")}
-                create={collectionEditor(collection,"create")}
+                list={<CollectionList collection={collection}/>}
+                edit={<CollectionEditor collection={collection} mode={"edit"}/>}
+                create={<CollectionEditor collection={collection} mode={"create"}/>}
                 recordRepresentation={collection.recordRepresentation}
         />
     );

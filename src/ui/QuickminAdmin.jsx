@@ -12,7 +12,7 @@ import DataProvider from "./DataProvider";
 import LoginPage from "./LoginPage.jsx";
 import {Button, CardContent, Link, CardActions} from '@mui/material';
 import {Login, LoginForm} from "ra-ui-materialui";
-import {collectionResource} from "./collection-components.jsx";
+import {collectionResource, CollectionResource} from "./collection-components.jsx";
 import ViewListIcon from '@mui/icons-material/esm/ViewList';
 import {fetchUtils} from "ra-core";
 import Typography from '@mui/material/Typography';

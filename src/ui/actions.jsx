@@ -11,8 +11,10 @@ import LinearProgress from '@mui/material/LinearProgress';
 import {createQuickRpcProxy} from "fullstack-utils/quick-rpc";
 
 class ActionState extends EventTarget {
-    constructor() {
+    constructor(refresh) {
         super();
+
+        this.refresh=refresh;
     }
 
     async runBrowserAction(action, id) {
@@ -98,6 +100,7 @@ class ActionState extends EventTarget {
         if (!this.result && !this.error)
             this.close();
 
+        this.refresh();
         this.dispatchEvent(new Event("change"));
     }
 
@@ -117,6 +120,7 @@ class ActionState extends EventTarget {
         if (!this.result && !this.error)
             this.close();
 
+        this.refresh();
         this.dispatchEvent(new Event("change"));
     }
 
@@ -129,10 +133,10 @@ class ActionState extends EventTarget {
     }
 }
 
-export function useActionState() {
+export function useActionState(refresh) {
     let actionStateRef=useRef();
     if (!actionStateRef.current)
-        actionStateRef.current=new ActionState();
+        actionStateRef.current=new ActionState(refresh);
 
     useEventUpdate(actionStateRef.current,"change");
 
