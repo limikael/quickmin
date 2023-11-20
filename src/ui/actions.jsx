@@ -8,13 +8,14 @@ import {useRef} from "react";
 import {useEventUpdate} from "../utils/react-util.jsx";
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
+import {createQuickRpcProxy} from "fullstack-utils/quick-rpc";
 
 class ActionState extends EventTarget {
     constructor() {
         super();
     }
 
-    async runSingleAction(action, id) {
+    async runBrowserAction(action, id) {
         let url=new URL(action.url,window.location);
         url.searchParams.set("id",id);
 
@@ -39,6 +40,41 @@ class ActionState extends EventTarget {
         document.body.removeChild(iframe);
 
         return data;
+    }
+
+    async runJsonRpcAction(action, id) {
+        let h=new Headers();
+        let token=window.localStorage.getItem("token");
+        if (token)
+            h.set("authorization","Bearer "+token);
+
+        let rpc=createQuickRpcProxy({url: action.url, headers: h});
+
+        console.log("running json rpc action...");
+        try {
+            let result=await rpc[action.method](id);
+            return {
+                result: result
+            }
+        }
+
+        catch (e) {
+            console.error(e);
+            return {
+                error: e.message
+            }
+        }
+    }
+
+    async runSingleAction(action, id) {
+        switch (action.type) {
+            case "jsonrpc":
+                return await this.runJsonRpcAction(action,id);
+
+            case "browser":
+            default:
+                return await this.runBrowserAction(action,id);
+        }
     }
 
     async runAction(action, ids) {

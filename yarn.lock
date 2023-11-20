@@ -1235,6 +1235,12 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
+"fullstack-utils@github:limikael/fullstack-utils":
+  version "1.0.0"
+  resolved "https://codeload.github.com/limikael/fullstack-utils/tar.gz/6ba617261b5a0c0b059f336760e5de2b0803999a"
+  dependencies:
+    hono "^3.7.2"
+
 function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
@@ -1368,6 +1374,11 @@ hono@^3.5.6:
   version "3.5.8"
   resolved "https://registry.yarnpkg.com/hono/-/hono-3.5.8.tgz#9bbc412f5a54183cf2a81a36a9b9ea56da10f785"
   integrity sha512-ZipTmGfHm43q5QOEBGog2wyejyNUcicjPt0BLDQ8yz9xij/y9RYXRpR1YPxMpQqeyNM7isvpsIAe9Ems51Wq0Q==
+
+hono@^3.7.2:
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-3.10.1.tgz#9f8d144aa93e0f9bcd97f0cb5a685da103b06334"
+  integrity sha512-4jPKCmYWLAoCMpmvOU+xNOQYdcNftip7sM/IsO8EPyGAtjk9fGNyUchG6huSzLrY449WDNGFPetVs5doepNnlA==
 
 hotscript@^1.0.12:
   version "1.0.13"

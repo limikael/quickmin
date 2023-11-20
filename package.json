@@ -25,6 +25,7 @@
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.28.5",
     "esbuild": "^0.19.3",
+    "fullstack-utils": "github:limikael/fullstack-utils",
     "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
     "minimatch": "^9.0.3",
