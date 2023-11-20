@@ -5,9 +5,9 @@
 - [] layout (sidebar, tab, section)
 - [] menu icons
 - [] hierarchial menu
-- [] conditional fields
 
 ### Done:
+- [x] conditional fields
 - [x] content garbage collecting
 - [x] search
 - [x] actions
