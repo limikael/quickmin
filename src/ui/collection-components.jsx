@@ -96,7 +96,7 @@ function CollectionList({collection}) {
     }
 
     let actions=(
-        <div style="width: 100%; text-align: right">
+        <div style="white-space: nowrap; text-align: right">
             {globalActionItems}
             <FilterButton/>
             <CreateButton/>

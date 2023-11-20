@@ -55,6 +55,7 @@ export const FIELD_TYPES={
     "text": {
         list: TextField,
         edit: TextInput,
+        filter: TextInput
     },
 
     "integer": {
@@ -102,7 +103,8 @@ export const FIELD_TYPES={
 
     "reference": {
         list: ReferenceField,
-        edit: ReferenceInput
+        edit: ReferenceInput,
+        filter: ReferenceInput,
     },
 
     "image": {
