@@ -121,18 +121,27 @@ function CollectionList({collection}) {
     </>);
 }
 
-function parseCondition(s) {
+/*function parseCondition(s) {
     return Object.fromEntries(s.split(",").map(c=>c.split("=")));
-}
+}*/
 
-function getConditionDeps(condition) {
+/*function getConditionDeps(condition) {
     return condition.map(c=>c[0]);
-}
+}*/
 
 function matchCondition(record, where) {
-    for (let k in where)
-        if (record[k]!=where[k])
-            return false;
+    for (let k in where) {
+        console.log(where[k]);
+        if (Array.isArray(where[k])) {
+            if (!where[k].includes(record[k]))
+                return false;
+        } 
+
+        else {
+            if (record[k]!=where[k])
+                return false;
+        }
+    }
 
     return true;
 }
@@ -144,7 +153,7 @@ function CollectionEditorFields({collection}) {
         if (f.condition) {
             conditionDeps=[
                 ...conditionDeps,
-                ...Object.keys(parseCondition(f.condition))
+                ...Object.keys(JSON.parse(f.condition))
             ];
         }
     }
@@ -164,7 +173,7 @@ function CollectionEditorFields({collection}) {
 
         let matched=true;
         if (f.condition)
-            matched=matchCondition(watchRecord,parseCondition(f.condition));
+            matched=matchCondition(watchRecord,JSON.parse(f.condition));
 
         if (!f.hidden && matched) {
             let Comp=FIELD_TYPES[f.type].edit;
