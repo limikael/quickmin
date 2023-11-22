@@ -77,6 +77,16 @@ export default class QuickminServer {
         this.api=new QuickminServerApi(this);
     }
 
+    presentItem(collectionId, item) {
+        let collection=this.collections[collectionId];
+        return collection.presentItem(item);
+    }
+
+    representItem(collectionId, item) {
+        let collection=this.collections[collectionId];
+        return collection.representItem(item);
+    }
+
     findReferencesForTable(tableName) {
         let res=[];
 

@@ -6,23 +6,41 @@ export default class QuickminServerApi {
 	}
 
 	async findOne(table, query={}) {
-		return await this.server.db.findOne(table,query);
+		return this.server.presentItem(
+			table,
+			await this.server.db.findOne(table,query)
+		);
 	}
 
 	async findMany(table, query={}) {
-		return await this.server.db.findMany(table,query);
+		let items=await this.server.db.findMany(table,query);
+		items=items.map(item=>this.server.presentItem(item));
+		return items;
 	}
 
 	async update(table, id, data) {
-		return await this.server.db.update(table,{id: String(id)},data);
+		let updateResult=await this.server.db.update(
+			table,
+			{id: String(id)},
+			this.server.representItem(table,data)
+		);
+
+		return this.server.presentItem(table,updateResult);
 	}
 
 	async insert(table, data) {
-		return await this.server.db.insert(table,data);
+		let insertResult=await this.server.db.insert(
+			table,
+			this.server.representItem(table,data)
+		);
+
+		return this.server.presentItem(table,insertResult);
 	}
 
 	async delete(table, id) {
-		return await this.server.db.delete(table,{id: String(id)});
+		let deleteResult=await this.server.db.delete(table,{id: String(id)});
+
+		return this.server.presentItem(table,deleteResult);
 	}
 
 	async getUserByRequest(req) {

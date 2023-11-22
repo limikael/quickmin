@@ -23,6 +23,7 @@ collections:
       <Select id="status" choices="draft,published" listable />
       <Date id="published" listable/>
       <RichText id="content" fullWidth/>
+      <Json id="jsontest"/>
 
   pages:
     fields:

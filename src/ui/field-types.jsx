@@ -58,6 +58,32 @@ export const FIELD_TYPES={
         filter: TextInput
     },
 
+    "json": {
+        list: TextField,
+        edit: TextInput,
+        confProcessor(field) {
+            field.multiline=true;
+            field.fullWidth=true;
+            /*
+            Should be monospace!!! For later...
+
+            field.style={
+                "font-family": "monospace !important"
+            };
+            field.sx={
+                bgcolor: '#ff0000',
+                "font-family": "monospace !important"
+            };*/
+        },
+        readProcessor(data) {
+            return JSON.stringify(data,null,2)
+        },
+        writeProcessor(data) {
+            if (data)
+                return JSON.parse(data);
+        },
+    },
+
     "integer": {
         list: NumberField,
         edit: NumberInput,

@@ -92,6 +92,9 @@ async function fetchConf(apiUrl, setRole) {
     for (let cid in conf.collections) {
         for (let fid in conf.collections[cid].fields) {
             let type=conf.collections[cid].fields[fid].type;
+            if (!FIELD_TYPES[type])
+                throw new Error("Unknown field type: "+type);
+
             let processor=FIELD_TYPES[type].confProcessor;
             if (processor) 
                 processor(conf.collections[cid].fields[fid],conf);

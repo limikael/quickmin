@@ -11,7 +11,8 @@ let SQL_TYPES={
     "authmethod": "text",
     "integer": "integer",
     "real": "real",
-    "reference": "integer"
+    "reference": "integer",
+    "json": "text"
 };
 
 function arrayify(cand) {
@@ -72,6 +73,46 @@ export default class Collection {
 		}
 	}
 
+    representItem=(item)=>{
+        if (!item)
+            return item;
+
+        for (let fid in this.fields) {
+            let field=this.fields[fid];
+
+            switch (field.type) {
+                case "json":
+                    if (item.hasOwnProperty(fid)) {
+                        item[fid]=JSON.stringify(item[fid]);
+                    }
+                    break;
+            }
+        }
+
+        return item;
+    }
+
+    presentItem=(item)=>{
+        if (!item)
+            return item;
+
+        for (let fid in this.fields) {
+            let field=this.fields[fid];
+
+            switch (field.type) {
+                case "json":
+                    if (item[fid])
+                        item[fid]=JSON.parse(item[fid]);
+
+                    else
+                        item[fid]=null;
+                    break;
+            }
+        }
+
+        return item;
+    }
+
     filterItem=(item)=>{
         return item;
     }
@@ -119,6 +160,7 @@ export default class Collection {
             //console.log("count: "+options.count);
 
             data=data.map(this.filterItem);
+            data=data.map(this.presentItem);
 
             return Response.json(data,{headers:{
                 "Content-Range": `${options.range[0]}-${options.range[1]}/${options.count}`
@@ -135,7 +177,7 @@ export default class Collection {
             if (!item)
                 return new Response("Not found",{status: 404});
 
-            return Response.json(this.filterItem(item));
+            return Response.json(this.presentItem(this.filterItem(item)));
         }
 
         role=role||await this.server.getRoleByRequest(req);
@@ -145,21 +187,26 @@ export default class Collection {
         // Create.
         if (req.method=="POST" && argv.length==0) {
             let data=await this.server.getRequestFormData(req);
-            return Response.json(await this.server.db.insert(
+            let result=await this.server.db.insert(
                 this.getTableName(),
-                {...data, ...await this.getWhere(req)}
-            ));
+                this.representItem({...data, ...await this.getWhere(req)})
+            );
+
+            return Response.json(this.presentItem(result));
         }
 
         // Update.
         if (req.method=="PUT" && argv.length==1) {
             let data=await this.server.getRequestFormData(req);
+            //console.log("updating ",data);
 
-            return Response.json(await this.server.db.update(
+            let result=await this.server.db.update(
                 this.getTableName(),
                 {id: argv[0], ...await this.getWhere(req)},
-                {...data, ...await this.getWhere(req)}
-            ));
+                this.representItem({...data, ...await this.getWhere(req)})
+            );
+
+            return Response.json(this.presentItem(result));
         }
 
         // Delete.
@@ -184,7 +231,7 @@ export default class Collection {
                 id: argv[0]
             });
 
-            return Response.json(item);
+            return Response.json(this.presentItem(item));
         }
 	}
 }
@@ -379,7 +426,7 @@ export class ViewCollection extends Collection {
             if (!item)
                 return Response.json({id: "single"});
 
-            return Response.json({...item, id: "single"});
+            return Response.json(this.presentItem({...item, id: "single"}));
         }
 
         role=role||await this.server.getRoleByRequest(req);
@@ -394,19 +441,17 @@ export class ViewCollection extends Collection {
             let queryResult=await this.server.db.update(
                 this.getTableName(),
                 {...await this.getWhere(req)},
-                {...data, ...await this.getWhere(req)}
+                this.representItem({...data, ...await this.getWhere(req)})
             );
 
             if (!queryResult) {
-                /*console.log("inserting...");
-                console.log({...data, ...await this.getWhere(req)});*/
                 queryResult=await this.server.db.insert(
                     this.getTableName(),
-                    {...data, ...await this.getWhere(req)}
+                    this.representItem({...data, ...await this.getWhere(req)})
                 );
             }
 
-            return Response.json({...queryResult, id: "single"});
+            return Response.json(this.presentItem({...queryResult, id: "single"}));
         }
     }
 
