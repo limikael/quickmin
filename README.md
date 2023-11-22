@@ -1,3 +1,5 @@
+Quickly get a database up and running, with UI and REST api.
+
 ### Todo:
 
 - [] indices

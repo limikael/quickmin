@@ -1,6 +1,5 @@
 {
   "name": "quickmin",
-  "private": true,
   "version": "0.0.1",
   "type": "module",
   "bin": {
@@ -25,7 +24,7 @@
     "clsx": "^2.0.0",
     "drizzle-orm": "^0.28.5",
     "esbuild": "^0.19.3",
-    "fullstack-utils": "github:limikael/fullstack-utils",
+    "fullstack-utils": "^1.0.0",
     "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
     "minimatch": "^9.0.3",
@@ -39,7 +38,8 @@
     "url-join": "^5.0.0",
     "yaml": "^2.3.2",
     "yargs": "^17.7.2",
-    "isoq": "github:limikael/isoq"
+    "isoq": "^1.0.1",
+    "quickmin-api": "^1.0.0"
   },
   "exports": {
     "./hono-middleware": {
@@ -59,12 +59,6 @@
     },
     "./google-auth": {
       "import": "./src/auth/google-auth.js"
-    },
-    "./api": {
-      "import": "./src/export/api.js"
-    },
-    "./use-api": {
-      "import": "./src/export/use-api.jsx"
     }
   }
 }

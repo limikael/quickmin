@@ -17,7 +17,7 @@ import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {moduleAlias} from "isoq/esbuild-util";
-import {QuickminApi} from "../export/api.js";
+import {QuickminApi} from "quickmin-api";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
