@@ -14,7 +14,7 @@ export default class QuickminServerApi {
 
 	async findMany(table, query={}) {
 		let items=await this.server.db.findMany(table,query);
-		items=items.map(item=>this.server.presentItem(item));
+		items=items.map(item=>this.server.presentItem(table, item));
 		return items;
 	}
 

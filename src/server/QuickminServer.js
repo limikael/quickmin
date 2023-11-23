@@ -79,11 +79,17 @@ export default class QuickminServer {
 
     presentItem(collectionId, item) {
         let collection=this.collections[collectionId];
+        if (!collection)
+            throw new Error("No such collection: "+collectionId);
+
         return collection.presentItem(item);
     }
 
     representItem(collectionId, item) {
         let collection=this.collections[collectionId];
+        if (!collection)
+            throw new Error("No such collection: "+collectionId);
+
         return collection.representItem(item);
     }
 
