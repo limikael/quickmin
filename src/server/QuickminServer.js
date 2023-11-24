@@ -8,6 +8,8 @@ import urlJoin from "url-join";
 import {handleRequest as handleIsoqRequest} from "../loader/isoq-raw.js";
 import {minimatch} from 'minimatch';
 import QuickminServerApi from "./QuickminServerApi.js";
+import {googleAuthDriver} from "../auth/google-auth.js";
+import {microsoftAuthDriver} from "../auth/microsoft-auth.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -53,6 +55,11 @@ export default class QuickminServer {
 
             this.requireAuth=true;
         }
+
+        drivers=[...drivers,
+            googleAuthDriver,
+            microsoftAuthDriver
+        ];
 
         for (let driver of drivers)
             driver(this);
@@ -175,68 +182,56 @@ export default class QuickminServer {
 
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
-            let {provider,referer,login}=JSON.parse(reqUrl.searchParams.get("state"));
+            let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
 
-            //console.log("doing login: ",{login,provider,referer});
+            //let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
+            let loginToken=await this.authMethods[provider].process(reqUrl);
+            console.log("login token: "+loginToken+" for provider: "+provider);
 
-            if (login) {
-                let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
-                let loginToken=await this.authMethods[provider].process(reqUrl,reurl);
+            let q={};
+            q[this.authMethods[provider].fieldId]=loginToken;
 
-                let q={};
-                q[this.authMethods[provider].fieldId]=loginToken;
-
-                let userRecord=await this.db.findOne(this.authCollection,q);
-                if (!userRecord) {
-                    if (!this.signupRole) {
-                        let headers=new Headers();
-                        headers.set("location",referer);
-                        return new Response("Moved",{
-                            status: 302,
-                            headers: headers
-                        });
-                    }
-
-                    let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
-                    let q={};
-                    q[roleField]=this.signupRole;
-                    q[this.authMethods[provider].fieldId]=loginToken;
-
-                    userRecord=await this.db.insert(this.authCollection,q);
+            let userRecord=await this.db.findOne(this.authCollection,q);
+            if (!userRecord) {
+                if (!this.signupRole) {
+                    let headers=new Headers();
+                    headers.set("location",referer);
+                    return new Response("Moved",{
+                        status: 302,
+                        headers: headers
+                    });
                 }
 
-                //let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+                let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+                let q={};
+                q[roleField]=this.signupRole;
+                q[this.authMethods[provider].fieldId]=loginToken;
 
-                let payload={
-                    userId: userRecord.id
-                };
-
-                let token=jwtSign(payload,this.conf.jwtSecret);
-
-                let headers=new Headers();
-                headers.set("location",referer);
-                headers.set("set-cookie","qmtoken="+token+"; path=/");
-                /*headers.set("access-control-expose-headers","Set-Cookie");
-                headers.set("Access-Control-Allow-Credentials",true);
-                headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
-
-                return new Response("Moved",{
-                    status: 302,
-                    headers: headers
-                });
+                userRecord=await this.db.insert(this.authCollection,q);
             }
 
-            else {
-                let refererUrl=new URL(referer);
-                refererUrl.search=reqUrl.searchParams;
+            let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+            let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
 
-                let headers=new Headers();
-                headers.set("location",refererUrl);
-                return new Response("Moved",{
-                    status: 302,
-                    headers: headers
-                });
-            }
+            let payload={
+                userId: userRecord.id,
+                role: userRecord[roleField],
+                userName: userRecord[usernameField],
+            };
+
+            let token=jwtSign(payload,this.conf.jwtSecret);
+
+            let headers=new Headers();
+            headers.set("location",referer);
+            headers.set("set-cookie","qmtoken="+token+"; path=/");
+            /*headers.set("access-control-expose-headers","Set-Cookie");
+            headers.set("Access-Control-Allow-Credentials",true);
+            headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
+
+            return new Response("Moved",{
+                status: 302,
+                headers: headers
+            });
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_authUrls"])) {
@@ -244,41 +239,13 @@ export default class QuickminServer {
             if (!body.referer)
                 throw new Error("Expected referer");
 
-            let reqUrl=new URL(req.url);
-            let hostConf=this.getHostConf(reqUrl.hostname);
-            if (hostConf.oauthHostname)
-                reqUrl.hostname=hostConf.oauthHostname;
-
-            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
-
-            let authButtons={};
-            for (let method in this.authMethods) {
-                let state=JSON.stringify({
-                    ...body,
-                    provider: method
-                });
-                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl,state);
-            }
-
-            return Response.json(authButtons);
+            let authUrls=await this.getAuthUrls(body.referer,body);
+            return Response.json(authUrls);
         }
 
         else if (req.method=="GET" && jsonEq(argv,["_schema"])) {
             let reqUrl=new URL(req.url);
-            let hostConf=this.getHostConf(reqUrl.hostname);
-            if (hostConf.oauthHostname)
-                reqUrl.hostname=hostConf.oauthHostname;
-
-            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
-
-            let authButtons={};
-            for (let method in this.authMethods) {
-                let state=JSON.stringify({
-                    referer: req.headers.get("referer"),
-                    provider: method
-                });
-                authButtons[method]=await this.authMethods[method].getLoginUrl(reurl,state);
-            }
+            let reUrl=urlJoin(reqUrl.origin,this.conf.apiPath);
 
             let collectionsSchema={};
             for (let cid in this.collections)
@@ -287,11 +254,11 @@ export default class QuickminServer {
             return Response.json({
                 collections: collectionsSchema,
                 requireAuth: this.requireAuth,
-                authButtons: authButtons,
+                authUrls: await this.getAuthUrls(reUrl),
             });
         }
 
-        else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
+        /*else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
             let reqUrl=new URL(req.url);
             let body=await req.json();
             let {provider}=JSON.parse(body.state);
@@ -324,7 +291,7 @@ export default class QuickminServer {
                 role: await this.getRoleByUserId(payload.userId),
                 token: token
             });
-        }
+        }*/
 
         else if (req.method=="POST" && jsonEq(argv,["_login"])) {
             let body=await req.json();
@@ -332,12 +299,12 @@ export default class QuickminServer {
                     body.password==this.conf.adminPass) {
                 let payload={
                     userId: -1,
+                    userName: this.conf.adminUser,
+                    role: await this.getRoleByUserId(-1)
                 };
 
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
-                    username: this.conf.adminUser,
-                    role: await this.getRoleByUserId(payload.userId),
                     token: token
                 });
             }
@@ -379,6 +346,27 @@ export default class QuickminServer {
             let collection=this.collections[argv[0]];
             return await collection.handleRequest(req, argv.slice(1));
         }
+    }
+
+    async getAuthUrls(referer, state={}) {
+        let u=new URL(referer);
+        let hostConf=this.getHostConf(u.hostname);
+        if (hostConf.oauthHostname)
+            u.hostname=hostConf.oauthHostname;
+
+        let reurl=urlJoin(u.origin,this.conf.apiPath,"_oauthRedirect");
+
+        let authUrls={};
+        for (let method in this.authMethods) {
+            let wrappedState=JSON.stringify({
+                referer: referer,
+                provider: method,
+                ...state
+            });
+            authUrls[method]=this.authMethods[method].getLoginUrl(reurl,wrappedState);
+        }
+
+        return authUrls;
     }
 
     getUserIdByRequest(req) {

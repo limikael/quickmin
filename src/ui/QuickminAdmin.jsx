@@ -1,4 +1,4 @@
-import {Admin, Layout, Menu, Resource, Title} from 'react-admin';
+import {Admin, Layout, Menu, Resource} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
 import {fetchEx, makeNameFromSymbol} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.jsx";
@@ -9,65 +9,12 @@ import urlJoin from 'url-join';
 import {useMemo, useState, useCallback} from "react";
 import AuthProvider from "./AuthProvider";
 import DataProvider from "./DataProvider";
-import LoginPage from "./LoginPage.jsx";
-import {Button, CardContent, Link, CardActions} from '@mui/material';
-import {Login, LoginForm} from "ra-ui-materialui";
-import {collectionResource, CollectionResource} from "./collection-components.jsx";
+import {collectionResource} from "./collection-components.jsx";
 import ViewListIcon from '@mui/icons-material/esm/ViewList';
 import {fetchUtils} from "ra-core";
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import {styled} from '@mui/material/styles';
 import {render} from "preact";
-
-function loginForm(conf) {
-    return function QuickminLogin(props) {
-        let [showUserPass,setShowUserPass]=useState(false);
-        function onShowUserPassClick(ev) {
-            ev.preventDefault();
-            setShowUserPass(true);
-        }
-
-        function onLoginClick(url) {
-            window.location=url;
-        }
-
-        if (!Object.keys(conf.authButtons).length)
-            showUserPass=true;
-
-        return (<>
-            <Login {...props}>
-                {showUserPass && <LoginForm />}
-                {!!Object.keys(conf.authButtons).length &&
-                    <CardContent>
-                        {Object.keys(conf.authButtons).map(k=>
-                            <Button
-                                style="margin-top: 16px"
-                                variant="contained"
-                                type="submit"
-                                color="primary"
-                                disabled={false}
-                                fullWidth
-                                onclick={onLoginClick.bind(null,conf.authButtons[k])}
-                            >Login with {k}
-                            </Button>
-                        )}
-                        {!showUserPass &&
-                            <Link style="display: block; margin-top: 16px; opacity: 0.5"
-                                    href="#" 
-                                    align="center"
-                                    variant="contained"
-                                    onclick={onShowUserPassClick}>
-                                Login with username/password
-                            </Link>
-                        }
-                    </CardContent>
-                }
-            </Login>
-        </>)
-    }
-}
+import QuickminLogin from "./QuickminLogin.jsx";
+import QuickminDashboard from "./QuickminDashboard.jsx";
 
 async function fetchConf(apiUrl, setRole) {
     let confUrl=urlJoin(apiUrl,"_schema");
@@ -101,7 +48,7 @@ async function fetchConf(apiUrl, setRole) {
         }
     }
 
-    let u=new URL(window.location);
+    /*let u=new URL(window.location);
     if (u.searchParams.get("code") &&
             u.searchParams.get("scope") &&
             u.searchParams.get("authuser") &&
@@ -126,7 +73,7 @@ async function fetchConf(apiUrl, setRole) {
         catch (e) {
             console.log(e);
         }
-    }
+    }*/
 
     return conf;
 }
@@ -186,64 +133,8 @@ function createLayout(conf, role) {
     }
 }
 
-function createDashboard(conf, role) {
-    let dashboardItems=[];
-    for (let cid in conf.collections) {
-        let collection=conf.collections[cid];
-        if (collection.readAccess.includes(role)
-                && collection.helperText) {
-            let link="#/"+collection.id;
-            if (collection.type=="singleView")
-                link="#/"+collection.id+"/single";
-
-            dashboardItems.push(
-                <Grid item xs={12} md={6}>
-                    <Paper>
-                        <CardContent>
-                            <Typography gutterBottom variant="h5" component="div">
-                                {makeNameFromSymbol(collection.id)}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {collection.helperText}
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            {collection.type=="singleView" && <>
-                                <Button size="small" href={`#/${collection.id}/single`}>
-                                    EDIT
-                                </Button>
-                            </>}
-                            {collection.type!="singleView" && <>
-                                <Button size="small" href={`#/${collection.id}`}>
-                                    VIEW ALL
-                                </Button>
-                                <Button size="small" href={`#/${collection.id}/create`}>
-                                    CREATE NEW
-                                </Button>
-                            </>}
-                        </CardActions>
-                    </Paper>
-                </Grid>
-            );
-        }
-    }
-
-    return function() {
-        return (<>
-            <div style="margin: 1em">
-                <Title title="Admin" />
-                <Typography variant="h3" gutterBottom>Admin</Typography>
-
-                <Grid container spacing={3}>
-                    {dashboardItems}
-                </Grid>
-            </div>
-        </>)
-    }
-}
-
 function QuickminAdmin({api, onload}) {
-    let [role,setRole]=useState(window.localStorage.getItem("role"));
+    let [role,setRole]=useState();
     let conf=useAsyncMemo(async()=>{
         console.log("loading conf...");
         let conf=await fetchConf(api,setRole);
@@ -279,9 +170,9 @@ function QuickminAdmin({api, onload}) {
         <Admin dataProvider={conf.dataProvider}
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
-                loginPage={loginForm(conf)}
+                loginPage={<QuickminLogin conf={conf}/>}
                 layout={createLayout(conf,role)}
-                dashboard={createDashboard(conf,role)}>
+                dashboard={()=><QuickminDashboard conf={conf} role={role}/>}>
             {resources}
         </Admin>
     </>);

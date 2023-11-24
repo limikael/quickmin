@@ -1,6 +1,7 @@
-import {fetchEx} from "../utils/js-util.js";
+import {fetchEx, parseCookie} from "../utils/js-util.js";
 import {fetchUtils} from "ra-core";
 import {useRedirect} from "react-admin";
+import {jwtDecode} from "jwt-decode";
 
 export class AuthError extends Error {};
 
@@ -8,20 +9,21 @@ export default class AuthProvider {
 	constructor(url, setRole) {
 		this.url=url;
 		this.setRole=setRole;
+
+		let tokenPayload=this.getTokenPayload();
+		if (tokenPayload)
+			this.setRole(tokenPayload.role);
+	}
+
+	getTokenPayload() {
+		let cookies=parseCookie(document.cookie);
+		if (cookies.qmtoken)
+			return jwtDecode(cookies.qmtoken);
 	}
 
 	async checkAuth() {
-		if (!window.localStorage.getItem("token"))
+		if (!this.getTokenPayload())
 			throw new AuthError();
-	}
-
-	setLoggedIn(userData) {
-    	window.localStorage.setItem("token",userData.token);
-    	window.localStorage.setItem("username",userData.username);
-    	window.localStorage.setItem("role",userData.role);
-
-		console.log("logging in role: "+userData.role);
-    	this.setRole(userData.role);
 	}
 
     login=async (params)=>{
@@ -35,25 +37,26 @@ export default class AuthProvider {
     	if (result.status<200 || result.status>=300)
 	    	throw new Error("Unable to log in");
 
-	    this.setLoggedIn(result.data);
+		window.document.cookie="qmtoken="+result.data.token+"; path=/";
+		this.setRole(this.getTokenPayload().role);
     }
 
     async checkError(error) {
-		console.log("check error ",error);
+		//console.log("check error ",error);
 
     	return (error instanceof AuthError);
     }
 
     async logout() {
-    	window.localStorage.removeItem("token");
-    	window.localStorage.removeItem("username");
-    	window.localStorage.removeItem("role");
+		window.document.cookie="qmtoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     	this.setRole(null);
     } 
 
     async getIdentity() {
+    	let tokenPayload=this.getTokenPayload();
+
 		return ({
-			fullName: window.localStorage.getItem("username")
+			fullName: tokenPayload.userName
 		});
     }
 
@@ -61,12 +64,13 @@ export default class AuthProvider {
     }
 
 	httpClient=async (url, options={})=>{
-	    if (!options.headers)
+		// not needed when cookie
+	    /*if (!options.headers)
 	        options.headers=new Headers();
 
 	    let token=window.localStorage.getItem("token");
 	    if (token)
-		    options.headers.set("Authorization","Bearer "+token);
+		    options.headers.set("Authorization","Bearer "+token);*/
 
 	    return fetchUtils.fetchJson(url,options);
 	}

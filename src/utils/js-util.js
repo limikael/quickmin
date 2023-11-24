@@ -86,3 +86,11 @@ export function arrayOnlyUnique(a) {
 
 	return a.filter(onlyUnique);
 }
+
+export function searchParamsFromObject(o) {
+    let searchParams=new URLSearchParams();
+    for (let k in o)
+        searchParams.set(k,o[k]);
+
+    return searchParams;
+}

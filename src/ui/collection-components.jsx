@@ -131,7 +131,7 @@ function CollectionList({collection}) {
 
 function matchCondition(record, where) {
     for (let k in where) {
-        console.log(where[k]);
+        //console.log(where[k]);
         if (Array.isArray(where[k])) {
             if (!where[k].includes(record[k]))
                 return false;

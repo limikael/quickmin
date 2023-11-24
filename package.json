@@ -26,9 +26,12 @@
     "esbuild": "^0.19.3",
     "fullstack-utils": "^1.0.0",
     "hono": "^3.5.6",
+    "isoq": "^1.0.1",
     "jsrsasign": "^10.8.6",
+    "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.3",
     "preact": "^10.16.0",
+    "quickmin-api": "^1.0.0",
     "ra-core": "^4.13.1",
     "ra-data-simple-rest": "^4.13.0",
     "ra-ui-materialui": "^4.13.1",
@@ -37,9 +40,7 @@
     "txml": "^5.1.1",
     "url-join": "^5.0.0",
     "yaml": "^2.3.2",
-    "yargs": "^17.7.2",
-    "isoq": "^1.0.1",
-    "quickmin-api": "^1.0.0"
+    "yargs": "^17.7.2"
   },
   "exports": {
     "./hono-middleware": {
