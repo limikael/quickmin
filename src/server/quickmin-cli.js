@@ -102,7 +102,7 @@ async function makeUi() {
         inject: ["isoq/preact-shim"],
         jsxFactory: "h",
         jsxFragment: "Fragment",
-        //minify: true,
+        minify: true,
         plugins: [
             moduleAlias({
                 "react": "preact/compat",

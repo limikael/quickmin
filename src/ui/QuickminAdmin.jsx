@@ -48,33 +48,6 @@ async function fetchConf(apiUrl, setRole) {
         }
     }
 
-    /*let u=new URL(window.location);
-    if (u.searchParams.get("code") &&
-            u.searchParams.get("scope") &&
-            u.searchParams.get("authuser") &&
-            u.searchParams.get("prompt")) {
-        try {
-            let result=await fetchEx(urlJoin(apiUrl,"_oauthLogin"),{
-                method: "POST",
-                headers:{'content-type': 'application/json'},
-                body: JSON.stringify({
-                    "url": window.location.toString(),
-                    "state": u.searchParams.get("state"),
-                }),
-                dataType: "json"
-            });
-
-            conf.authProvider.setLoggedIn(result.data);
-            //history.replaceState(null,"",u.origin+u.pathname);
-            window.location=u.origin+u.pathname;
-            return;
-        }
-
-        catch (e) {
-            console.log(e);
-        }
-    }*/
-
     return conf;
 }
 
