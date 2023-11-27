@@ -144,6 +144,7 @@ export default class DrizzleDb {
     }
 
     async delete(modelName, query) {
+        //console.log("deleting: ",query);
         let deleteResult=await this.drizzle
             .delete(this.tables[modelName])
             .where(this.buildWhere(modelName,query))

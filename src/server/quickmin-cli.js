@@ -237,9 +237,12 @@ switch (command) {
         }
 
         for (let table of options.tables.split(",")) {
+            console.log("Clearing current data in: "+table);
+            for (let existing of await quickmin.api.findMany(table))
+                await quickmin.api.delete(table,existing.id);
+
             console.log("Pulling table: "+table);
             let tableDatas=await remoteApi.findMany(table);
-            await quickmin.api.delete(table);
             for (let data of tableDatas)
                 await quickmin.api.insert(table,data);
         }

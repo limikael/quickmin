@@ -58,8 +58,11 @@
     "./r2-storage": {
       "import": "./src/export/r2-storage.js"
     },
-    "./google-auth": {
-      "import": "./src/auth/google-auth.js"
+    "./api": {
+      "import": "./src/export/quickmin-api.js"
+    },
+    "./use-api": {
+      "import": "./src/export/quickmin-api-react.js"
     }
   }
 }
