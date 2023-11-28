@@ -33,10 +33,12 @@ collections:
       <RichText id="content" fullWidth/>
 
   users:
+    recordRepresentation: name
     fields:
-      <Text id="name" username/>
-      <AuthMethod id="google_auth" provider="google"/>
-      <Select id="role" choices="user,admin" role/>
+      <Text id="name" username listable/>
+      <AuthMethod id="google_auth" provider="google" listable/>
+      <Select id="role" choices="user,admin" role listable/>
+      <ReferenceMany label="Posts" reference="posts" target="author" fullWidth/>
 
 views:
   my_posts:

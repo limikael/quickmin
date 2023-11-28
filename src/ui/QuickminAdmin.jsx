@@ -9,7 +9,7 @@ import urlJoin from 'url-join';
 import {useMemo, useState, useCallback} from "react";
 import AuthProvider from "./AuthProvider";
 import DataProvider from "./DataProvider";
-import {collectionResource} from "./collection-components.jsx";
+import {CollectionEditor, CollectionList} from "./collection-components.jsx";
 import ViewListIcon from '@mui/icons-material/esm/ViewList';
 import {fetchUtils} from "ra-core";
 import {render} from "preact";
@@ -133,7 +133,16 @@ function QuickminAdmin({api, onload}) {
 
         if (collection.readAccess.includes(role) &&
                 !collection.hidden)
-            resources.push(collectionResource({key: cid, ...collection}));
+            resources.push(
+                <Resource
+                        name={collection.id}
+                        key={collection.id}
+                        list={<CollectionList collection={collection}/>}
+                        edit={<CollectionEditor conf={conf} collection={collection} mode="edit"/>}
+                        create={<CollectionEditor conf={conf} collection={collection} mode="create"/>}
+                        recordRepresentation={collection.recordRepresentation}
+                />
+            );
     }
 
     if (!resources.length)

@@ -1,9 +1,12 @@
 import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
         ReferenceField, ReferenceInput,
-        NumberField, NumberInput} from "react-admin";
+        NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
+        Button} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
+import ContentAdd from '@mui/icons-material/esm/Add';
+import { Link, To } from 'react-router-dom';
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -49,6 +52,38 @@ function processSelectConf(field) {
             })
         }
     }
+}
+
+function QuickminReferenceManyInput(props) {
+    let {conf, label, reference}=props;
+
+    //console.log("label="+props.label);
+    //console.log("conf=",conf);
+    let referenceCollection=conf.collections[reference];
+    let listFields=[...referenceCollection.listFields];
+    let index=listFields.indexOf(props.target);
+    if (index>=0)
+        listFields.splice(index,1);
+
+    //props.source="id";
+    //console.log(conf);
+
+    return (<>
+        <Labeled label={label} sx={{width: "100%"}}>
+            <ReferenceManyField {...props} source="id">
+                <Datagrid rowClick="edit" fullWidth={true} sx={{width: "100%"}}>
+                    {listFields.map(fid=>{
+                        let f=referenceCollection.fields[fid];
+                        let Comp=FIELD_TYPES[f.type].list;
+                        return (
+                            <Comp source={fid} {...f}/>
+                        );
+                    })}
+                </Datagrid>
+            </ReferenceManyField>
+        </Labeled>
+        <Link><ContentAdd /> Add</Link>
+    </>);
 }
 
 export const FIELD_TYPES={
@@ -131,6 +166,10 @@ export const FIELD_TYPES={
         list: ReferenceField,
         edit: ReferenceInput,
         filter: ReferenceInput,
+    },
+
+    "referencemany": {
+        edit: QuickminReferenceManyInput,
     },
 
     "image": {

@@ -44,7 +44,7 @@ function EditActionButton({action, actionState}) {
     );
 }
 
-function CollectionList({collection}) {
+export function CollectionList({collection}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 
@@ -146,7 +146,7 @@ function matchCondition(record, where) {
     return true;
 }
 
-function CollectionEditorFields({collection}) {
+function CollectionEditorFields({collection, conf}) {
     let conditionDeps=[];
     for (let fid in collection.fields) {
         let f=collection.fields[fid];
@@ -178,7 +178,7 @@ function CollectionEditorFields({collection}) {
         if (!f.hidden && matched) {
             let Comp=FIELD_TYPES[f.type].edit;
             fieldContent.push(
-                <Comp source={fid} key={fid} {...f}/>
+                <Comp source={fid} key={fid} conf={conf} {...f}/>
             );
         }
     }
@@ -186,7 +186,7 @@ function CollectionEditorFields({collection}) {
     return fieldContent;
 }
 
-function CollectionEditor({collection, mode}) {
+export function CollectionEditor({collection, mode, conf}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 
@@ -226,7 +226,7 @@ function CollectionEditor({collection, mode}) {
 
     let content=(
         <SimpleForm toolbar={toolbar}>
-            <CollectionEditorFields collection={collection}/>
+            <CollectionEditorFields collection={collection} conf={conf}/>
         </SimpleForm>
     );
 
@@ -248,15 +248,15 @@ function CollectionEditor({collection, mode}) {
     }
 }
 
-export function collectionResource(collection) {
+/*export function collectionResource(collection) {
     return (
         <Resource
-                name={collection.key}
-                key={collection.key}
+                name={collection.id}
+                key={collection.id}
                 list={<CollectionList collection={collection}/>}
                 edit={<CollectionEditor collection={collection} mode={"edit"}/>}
                 create={<CollectionEditor collection={collection} mode={"create"}/>}
                 recordRepresentation={collection.recordRepresentation}
         />
     );
-}
+}*/

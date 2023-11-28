@@ -250,7 +250,7 @@ export class TableCollection extends Collection {
                 this.listFields.push(fieldEl.attributes.id);
 
             let type=fieldEl.tagName.toLowerCase();
-            if (!SQL_TYPES[type])
+            if (!SQL_TYPES[type] && type!="referencemany")
                 throw new Error("Unknown field type: "+type);
 
             let el={

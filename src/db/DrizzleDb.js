@@ -22,10 +22,12 @@ export default class DrizzleDb {
             };
 
             for (let f in this.server.collections[c].fields) {
-                let t=DRIZZLE_TYPES[this.server.collections[c].fields[f].sqlType];
-                if (!t)
-                    throw new Error("Type not supported in drizzle: "+this.server.collections[c].fields[f].sqlType);
-                def[f]=t(f);
+                if (this.server.collections[c].fields[f].sqlType) {
+                    let t=DRIZZLE_TYPES[this.server.collections[c].fields[f].sqlType];
+                    if (!t)
+                        throw new Error("Type not supported in drizzle: "+this.server.collections[c].fields[f].sqlType);
+                    def[f]=t(f);
+                }
             }
 
             this.tables[c]=sqliteTable(c,def);
