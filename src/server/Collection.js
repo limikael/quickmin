@@ -244,7 +244,7 @@ export class TableCollection extends Collection {
         let fieldEls=parseXml(conf.fields);
         for (let fieldEl of fieldEls) {
             if (!fieldEl.attributes.id)
-                throw new Error("Id missing from field");
+                throw new Error("Id missing from field: "+ìd+": "+JSON.stringify(fieldEl.attributes));
 
             for (let k in fieldEl.attributes)
                 if (fieldEl.attributes[k]===null)
