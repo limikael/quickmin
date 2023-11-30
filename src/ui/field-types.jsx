@@ -2,11 +2,12 @@ import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
         ReferenceField, ReferenceInput,
         NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
-        Button} from "react-admin";
+        Button, useRecordContext} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
+import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
 import ContentAdd from '@mui/icons-material/esm/Add';
-import { Link, To } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -55,23 +56,33 @@ function processSelectConf(field) {
 }
 
 function QuickminReferenceManyInput(props) {
-    let {conf, label, reference}=props;
+    let {conf, label, reference, collection}=props;
+    let navigate=useNavigate();
+    let record=useRecordContext();
 
-    //console.log("label="+props.label);
-    //console.log("conf=",conf);
     let referenceCollection=conf.collections[reference];
     let listFields=[...referenceCollection.listFields];
     let index=listFields.indexOf(props.target);
     if (index>=0)
         listFields.splice(index,1);
 
-    //props.source="id";
-    //console.log(conf);
+    let o={}, params;
+    if (record) {
+        o[props.target]=record.id;
+        params=searchParamsFromObject({
+            source: JSON.stringify(o),
+            redirect: `${collection.id}/${record.id}`
+        });
+    }
+
+    function rowClick(id, resource, listRecord) {
+        return `/${referenceCollection.id}/${id}?redirect=${collection.id}/${record.id}`;
+    }
 
     return (<>
-        <Labeled label={label} sx={{width: "100%"}}>
+        <Labeled label={makeNameFromSymbol(props.id)} sx={{width: "100%"}}>
             <ReferenceManyField {...props} source="id">
-                <Datagrid rowClick="edit" fullWidth={true} sx={{width: "100%"}}>
+                <Datagrid rowClick={rowClick} fullWidth={true} sx={{width: "100%"}}>
                     {listFields.map(fid=>{
                         let f=referenceCollection.fields[fid];
                         let Comp=FIELD_TYPES[f.type].list;
@@ -82,7 +93,11 @@ function QuickminReferenceManyInput(props) {
                 </Datagrid>
             </ReferenceManyField>
         </Labeled>
-        <Link><ContentAdd /> Add</Link>
+        {record &&
+            <Button href={`#/${referenceCollection.id}/create?${params.toString()}`}>
+                <ContentAdd /> Add
+            </Button>
+        }
     </>);
 }
 

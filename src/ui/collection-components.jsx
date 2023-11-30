@@ -3,11 +3,11 @@ import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton,
         useRecordContext, useRefresh} from "react-admin";
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
-import {jsonClone, arrayOnlyUnique} from "../utils/js-util.js";
+import {jsonClone, arrayOnlyUnique, urlGetParams} from "../utils/js-util.js";
 import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
-import { useWatch } from 'react-hook-form';
+import {useWatch} from 'react-hook-form';
 
 function GlobalActionButton({action, actionState}) {
     async function onClick() {
@@ -121,14 +121,6 @@ export function CollectionList({collection}) {
     </>);
 }
 
-/*function parseCondition(s) {
-    return Object.fromEntries(s.split(",").map(c=>c.split("=")));
-}*/
-
-/*function getConditionDeps(condition) {
-    return condition.map(c=>c[0]);
-}*/
-
 function matchCondition(record, where) {
     for (let k in where) {
         //console.log(where[k]);
@@ -178,7 +170,7 @@ function CollectionEditorFields({collection, conf}) {
         if (!f.hidden && matched) {
             let Comp=FIELD_TYPES[f.type].edit;
             fieldContent.push(
-                <Comp source={fid} key={fid} conf={conf} {...f}/>
+                <Comp source={fid} key={fid} conf={conf} collection={collection} {...f}/>
             );
         }
     }
@@ -190,7 +182,19 @@ export function CollectionEditor({collection, mode, conf}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 
-    let redirect;
+    function redirect() {
+        if (collection.type=="singleView")
+            return `${collection.id}/single`;
+
+        let url=window.location.toString();
+        const [hash, query]=url.split('#')[1].split('?');
+        const params=Object.fromEntries(new URLSearchParams(query));
+        if (params.redirect)
+            return params.redirect;
+
+        return `${collection.id}`;
+    }
+
     let toolbarItems=[];
     toolbarItems.push(<SaveButton/>);
 
@@ -207,14 +211,8 @@ export function CollectionEditor({collection, mode, conf}) {
     }
 
     toolbarItems.push(<div style="flex-grow: 1"></div>);
-
-    if (collection.type=="singleView") {
-        redirect=`/${collection.id}/single`;
-    }
-
-    else {
-        toolbarItems.push(<DeleteButton/>);
-    }
+    if (collection.type!="singleView")
+        toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
     let toolbar=(
         <Toolbar>
@@ -241,22 +239,9 @@ export function CollectionEditor({collection, mode, conf}) {
 
         case "create":
             return (
-                <Create redirect="list">
+                <Create redirect={redirect}>
                     {content}
                 </Create>
             );
     }
 }
-
-/*export function collectionResource(collection) {
-    return (
-        <Resource
-                name={collection.id}
-                key={collection.id}
-                list={<CollectionList collection={collection}/>}
-                edit={<CollectionEditor collection={collection} mode={"edit"}/>}
-                create={<CollectionEditor collection={collection} mode={"create"}/>}
-                recordRepresentation={collection.recordRepresentation}
-        />
-    );
-}*/

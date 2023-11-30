@@ -477,8 +477,7 @@ export default class QuickminServer {
                 };
                 for (let f in this.collections[c].fields) {
                     let field=this.collections[c].fields[f];
-                    if (field.id!="id" &&
-                            field.type!="referencemany") {
+                    if (field.id!="id" && field.sqlType) {
                         let fieldSpec={
                             ...field,
                             pk: false,

@@ -38,7 +38,8 @@ collections:
       <Text id="name" username listable/>
       <AuthMethod id="google_auth" provider="google" listable/>
       <Select id="role" choices="user,admin" role listable/>
-      <ReferenceMany label="Posts" reference="posts" target="author" fullWidth/>
+      <ReferenceMany id="posts" reference="posts" target="author"/>
+      <ReferenceMany id="pages" reference="pages" target="author"/>
 
 views:
   my_posts:

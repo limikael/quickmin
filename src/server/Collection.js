@@ -12,7 +12,8 @@ let SQL_TYPES={
     "integer": "integer",
     "real": "real",
     "reference": "integer",
-    "json": "text"
+    "json": "text",
+    "referencemany": null
 };
 
 function arrayify(cand) {
@@ -242,6 +243,9 @@ export class TableCollection extends Collection {
 
         let fieldEls=parseXml(conf.fields);
         for (let fieldEl of fieldEls) {
+            if (!fieldEl.attributes.id)
+                throw new Error("Id missing from field");
+
             for (let k in fieldEl.attributes)
                 if (fieldEl.attributes[k]===null)
                     fieldEl.attributes[k]=true;
@@ -250,7 +254,7 @@ export class TableCollection extends Collection {
                 this.listFields.push(fieldEl.attributes.id);
 
             let type=fieldEl.tagName.toLowerCase();
-            if (!SQL_TYPES[type] && type!="referencemany")
+            if (!SQL_TYPES.hasOwnProperty(type))
                 throw new Error("Unknown field type: "+type);
 
             let el={
