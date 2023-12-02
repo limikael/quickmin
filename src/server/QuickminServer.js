@@ -5,11 +5,11 @@ import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 import {TableCollection, ViewCollection} from "./Collection.js";
 import urlJoin from "url-join";
-import {handleRequest as handleIsoqRequest} from "../loader/isoq-raw.js";
 import {minimatch} from 'minimatch';
 import QuickminServerApi from "./QuickminServerApi.js";
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {microsoftAuthDriver} from "../auth/microsoft-auth.js";
+import {loaderTemplate} from "../ui/loader-template.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -150,13 +150,24 @@ export default class QuickminServer {
 
         if (argv.length==0 || jsonEq(argv,["quickmin-client.js"])) {
             let u=new URL(req.url)
+            let index=loaderTemplate.replaceAll("$$LOADER_PROPS$$",JSON.stringify({
+                quickminBundleUrl: "/quickmin-bundle.js",
+                api: urlJoin(u.origin,this.conf.apiPath)
+            }));
+            return new Response(index,{
+                headers: {
+                    "content-type": "text/html;charset=UTF-8",
+                }
+            });
+
+            /*let u=new URL(req.url)
             return await handleIsoqRequest(req,{
                 clientPathname: urlJoin("/",this.conf.apiPath,"quickmin-client.js"),
                 props: {
                     quickminBundleUrl: "/quickmin-bundle.js",
                     api: urlJoin(u.origin,this.conf.apiPath)
                 }
-            });
+            });*/
         }
 
         else if (argv[0]=="_content") {
@@ -257,41 +268,6 @@ export default class QuickminServer {
                 authUrls: await this.getAuthUrls(reUrl),
             });
         }
-
-        /*else if (req.method=="POST" && jsonEq(argv,["_oauthLogin"])) {
-            let reqUrl=new URL(req.url);
-            let body=await req.json();
-            let {provider}=JSON.parse(body.state);
-
-            let hostConf=this.getHostConf(reqUrl.hostname);
-            if (hostConf.oauthHostname)
-                reqUrl.hostname=hostConf.oauthHostname;
-
-            let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
-            let loginToken=await this.authMethods[provider].process(body.url,reurl);
-
-            let q={};
-            q[this.authMethods[provider].fieldId]=loginToken;
-
-            let userRecord=await this.db.findOne(this.authCollection,q);
-            if (!userRecord)
-                return new Response("Not authorized...",{
-                    status: 403
-                });
-
-            let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
-
-            let payload={
-                userId: userRecord.id
-            };
-
-            let token=jwtSign(payload,this.conf.jwtSecret);
-            return Response.json({
-                username: userRecord[usernameField],
-                role: await this.getRoleByUserId(payload.userId),
-                token: token
-            });
-        }*/
 
         else if (req.method=="POST" && jsonEq(argv,["_login"])) {
             let body=await req.json();

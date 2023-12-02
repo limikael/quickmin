@@ -6,8 +6,7 @@
     "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "yarn build:ui && yarn build:loader && ./src/server/quickmin-cli.js --port=3000",
-    "build:loader": "isoq --outdir=src/loader --mw=raw src/ui/QuickminLoader.jsx",
+    "dev": "yarn build:ui && ./src/server/quickmin-cli.js --port=3000",
     "build:ui": "./src/server/quickmin-cli.js makeui --uidir=dist --rebuild"
   },
   "dependencies": {
