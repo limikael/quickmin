@@ -13,10 +13,9 @@ import {serveStatic} from '@hono/node-server/serve-static'
 import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
 import {nodeStorageDriver} from "../export/node-storage.js";
 import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
-import isoqBundler from "isoq/bundler";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
-import {moduleAlias} from "isoq/esbuild-util";
+import {moduleAlias} from "../utils/esbuild-util.js";
 import {QuickminApi} from "quickmin-api";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -99,7 +98,7 @@ async function makeUi() {
         outfile: outfile,
         bundle: true,
         format: "esm",
-        inject: ["isoq/preact-shim"],
+        inject: [path.join(__dirname,"../utils/preact-shim.js")],
         jsxFactory: "h",
         jsxFragment: "Fragment",
         minify: true,
