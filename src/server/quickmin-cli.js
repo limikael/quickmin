@@ -72,6 +72,7 @@ let yargsConf=yargs(hideBin(process.argv))
     /*.command("export <filename>","Export data to file.")
     .command("import <filename>","Import data from file.")*/
     .command("pull","Pull data from remote.")
+    .command("pull-content","Pull content from remote.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
     .epilog("For more info, see https://github.com/limikael/quickmin")
@@ -244,9 +245,37 @@ switch (command) {
 
             console.log("Pulling table: "+table);
             let tableDatas=await remoteApi.findMany(table);
-            for (let data of tableDatas)
+            let i=0;
+            for (let data of tableDatas) {
+                process.stdout.write((i++)+"/"+tableDatas.length+"\r");
                 await quickmin.api.insert(table,data);
+            }
+            console.log("Done.                     ");
         }
+        break;
+
+    case "pull-content":
+        await (async ()=>{
+            let contentFiles=await quickmin.getMissingContentFiles();
+            let i=0;
+            for (let fn of contentFiles) {
+                process.stdout.write((++i)+"/"+contentFiles.length+"\r");
+
+                let contentUrl=urlJoin(options.remote,"_content",fn);
+                let response=await fetch(contentUrl);
+                if (response.status==200) {
+                    let body=await response.blob();
+                    await quickmin.storage.putFile(fn,body);
+                }
+
+                else {
+                    console.log("error on: "+contentUrl);
+                    console.log("status: "+response.status);
+                }
+            }
+            console.log();
+            console.log("Done.");
+        })();
         break;
 
     case "gc":

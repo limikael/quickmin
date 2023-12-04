@@ -482,10 +482,7 @@ export default class QuickminServer {
         await migrator.sync();
     }
 
-    async garbageCollect({dryRun}) {
-        dryRun=!!dryRun;
-        console.log("Garbage collect, dryRun="+dryRun);
-
+    async getContentFiles() {
         let contentFiles=[];
         for (let c in this.collections) {
             let collection=this.collections[c];
@@ -496,6 +493,22 @@ export default class QuickminServer {
                 ];
         }
 
+        return contentFiles;
+    }
+
+    async getMissingContentFiles() {
+        let contentFiles=await this.getContentFiles();
+        let storageFiles=await this.storage.listFiles();
+        let missing=contentFiles.filter(f=>!storageFiles.includes(f));
+
+        return missing;
+    }
+
+    async garbageCollect({dryRun}) {
+        dryRun=!!dryRun;
+        console.log("Garbage collect, dryRun="+dryRun);
+
+        let contentFiles=await this.getContentFiles();
         let storageFiles=await this.storage.listFiles();
 
         let sync=storageFiles.filter(f=>contentFiles.includes(f));
