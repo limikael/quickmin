@@ -49,7 +49,7 @@ views:
       author: ${userId}
 
   about_me:
-    readAccess: user
+    access: user
     single: true
     from: pages
     where:
