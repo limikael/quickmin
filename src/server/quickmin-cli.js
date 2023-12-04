@@ -145,10 +145,12 @@ switch (options.driver) {
         break;
 }
 
-switch (options.storage) {
-    case "node":
-        drivers.push(nodeStorageDriver);
-        break;
+if (command!="migrate") {
+    switch (options.storage) {
+        case "node":
+            drivers.push(nodeStorageDriver);
+            break;
+    }
 }
 
 drivers.push(googleAuthDriver);

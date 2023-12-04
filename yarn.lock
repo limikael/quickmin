@@ -1236,9 +1236,9 @@ fs.realpath@^1.0.0:
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
 fullstack-utils@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/fullstack-utils/-/fullstack-utils-1.0.0.tgz#736dd75495dee93e1b06b129a6a506c6b75b95f0"
-  integrity sha512-56mencDuY6cjwFrg9Jtl0/JmKQ/fh/Su8wCGirxobDY07+KVwhzangzhHPnZXVvGRFcrD2I52/wYj6dJVORfKw==
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/fullstack-utils/-/fullstack-utils-1.0.1.tgz#2c49086491da102b1a425ed74a8b4798b6d2c7f1"
+  integrity sha512-Yg6o3EWkxrgVtj2HCHG32RH1ALIDADjX4clRZortCyL9xr2Cnwrosqum+oTN56Gs/u3S+c/9pY1pualXlk9kaA==
   dependencies:
     hono "^3.7.2"
     url-join "^5.0.0"
@@ -1378,9 +1378,9 @@ hono@^3.5.6:
   integrity sha512-ZipTmGfHm43q5QOEBGog2wyejyNUcicjPt0BLDQ8yz9xij/y9RYXRpR1YPxMpQqeyNM7isvpsIAe9Ems51Wq0Q==
 
 hono@^3.7.2:
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/hono/-/hono-3.10.1.tgz#9f8d144aa93e0f9bcd97f0cb5a685da103b06334"
-  integrity sha512-4jPKCmYWLAoCMpmvOU+xNOQYdcNftip7sM/IsO8EPyGAtjk9fGNyUchG6huSzLrY449WDNGFPetVs5doepNnlA==
+  version "3.10.5"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-3.10.5.tgz#0fcae3154022af3f1adfe01ead39be635d6879ea"
+  integrity sha512-qNKibuEs+xzFVcKD9HHzAs2nUXQniQgXU6q9FRIwd7TFpkI9dGtkSHddWxdNoxX/7MGd7unaIisVOGMqiER4pw==
 
 hotscript@^1.0.12:
   version "1.0.13"
