@@ -1,44 +1,50 @@
 {
   "name": "quickmin",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "type": "module",
+  "license": "GPL-3.0-only",
   "bin": {
     "quickmin": "src/server/quickmin-cli.js"
   },
   "scripts": {
-    "dev": "yarn build:ui && ./src/server/quickmin-cli.js --port=3000",
+    "dev": "yarn build && ./src/server/quickmin-cli.js --port=3000",
+    "build": "yarn build:info && yarn build:ui",
+    "build:info": "./src/build/create-package-info.js",
     "build:ui": "./src/server/quickmin-cli.js makeui --uidir=dist --rebuild"
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",
+    "better-sqlite3": "^8.5.2",
+    "drizzle-orm": "^0.28.5",
+    "fullstack-utils": "^1.0.1",
+    "hono": "^3.5.6",
+    "jsrsasign": "^10.8.6",
+    "jwt-decode": "^4.0.0",
+    "minimatch": "^9.0.3",
+    "quickmin-api": "^1.0.0",
+    "sequelize": "^6.32.1",
+    "txml": "^5.1.1",
+    "url-join": "^5.0.0",
+    "yaml": "^2.3.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
     "@mui/icons-material": "^5.14.6",
     "@mui/material": "^5.14.6",
+    "@tiptap/core": "^2.1.13",
     "@tiptap/extension-image": "^2.1.10",
     "@tiptap/extension-link": "^2.1.10",
     "@tiptap/extension-text-align": "^2.1.6",
     "@tiptap/pm": "^2.1.6",
     "@tiptap/react": "^2.1.6",
     "@tiptap/starter-kit": "^2.1.2",
-    "better-sqlite3": "^8.5.2",
     "clsx": "^2.0.0",
-    "drizzle-orm": "^0.28.5",
     "esbuild": "^0.19.3",
-    "fullstack-utils": "^1.0.0",
-    "hono": "^3.5.6",
-    "jsrsasign": "^10.8.6",
-    "jwt-decode": "^4.0.0",
-    "minimatch": "^9.0.3",
     "preact": "^10.16.0",
-    "quickmin-api": "^1.0.0",
     "ra-core": "^4.13.1",
     "ra-data-simple-rest": "^4.13.0",
     "ra-ui-materialui": "^4.13.1",
-    "react-admin": "^4.13.0",
-    "sequelize": "^6.32.1",
-    "txml": "^5.1.1",
-    "url-join": "^5.0.0",
-    "yaml": "^2.3.2",
-    "yargs": "^17.7.2"
+    "react-admin": "^4.13.0"
   },
   "exports": {
     "./hono-middleware": {

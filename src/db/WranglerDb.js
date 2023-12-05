@@ -1,4 +1,3 @@
-import {Sequelize, DataTypes} from "sequelize";
 import {spawn} from "child_process";
 
 async function runCommand(command, args) {

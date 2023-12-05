@@ -10,6 +10,7 @@ import QuickminServerApi from "./QuickminServerApi.js";
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {microsoftAuthDriver} from "../auth/microsoft-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
+import packageInfo from "../build/package-info.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -82,6 +83,9 @@ export default class QuickminServer {
         }
 
         this.api=new QuickminServerApi(this);
+
+        if (!this.conf.bundleUrl)
+            this.conf.bundleUrl=`https://unpkg.com/quickmin@${packageInfo.version}/dist/quickmin-bundle.js`;
     }
 
     presentItem(collectionId, item) {
@@ -150,24 +154,21 @@ export default class QuickminServer {
 
         if (argv.length==0 || jsonEq(argv,["quickmin-client.js"])) {
             let u=new URL(req.url)
-            let index=loaderTemplate.replaceAll("$$LOADER_PROPS$$",JSON.stringify({
-                quickminBundleUrl: "/quickmin-bundle.js",
-                api: urlJoin(u.origin,this.conf.apiPath)
-            }));
+            let loaderProps={
+                api: urlJoin(u.origin,this.conf.apiPath),
+                bundleUrl: this.conf.bundleUrl
+            };
+
+            let index=loaderTemplate.replaceAll(
+                "$$LOADER_PROPS$$",
+                JSON.stringify(loaderProps)
+            );
+
             return new Response(index,{
                 headers: {
                     "content-type": "text/html;charset=UTF-8",
                 }
             });
-
-            /*let u=new URL(req.url)
-            return await handleIsoqRequest(req,{
-                clientPathname: urlJoin("/",this.conf.apiPath,"quickmin-client.js"),
-                props: {
-                    quickminBundleUrl: "/quickmin-bundle.js",
-                    api: urlJoin(u.origin,this.conf.apiPath)
-                }
-            });*/
         }
 
         else if (argv[0]=="_content") {

@@ -436,6 +436,11 @@
   resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.8.0.tgz#e848d2f669f601544df15ce2a313955e4bf0bafc"
   integrity sha512-mrfKqIHnSZRyIzBcanNJmVQELTnX+qagEDlcKO90RgRBVOZGSGvZKeDihTRfWcqoDn5N/NkUcwWTccnpN18Tfg==
 
+"@tiptap/core@^2.1.13":
+  version "2.1.13"
+  resolved "https://registry.yarnpkg.com/@tiptap/core/-/core-2.1.13.tgz#e21f566e81688c826c6f26d2940886734189e193"
+  integrity sha512-cMC8bgTN63dj1Mv82iDeeLl6sa9kY0Pug8LSalxVEptRmyFVsVxGgu2/6Y3T+9aCYScxfS06EkA8SdzFMAwYTQ==
+
 "@tiptap/core@^2.1.8":
   version "2.1.8"
   resolved "https://registry.yarnpkg.com/@tiptap/core/-/core-2.1.8.tgz#4555dc7d86580dee790d4aded1ce7fb79319da70"
@@ -1235,7 +1240,7 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
-fullstack-utils@^1.0.0:
+fullstack-utils@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/fullstack-utils/-/fullstack-utils-1.0.1.tgz#2c49086491da102b1a425ed74a8b4798b6d2c7f1"
   integrity sha512-Yg6o3EWkxrgVtj2HCHG32RH1ALIDADjX4clRZortCyL9xr2Cnwrosqum+oTN56Gs/u3S+c/9pY1pualXlk9kaA==
@@ -1378,9 +1383,9 @@ hono@^3.5.6:
   integrity sha512-ZipTmGfHm43q5QOEBGog2wyejyNUcicjPt0BLDQ8yz9xij/y9RYXRpR1YPxMpQqeyNM7isvpsIAe9Ems51Wq0Q==
 
 hono@^3.7.2:
-  version "3.10.5"
-  resolved "https://registry.yarnpkg.com/hono/-/hono-3.10.5.tgz#0fcae3154022af3f1adfe01ead39be635d6879ea"
-  integrity sha512-qNKibuEs+xzFVcKD9HHzAs2nUXQniQgXU6q9FRIwd7TFpkI9dGtkSHddWxdNoxX/7MGd7unaIisVOGMqiER4pw==
+  version "3.11.1"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-3.11.1.tgz#2f5893ae02baf55e1c5ad1e5b3a75936e3942c88"
+  integrity sha512-8FNUh8p/dkw8qYFxy8IJA500iW9NSeuvuwRfLw0FGkE/blCxtqWqxWTB+NaLSK3qGpaudzKur6s40Q0kpO0E+w==
 
 hotscript@^1.0.12:
   version "1.0.13"
