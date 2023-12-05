@@ -9,6 +9,7 @@ import {minimatch} from 'minimatch';
 import QuickminServerApi from "./QuickminServerApi.js";
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {microsoftAuthDriver} from "../auth/microsoft-auth.js";
+import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 
 export default class QuickminServer {
@@ -58,7 +59,8 @@ export default class QuickminServer {
 
         drivers=[...drivers,
             googleAuthDriver,
-            microsoftAuthDriver
+            microsoftAuthDriver,
+            facebookAuthDriver
         ];
 
         for (let driver of drivers)

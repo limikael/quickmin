@@ -58,7 +58,7 @@ export default class OAuthClient {
 	    }
 
 	    let result=await response.json();
-	    //console.log("token init result: ",result);
+	    console.log("token init result: ",result);
 	    if (!result.access_token)
 	    	throw new Error("Got no access token on oauth init");
 
