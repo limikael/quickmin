@@ -196,11 +196,16 @@ export default class QuickminServer {
 
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
+            console.log("redirect state: ",JSON.parse(reqUrl.searchParams.get("state")));
+
             let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
 
             //let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
             let loginToken=await this.authMethods[provider].process(reqUrl);
             console.log("login token: "+loginToken+" for provider: "+provider);
+
+            if (!this.authMethods[provider].fieldId)
+                throw new Error("No AuthMethod field set up for provider: "+provider);
 
             let q={};
             q[this.authMethods[provider].fieldId]=loginToken;
@@ -259,7 +264,7 @@ export default class QuickminServer {
 
         else if (req.method=="GET" && jsonEq(argv,["_schema"])) {
             let reqUrl=new URL(req.url);
-            let reUrl=urlJoin(reqUrl.origin,this.conf.apiPath);
+            let reUrl=urlJoin(reqUrl.origin,this.conf.apiPath)+"/#";
 
             let collectionsSchema={};
             for (let cid in this.collections)

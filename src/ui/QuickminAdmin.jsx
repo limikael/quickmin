@@ -107,6 +107,9 @@ function createLayout(conf, role) {
 }
 
 function QuickminAdmin({api, onload}) {
+    /*if (window.location.hash=="#_=_")
+        window.location.hash="";*/
+
     let [role,setRole]=useState();
     let conf=useAsyncMemo(async()=>{
         console.log("loading conf...");

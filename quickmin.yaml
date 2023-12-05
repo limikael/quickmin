@@ -11,6 +11,9 @@ oauthHostname: localhost
 googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
 googleClientSecret: "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"
 
+facebookClientId: "1065424318125619"
+facebookClientSecret: "609e058d009f2be76e00aa335ec5d502"
+
 collections:
   posts:
     helperText: "Here are some posts..."
@@ -37,6 +40,7 @@ collections:
     fields:
       <Text id="name" username listable/>
       <AuthMethod id="google_auth" provider="google" listable/>
+      <AuthMethod id="facebook_auth" provider="facebook" listable/>
       <Select id="role" choices="user,admin" role listable/>
       <ReferenceMany id="posts" reference="posts" target="author"/>
       <ReferenceMany id="pages" reference="pages" target="author"/>

@@ -1,5 +1,7 @@
 import OAuthClient from "../utils/OAuthClient.js";
 
+// docs: https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/
+
 export class FacebookAuth {
 	constructor(server) {
 		this.server=server;
@@ -11,7 +13,7 @@ export class FacebookAuth {
             clientSecret: this.server.conf.facebookClientSecret,
             installUrl: "https://www.facebook.com/v18.0/dialog/oauth",
             tokenUrl: "https://graph.facebook.com/v18.0/oauth/access_token",
-//            scope: "???"
+            scope: "email"
         });
     }
 
@@ -28,10 +30,9 @@ export class FacebookAuth {
         let client=this.createOAuthClient();
         let token=await client.initToken({redirectUrl: url});
 
-        console.log("got token from facebook: ",token);
-        throw new Error("will process...");
+        //console.log("got token from facebook: ",token);
 
-        let response=await fetch("",{
+        let response=await fetch("https://graph.facebook.com/v18.0/me?fields=name,email",{
             headers: {
                 "authorization": "Bearer "+token.access_token
             }
@@ -41,9 +42,11 @@ export class FacebookAuth {
             throw new Error(await response.text());
 
         let tokenInfo=await response.json();
+        if (!tokenInfo.email)
+            throw new Error("got no email from facebook");
 
         //console.log("got token info: ",tokenInfo);
-        return tokenInfo.mail;
+        return tokenInfo.email;
 	}
 }
 

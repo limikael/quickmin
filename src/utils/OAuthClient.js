@@ -2,12 +2,14 @@ import {searchParamsFromObject} from "./js-util.js";
 import urlJoin from "url-join";
 
 export default class OAuthClient {
-	constructor({clientId, clientSecret, installUrl, tokenUrl, scope}) {
+	constructor({clientId, clientSecret, installUrl, tokenUrl, scope, refreshEnabled}) {
 		this.clientId=clientId;
 		this.clientSecret=clientSecret;
 		this.installUrl=installUrl;
 		this.tokenUrl=tokenUrl;
 		this.scope=scope;
+
+		this.refreshEnabled=refreshEnabled;
 	}
 
 	getInstallUrl({scope, redirectUrl, state}) {
@@ -58,17 +60,20 @@ export default class OAuthClient {
 	    }
 
 	    let result=await response.json();
-	    console.log("token init result: ",result);
+	    //console.log("token init result: ",result);
 	    if (!result.access_token)
 	    	throw new Error("Got no access token on oauth init");
 
-	    if (!result.refresh_token)
+	    if (this.refreshEnabled && !result.refresh_token)
 	    	throw new Error("Got no refresh token on oauth init");
 
 	    return result;
 	}
 
 	async refreshToken(refreshToken) {
+		if (!this.refreshEnabled)
+			throw new Error("Refresh not enabled for oauth client");
+
 	    const authCodeProof = {
 	        grant_type: 'refresh_token',
 	        client_id: this.clientId,
