@@ -196,7 +196,7 @@ export default class QuickminServer {
 
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
-            console.log("redirect state: ",JSON.parse(reqUrl.searchParams.get("state")));
+            //console.log("redirect state: ",JSON.parse(reqUrl.searchParams.get("state")));
 
             let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
 
