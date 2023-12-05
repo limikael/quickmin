@@ -48,7 +48,7 @@ export const loaderTemplate=`<!DOCTYPE html>
 				}
 
 				let intervalId=setInterval(animateLoader,200);
-				let adminModule=await import(loaderProps.quickminBundleUrl);
+				let adminModule=await import(loaderProps.bundleUrl);
 
 				loaderProps.onload=()=>{
 					clearInterval(intervalId);

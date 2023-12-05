@@ -17,6 +17,7 @@ import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {moduleAlias} from "../utils/esbuild-util.js";
 import {QuickminApi} from "quickmin-api";
+import {parse as parseYaml} from "yaml";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,7 +33,7 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .option("driver",{
         description: "Database driver to use.",
-        choices: ["sequelize","drizzle","wrangler","wrangler-local"],
+        choices: ["drizzle","wrangler","wrangler-local"],
         default: "drizzle"
     })
     .option("storage",{
@@ -67,7 +68,7 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
-    .command("makeui","Create quickmin-bundle.js for local serving.")
+    .command("makeui","Create quickmin-bundle.js for local serving. Only useful if you have devDependencies.")
     .command("gc","Garbage collect uploaded content.")
     /*.command("export <filename>","Export data to file.")
     .command("import <filename>","Import data from file.")*/
@@ -156,8 +157,9 @@ if (command!="migrate") {
 
 drivers.push(googleAuthDriver);
 
-let confYaml=fs.readFileSync(options.conf,"utf8");
-let quickmin=new QuickminServer(confYaml,drivers);
+let conf=parseYaml(fs.readFileSync(options.conf,"utf8"));
+conf.bundleUrl=urlJoin(`http://localhost:${options.port}`,"quickmin-bundle.js");
+let quickmin=new QuickminServer(conf,drivers);
 //let api=quickmin.api;
 let remoteApi;
 if (options.remote) {
@@ -169,8 +171,6 @@ if (options.remote) {
 
 switch (command) {
     case "serve":
-        await makeUi();
-
         let app=new Hono();
         app.use("*",async (c, next)=>{
             res=await quickmin.handleRequest(c.req.raw);
