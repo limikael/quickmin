@@ -19,6 +19,7 @@ collections:
     helperText: "Here are some posts..."
     access: admin
     readAccess: public
+    category: content
     fields:
       <Text id="title" fullWidth listable/>
       <Image id="image"/>
@@ -29,6 +30,7 @@ collections:
       <Json id="jsontest"/>
 
   pages:
+    category: content
     fields:
       <Text id="slug" listable/>
       <Text id="title" fullWidth listable/>

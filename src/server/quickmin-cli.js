@@ -103,7 +103,7 @@ async function makeUi() {
         inject: [path.join(__dirname,"../utils/preact-shim.js")],
         jsxFactory: "h",
         jsxFragment: "Fragment",
-        minify: true,
+        //minify: true,
         plugins: [
             moduleAlias({
                 "react": "preact/compat",

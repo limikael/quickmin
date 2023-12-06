@@ -44,6 +44,7 @@ export default class Collection {
         this.recordRepresentation=conf.recordRepresentation;
         this.actions=conf.actions;
         this.hidden=conf.hidden;
+        this.category=conf.category;
 
         if (!this.actions)
             this.actions=[];
@@ -70,7 +71,8 @@ export default class Collection {
             helperText: this.helperText,
             recordRepresentation: this.recordRepresentation,
             actions: this.actions,
-            hidden: this.hidden
+            hidden: this.hidden,
+            category: this.category
 		}
 	}
 

@@ -1,6 +1,6 @@
-import {Admin, Layout, Menu, Resource} from 'react-admin';
+import {Admin, Layout, /*Menu,*/ Resource, MenuItemLink, useResourceContext} from 'react-admin';
 import {useAsyncMemo} from "../utils/react-util.jsx";
-import {fetchEx, makeNameFromSymbol} from "../utils/js-util.js";
+import {fetchEx, makeNameFromSymbol, splitPath} from "../utils/js-util.js";
 import FIELD_TYPES from "./field-types.jsx";
 import CircularProgress from '@mui/material/CircularProgress';
 import Card from "@mui/material/Card";
@@ -15,6 +15,10 @@ import {fetchUtils} from "ra-core";
 import {render} from "preact";
 import QuickminLogin from "./QuickminLogin.jsx";
 import QuickminDashboard from "./QuickminDashboard.jsx";
+import {Menu} from "./QuickminMenu.jsx";
+import {confGetCategories, confGetCollectionsByCategoryAndRole, confGetCategoryByCollection} from "./conf-util.js";
+import {useBasename} from 'ra-core';
+import {useLocation} from "react-router";
 
 async function fetchConf(apiUrl, setRole) {
     let confUrl=urlJoin(apiUrl,"_schema");
@@ -65,45 +69,78 @@ function Spinner() {
     )
 }
 
-function createLayout(conf, role) {
-    return function QuickminLayout(props) {
-        let menuItems=[];
+function CollectionMenuItem({conf, collection, ...props}) {
+    switch (collection.type) {
+        case "singleView":
+            return (
+                <Menu.Item 
+                        to={"/"+collection.id+"/single"} 
+                        primaryText={makeNameFromSymbol(collection.id)} 
+                        leftIcon={<ViewListIcon/>}
+                        {...props}/>
+            );
+            break;
 
+        default:
+            return (
+                <Menu.Item 
+                        to={"/"+collection.id} 
+                        primaryText={makeNameFromSymbol(collection.id)} 
+                        leftIcon={<ViewListIcon/>}
+                        {...props}/>
+            );
+            break;
+    }
+}
+
+function QuickminLayout({conf, role, ...props}) {
+    let menuItems=[];
+    menuItems.push(<Menu.DashboardItem/>);
+
+    let currentResourceId=splitPath(useLocation().pathname)[0];
+    let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
+
+    for (let category of confGetCategories(conf)) {
+        menuItems.push(
+            <Menu.Item 
+                    to={"/"+confGetCollectionsByCategoryAndRole(conf,category,role)[0].id}
+                    primaryText={makeNameFromSymbol(category)}
+                    leftIcon={<ViewListIcon/>}/>
+        );
+
+        if (category==currentCategoryId) {
+            for (let collection of confGetCollectionsByCategoryAndRole(conf,category,role))
+                menuItems.push(
+                    <CollectionMenuItem
+                            conf={conf} 
+                            collection={collection}
+                            dense
+                            sx={{marginLeft: "1rem"}}/>
+                );
+        }
+    }
+
+    for (let collection of confGetCollectionsByCategoryAndRole(conf,null,role))
+        menuItems.push(
+            <CollectionMenuItem
+                    conf={conf}
+                    collection={collection}/>
+        );
+
+    if (!menuItems.length)
         menuItems.push(<Menu.DashboardItem/>);
 
-        for (let cid in conf.collections) {
-            let collection=conf.collections[cid];
-            if (collection.readAccess.includes(role)) {
-                switch (collection.type) {
-                    case "singleView":
-                        menuItems.push(<Menu.Item to={"/"+cid+"/single"} 
-                            primaryText={makeNameFromSymbol(cid)} 
-                            leftIcon={<ViewListIcon/>}
-                        />);
-                        break;
-
-                    default:
-                        menuItems.push(<Menu.ResourceItem name={cid} />);
-                        break;
-                }
-            }
-        }
-
-        if (!menuItems.length)
-            menuItems.push(<Menu.DashboardItem/>);
-
-        function QuickminMenu() {
-            return (
-                <Menu>
-                    {menuItems}
-                </Menu>    
-            );
-        }
-
+    function QuickminMenu() {
         return (
-            <Layout {...props} menu={QuickminMenu}/>
-        )
+            <Menu>
+                {menuItems}
+            </Menu>    
+        );
     }
+
+    return (
+        <Layout {...props} menu={QuickminMenu}/>
+    )
 }
 
 function QuickminAdmin({api, onload}) {
@@ -156,7 +193,7 @@ function QuickminAdmin({api, onload}) {
                 authProvider={conf.authProvider}
                 requireAuth={conf.requireAuth}
                 loginPage={<QuickminLogin conf={conf}/>}
-                layout={createLayout(conf,role)}
+                layout={(props)=><QuickminLayout conf={conf} role={role} {...props}/>}
                 dashboard={()=><QuickminDashboard conf={conf} role={role}/>}>
             {resources}
         </Admin>
