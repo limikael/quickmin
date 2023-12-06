@@ -20,12 +20,11 @@ export default function QuickminLogin({conf}) {
 
     return (<>
         <Login>
-            {showUserPass && <LoginForm />}
-            {!!Object.keys(conf.authUrls).length &&
-                <CardContent>
-                    {Object.keys(conf.authUrls).map(k=>
+            {showUserPass && <LoginForm/>}
+                <CardContent sx={{paddingTop: 0, marginTop: showUserPass?"-8px":""}}>
+                    {Object.keys(conf.authUrls).map((k,i)=><>
                         <Button
-                            style="margin-top: 16px"
+                            style={i?"margin-top: 16px":""}
                             variant="contained"
                             type="submit"
                             color="primary"
@@ -33,8 +32,8 @@ export default function QuickminLogin({conf}) {
                             fullWidth
                             onclick={onLoginClick.bind(null,conf.authUrls[k])}
                         >Login with {k}
-                        </Button>
-                    )}
+                        </Button><br/>
+                    </>)}
                     {!showUserPass &&
                         <Link style="display: block; margin-top: 16px; opacity: 0.5"
                                 href="#" 
@@ -45,7 +44,6 @@ export default function QuickminLogin({conf}) {
                         </Link>
                     }
                 </CardContent>
-            }
         </Login>
     </>)
 }
