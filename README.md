@@ -5,10 +5,10 @@ Quickly get a database up and running, with UI and REST api.
 - [] indices
 - [] example
 - [] layout (sidebar, tab, section)
-- [] menu icons
-- [] hierarchial menu
 
 ### Done:
+- [x] menu icons
+- [x] hierarchial menu
 - [x] conditional fields
 - [x] content garbage collecting
 - [x] search
