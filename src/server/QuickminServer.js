@@ -33,19 +33,23 @@ export default class QuickminServer {
 
         this.collections={};
         for (let collectionId in this.conf.collections) {
-            this.collections[collectionId]=new TableCollection(
-                collectionId,
-                this.conf.collections[collectionId],
-                this
-            );
-        }
+            let collectionConf=this.conf.collections[collectionId];
 
-        for (let viewId in this.conf.views) {
-            this.collections[viewId]=new ViewCollection(
-                viewId,
-                this.conf.views[viewId],
-                this
-            );
+            if (collectionConf.from || collectionConf.singleFrom) {
+                this.collections[collectionId]=new ViewCollection(
+                    collectionId,
+                    this.conf.collections[collectionId],
+                    this
+                );
+            }
+
+            else {
+                this.collections[collectionId]=new TableCollection(
+                    collectionId,
+                    this.conf.collections[collectionId],
+                    this
+                );
+            }
         }
 
         if (!this.conf.apiPath)
@@ -154,7 +158,7 @@ export default class QuickminServer {
 
         //await new Promise(r=>setTimeout(r,1000));
 
-        if (argv.length==0 || jsonEq(argv,["quickmin-client.js"])) {
+        if (argv.length==0) {
             let u=new URL(req.url)
             let loaderProps={
                 api: urlJoin(u.origin,this.conf.apiPath),
@@ -173,8 +177,13 @@ export default class QuickminServer {
             });
         }
 
+        else if (argv[0]=="_dist" && this.distHandler) {
+            return await this.distHandler(argv[1]);
+//            return new Response("hello");
+        }
+
         else if (argv[0]=="_content") {
-            let path=new URL(req.url).pathname;
+            let path=new URL(req.url).pathname; // does it do anything?
             return await this.storage.getResponse(argv[1],req);
         }
 

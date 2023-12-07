@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -10,7 +10,7 @@
     "dev": "yarn build && ./src/server/quickmin-cli.js --port=3000",
     "build": "yarn build:info && yarn build:ui",
     "build:info": "./src/build/create-package-info.js",
-    "build:ui": "./src/server/quickmin-cli.js makeui --uidir=dist --rebuild"
+    "build:ui": "./src/server/quickmin-cli.js makeui"
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",
@@ -61,6 +61,9 @@
     },
     "./r2-storage": {
       "import": "./src/export/r2-storage.js"
+    },
+    "./local-node-bundle": {
+      "import": "./src/export/local-node-bundle.js"
     },
     "./api": {
       "import": "./src/export/quickmin-api.js"

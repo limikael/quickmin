@@ -4,7 +4,7 @@ r2Bucket: "BUCKET"
 jwtSecret: "hvljYEUOLHKqWP8UNxI4HwZvXS6de903"
 adminUser: "admin"
 adminPass: "admin"
-#apiPath: "admin"
+apiPath: "admin"
 upload: "upload"
 oauthHostname: localhost
 
@@ -20,6 +20,7 @@ collections:
     access: admin
     readAccess: public
     category: content
+    icon: text_snippet
     fields:
       <Text id="title" fullWidth listable/>
       <Image id="image"/>
@@ -29,8 +30,15 @@ collections:
       <RichText id="content" fullWidth/>
       <Json id="jsontest"/>
 
+  my_posts:
+    access: user
+    from: posts
+    where:
+      author: ${userId}
+
   pages:
     category: content
+    icon: article
     fields:
       <Text id="slug" listable/>
       <Text id="title" fullWidth listable/>
@@ -38,6 +46,8 @@ collections:
       <RichText id="content" fullWidth/>
 
   users:
+#    category: hidden
+    icon: person
     recordRepresentation: name
     fields:
       <Text id="name" username listable/>
@@ -47,17 +57,18 @@ collections:
       <ReferenceMany id="posts" reference="posts" target="author"/>
       <ReferenceMany id="pages" reference="pages" target="author"/>
 
-views:
-  my_posts:
+  profile:
+    category: profile
     access: user
-    from: posts
+    singleFrom: users
     where:
-      author: ${userId}
+      id: ${userId}
 
   about_me:
+    category: profile
     access: user
-    single: true
-    from: pages
+    singleFrom: pages
     where:
       author: ${userId}
       slug: about
+

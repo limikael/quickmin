@@ -12,6 +12,7 @@ import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
 import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
 import {nodeStorageDriver} from "../export/node-storage.js";
+import {localNodeBundle} from "../export/local-node-bundle.js";
 import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
@@ -56,10 +57,10 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Where to build and look for quickmin-bundle.js",
         default: path.join(__dirname,"../../dist/"),
     })
-    .option("rebuild",{
+    /*.option("rebuild",{
         description: "Rebuild UI files even if they exist.",
         type: "boolean"
-    })
+    })*/
     .option("remote",{
         description: "URL for performing operations on remote instance.",
     })
@@ -87,23 +88,25 @@ if (!command)
 async function makeUi() {
     let outfile=path.join(options.uidir,"quickmin-bundle.js");
 
-    if (fs.existsSync(outfile) && !options.rebuild) {
+    /*if (fs.existsSync(outfile) && !options.rebuild) {
         console.log("Using existing UI: "+outfile);
         return;
-    }
+    }*/
 
     console.log("Creating client bundle: "+outfile);
 
     let esbuild=await import("esbuild");
     await esbuild.build({
+        absWorkingDir: __dirname,
         entryPoints: [path.join(__dirname,"../ui/QuickminAdmin.jsx")],
         outfile: outfile,
+        sourcemap: true,
         bundle: true,
         format: "esm",
         inject: [path.join(__dirname,"../utils/preact-shim.js")],
         jsxFactory: "h",
         jsxFragment: "Fragment",
-        //minify: true,
+        minify: true,
         plugins: [
             moduleAlias({
                 "react": "preact/compat",
@@ -156,9 +159,9 @@ if (command!="migrate") {
 }
 
 drivers.push(googleAuthDriver);
+drivers.push(localNodeBundle);
 
 let conf=parseYaml(fs.readFileSync(options.conf,"utf8"));
-conf.bundleUrl=urlJoin(`http://localhost:${options.port}`,"quickmin-bundle.js");
 let quickmin=new QuickminServer(conf,drivers);
 //let api=quickmin.api;
 let remoteApi;
@@ -181,7 +184,7 @@ switch (command) {
             return await next();
         });
 
-        app.use("*", serveStatic({root: path.relative("",options.uidir)}));
+        //app.use("*", serveStatic({root: path.relative("",options.uidir)}));
 
         let res=serve({
             fetch: app.fetch,

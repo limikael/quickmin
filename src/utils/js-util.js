@@ -69,10 +69,13 @@ export function trimChar(string, charToRemove) {
 }
 
 export function makeNameFromSymbol(symbol) {
-    symbol=symbol.replaceAll("_"," ");
-    symbol=symbol.charAt(0).toUpperCase()+symbol.slice(1);
+	symbol=symbol.replaceAll("_"," ").replaceAll("-"," ");
+	symbol=symbol
+		.split(" ")
+		.map(s=>s.charAt(0).toUpperCase()+s.slice(1))
+		.join(" ");
 
-    return symbol;
+	return symbol;
 }
 
 export function parseCookie(str) {

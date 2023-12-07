@@ -45,25 +45,16 @@ export default class Collection {
         this.actions=conf.actions;
         this.hidden=conf.hidden;
         this.category=conf.category;
+        this.icon=conf.icon;
 
         if (!this.actions)
             this.actions=[];
 	}
 
-    getType() {
-        if (this.isView() && this.single)
-            return "singleView";
-
-        if (this.isView())
-            return "view";
-
-        return "table";
-    }
-
 	getSchema() {
 		return {
 			id: this.id,
-            type: this.getType(),
+            type: this.type,
         	fields: this.fields,
         	listFields: this.listFields,
             access: this.access,
@@ -72,7 +63,8 @@ export default class Collection {
             recordRepresentation: this.recordRepresentation,
             actions: this.actions,
             hidden: this.hidden,
-            category: this.category
+            category: this.category,
+            icon: this.icon
 		}
 	}
 
@@ -243,6 +235,7 @@ export class TableCollection extends Collection {
     constructor(id, conf, server) {
         super(id, conf, server);
 
+        this.type="table";
         let fieldEls=parseXml(conf.fields);
         for (let fieldEl of fieldEls) {
             if (!fieldEl.attributes.id)
@@ -346,13 +339,25 @@ export class ViewCollection extends Collection {
     constructor(id, conf, server) {
         super(id, conf, server);
 
-        if (this.server.collections[conf.from].isView())
+        if (conf.from) {
+            this.type="view";
+            this.from=conf.from;
+        }
+
+        else if (conf.singleFrom) {
+            this.type="singleView";
+            this.from=conf.singleFrom;
+        }
+
+        else
+            throw new Error("Not a view of single view...");
+
+        if (this.server.collections[this.from].isView())
             throw new Error("Can't create a view from a view");
 
         this.where=conf.where;
-        this.from=conf.from;
-        this.fields=jsonClone(this.server.collections[conf.from].fields);
-        this.listFields=jsonClone(this.server.collections[conf.from].listFields);
+        this.fields=jsonClone(this.server.collections[this.from].fields);
+        this.listFields=jsonClone(this.server.collections[this.from].listFields);
 
         let exclude=conf.exclude;
         if (!exclude)
@@ -377,11 +382,13 @@ export class ViewCollection extends Collection {
             }
         }
 
-        this.single=conf.single;
-
         this.recordRepresentation=conf.recordRepresentation;
         if (!this.recordRepresentation)
-            this.recordRepresentation=this.server.collections[conf.from].recordRepresentation;
+            this.recordRepresentation=this.server.collections[this.from].recordRepresentation;
+
+        this.icon=conf.icon;
+        if (!this.icon)
+            this.icon=this.server.collections[this.from].icon;
     }
 
     getTableName() {
@@ -412,7 +419,7 @@ export class ViewCollection extends Collection {
     }
 
     async handleRequest(req, argv) {
-        if (this.getType()!="singleView")
+        if (this.type!="singleView")
             return await super.handleRequest(req,argv);
 
         let role;
