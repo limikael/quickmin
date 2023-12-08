@@ -2,12 +2,15 @@ import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
         ReferenceField, ReferenceInput,
         NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
-        Button, useRecordContext} from "react-admin";
+        Button, useRecordContext, useResourceContext, FieldTitle, useInput} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
 import ContentAdd from '@mui/icons-material/esm/Add';
 import {Link, useNavigate} from 'react-router-dom';
+import JsonEditor from "jsoneditor";
+import {useRef, useEffect} from "react";
+import {Typography } from '@mui/material';
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -101,6 +104,57 @@ function QuickminReferenceManyInput(props) {
     </>);
 }
 
+function JsonInput(props) {
+    let containerRef=useRef();
+    let editorRef=useRef();
+    let input=useInput({source: props.source})
+
+    useEffect(()=>{
+        if (!editorRef.current) {
+            console.log("create json editor");
+            let options={
+                name: props.id,
+                search: false,
+                mainMenuBar: true,
+                modes: ["tree","text"],
+                navigationBar: false,
+                enableSort: false,
+                enableTransform: false,
+                history: false,
+                onChangeJSON(json) {
+                    console.log("change...");
+                    input.field.onChange(json);
+                },
+                onChangeText(s) {
+                    try {
+                        let json=JSON.parse(s);
+                        input.field.onChange(json);
+                    }
+
+                    catch (e) {
+                        console.log("unable to parse json, but that's ok...");
+                    }
+                }
+            };
+
+            let jsoneditor=new JsonEditor(
+                containerRef.current,
+                options,
+                input.field.value
+            );
+
+            editorRef.current=jsoneditor;
+        }
+    });
+
+    return (<>
+        <Typography color="text.secondary" sx={{fontSize: "12px"}}>
+            {makeNameFromSymbol(props.id)}
+        </Typography>
+        <div ref={containerRef} style="width: 100%; margin-bottom: 12px"/>
+    </>);
+}
+
 export const FIELD_TYPES={
     "text": {
         list: TextField,
@@ -110,28 +164,7 @@ export const FIELD_TYPES={
 
     "json": {
         list: TextField,
-        edit: TextInput,
-        confProcessor(field) {
-            field.multiline=true;
-            field.fullWidth=true;
-            /*
-            Should be monospace!!! For later...
-
-            field.style={
-                "font-family": "monospace !important"
-            };
-            field.sx={
-                bgcolor: '#ff0000',
-                "font-family": "monospace !important"
-            };*/
-        },
-        readProcessor(data) {
-            return JSON.stringify(data,null,2)
-        },
-        writeProcessor(data) {
-            if (data)
-                return JSON.parse(data);
-        },
+        edit: JsonInput,
     },
 
     "integer": {

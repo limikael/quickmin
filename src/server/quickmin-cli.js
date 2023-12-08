@@ -100,7 +100,7 @@ async function makeUi() {
         absWorkingDir: __dirname,
         entryPoints: [path.join(__dirname,"../ui/QuickminAdmin.jsx")],
         outfile: outfile,
-        sourcemap: true,
+        //sourcemap: true,
         bundle: true,
         format: "esm",
         inject: [path.join(__dirname,"../utils/preact-shim.js")],
