@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -40,6 +40,7 @@
     "@tiptap/starter-kit": "^2.1.2",
     "clsx": "^2.0.0",
     "esbuild": "^0.19.3",
+    "pluralize": "^8.0.0",
     "preact": "^10.16.0",
     "ra-core": "^4.13.1",
     "ra-data-simple-rest": "^4.13.0",

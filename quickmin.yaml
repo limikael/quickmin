@@ -4,7 +4,7 @@ r2Bucket: "BUCKET"
 jwtSecret: "hvljYEUOLHKqWP8UNxI4HwZvXS6de903"
 adminUser: "admin"
 adminPass: "admin"
-apiPath: "admin"
+#apiPath: "admin"
 upload: "upload"
 oauthHostname: localhost
 
@@ -21,14 +21,19 @@ collections:
     readAccess: public
     category: content
     icon: text_snippet
+    actions:
+      - name: test action
+        url: /test_action
+        type: jsonrpc
+        method: testMethod
     fields:
       <Text id="title" fullWidth listable/>
-      <Image id="image"/>
-      <Reference id="author" reference="users" listable/>
-      <Select id="status" choices="draft,published" listable />
-      <Date id="published" listable/>
-      <RichText id="content" fullWidth/>
-      <Json id="jsontest"/>
+      <Image id="image" tab="image"/>
+      <Reference id="author" reference="users" listable tab="author"/>
+      <Select id="status" choices="draft,published" listable tab="publication"/>
+      <Date id="published" listable condition='{"status":"published"}' tab="publication"/>
+      <RichText id="content" fullWidth />
+      <Json id="jsontest" tab="author"/>
 
   my_posts:
     access: user
@@ -46,7 +51,6 @@ collections:
       <RichText id="content" fullWidth/>
 
   users:
-#    category: hidden
     icon: person
     recordRepresentation: name
     fields:
