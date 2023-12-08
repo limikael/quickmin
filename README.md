@@ -4,9 +4,9 @@ Quickly get a database up and running, with UI and REST api.
 
 - [] indices
 - [] example
-- [] layout (sidebar, tab, section)
 
 ### Done:
+- [x] layout (sidebar, tab, section... just tab, enough for now...)
 - [x] menu icons
 - [x] hierarchial menu
 - [x] conditional fields
