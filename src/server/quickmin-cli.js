@@ -87,13 +87,9 @@ if (!command)
 
 async function makeUi() {
     let outfile=path.join(options.uidir,"quickmin-bundle.js");
-
-    /*if (fs.existsSync(outfile) && !options.rebuild) {
-        console.log("Using existing UI: "+outfile);
-        return;
-    }*/
-
     console.log("Creating client bundle: "+outfile);
+
+    let inlineImportPlugin=(await import("esbuild-plugin-inline-import")).default;
 
     let esbuild=await import("esbuild");
     await esbuild.build({
@@ -112,7 +108,8 @@ async function makeUi() {
                 "react": "preact/compat",
                 "react-dom": "preact/compat",
                 "react/jsx-runtime": "preact/jsx-runtime"
-            })
+            }),
+            inlineImportPlugin()
         ],
     });
 }

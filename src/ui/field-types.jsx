@@ -11,7 +11,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import JsonEditor from "jsoneditor/dist/jsoneditor-minimalist.min.js";
 import {useRef, useEffect, useLayoutEffect} from "react";
 import {Typography } from '@mui/material';
-//import JsonEditorCss from "inline:jsoneditor/dist/jsoneditor.min.css";
+import JSONEDITOR_CSS from "inline:../../node_modules/jsoneditor/dist/jsoneditor.min.css";
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -105,7 +105,17 @@ function QuickminReferenceManyInput(props) {
     </>);
 }
 
+let __JSONEDITOR_CSS_ADDED=false;
+
 function JsonInput(props) {
+    if (!__JSONEDITOR_CSS_ADDED) {
+        let styleSheet=document.createElement("style");
+        styleSheet.innerText=JSONEDITOR_CSS;
+        document.head.appendChild(styleSheet)
+
+        __JSONEDITOR_CSS_ADDED=true;
+    }
+
     let containerRef=useRef();
     let editorRef=useRef();
     let input=useInput({source: props.source})

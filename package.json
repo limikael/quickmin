@@ -40,6 +40,7 @@
     "@tiptap/starter-kit": "^2.1.2",
     "clsx": "^2.0.0",
     "esbuild": "^0.19.3",
+    "esbuild-plugin-inline-import": "^1.0.2",
     "jsoneditor": "^9.10.4",
     "pluralize": "^8.0.0",
     "preact": "^10.16.0",

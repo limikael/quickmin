@@ -1163,6 +1163,11 @@ es-to-primitive@^1.2.1:
     is-date-object "^1.0.1"
     is-symbol "^1.0.2"
 
+esbuild-plugin-inline-import@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/esbuild-plugin-inline-import/-/esbuild-plugin-inline-import-1.0.2.tgz#b02dfe84a9845b1c82808e33adfc1deca581e9a8"
+  integrity sha512-BCljgye2Dt63aENlIO3q7UkMhJW1Q2AcMySHGWUw/VAaL9YutKEhUD4t418hSIXWjqx1La+CJLHlJbL1SdH1Uw==
+
 esbuild@^0.19.3:
   version "0.19.3"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.19.3.tgz#d9268cd23358eef9d76146f184e0c55ff8da7bb6"
