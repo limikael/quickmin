@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -8,8 +8,9 @@
   },
   "scripts": {
     "dev": "yarn build && ./src/server/quickmin-cli.js --port=3000",
-    "build": "yarn build:info && yarn build:ui",
+    "build": "yarn build:info && yarn build:css && yarn build:ui",
     "build:info": "./src/build/create-package-info.js",
+    "build:css": "./src/build/create-embedded-css.js",
     "build:ui": "./src/server/quickmin-cli.js makeui"
   },
   "dependencies": {

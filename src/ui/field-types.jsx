@@ -11,7 +11,8 @@ import {Link, useNavigate} from 'react-router-dom';
 import JsonEditor from "jsoneditor/dist/jsoneditor-minimalist.min.js";
 import {useRef, useEffect, useLayoutEffect} from "react";
 import {Typography } from '@mui/material';
-import JSONEDITOR_CSS from "inline:../../node_modules/jsoneditor/dist/jsoneditor.min.css";
+//import JSONEDITOR_CSS from "inline:../../node_modules/jsoneditor/dist/jsoneditor.min.css";
+import JSONEDITOR_CSS from "inline:../../tmp/jsoneditor.css";
 
 function QuickminImageInput(props) {
     let sx,options;

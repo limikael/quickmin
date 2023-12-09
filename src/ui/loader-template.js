@@ -1,5 +1,3 @@
-//		<link href="https://unpkg.com/jsoneditor@9.10.4/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
-
 export const loaderTemplate=`<!DOCTYPE html>
 <html>
 	<head>
