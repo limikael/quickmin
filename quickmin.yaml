@@ -18,7 +18,7 @@ collections:
   posts:
     helperText: "Here are some posts..."
     access: admin
-    readAccess: public
+    readAccess: [public,user]
     category: content
     icon: text_snippet
     actions:

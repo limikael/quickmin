@@ -8,9 +8,10 @@ import urlJoin from 'url-join';
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
 import ContentAdd from '@mui/icons-material/esm/Add';
 import {Link, useNavigate} from 'react-router-dom';
-import JsonEditor from "jsoneditor";
-import {useRef, useEffect} from "react";
+import JsonEditor from "jsoneditor/dist/jsoneditor-minimalist.min.js";
+import {useRef, useEffect, useLayoutEffect} from "react";
 import {Typography } from '@mui/material';
+//import JsonEditorCss from "inline:jsoneditor/dist/jsoneditor.min.css";
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -109,14 +110,18 @@ function JsonInput(props) {
     let editorRef=useRef();
     let input=useInput({source: props.source})
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if (!editorRef.current) {
             console.log("create json editor");
+            let modes=["tree","text"];
+            if (props.disabled)
+                modes=["view"];
+
             let options={
                 name: props.id,
                 search: false,
                 mainMenuBar: true,
-                modes: ["tree","text"],
+                modes: modes,
                 navigationBar: false,
                 enableSort: false,
                 enableTransform: false,
