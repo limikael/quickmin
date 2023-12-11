@@ -26,7 +26,7 @@ function GlobalActionButton({action, actionState}) {
     )
 }
 
-export function CollectionList({collection}) {
+export default function CollectionList({collection}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 

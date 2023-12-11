@@ -5,14 +5,21 @@ import {jwtDecode} from "jwt-decode";
 
 export class AuthError extends Error {};
 
-export default class AuthProvider {
-	constructor(url, setRole) {
-		this.url=url;
-		this.setRole=setRole;
+export default class AuthProvider extends EventTarget {
+	constructor(url) {
+		super();
 
+		this.url=url;
+
+		/*let tokenPayload=this.getTokenPayload();
+		if (tokenPayload)
+			this.setRole(tokenPayload.role);*/
+	}
+
+	getRole() {
 		let tokenPayload=this.getTokenPayload();
 		if (tokenPayload)
-			this.setRole(tokenPayload.role);
+			return tokenPayload.role;
 	}
 
 	getTokenPayload() {
@@ -38,7 +45,8 @@ export default class AuthProvider {
 	    	throw new Error("Unable to log in");
 
 		window.document.cookie="qmtoken="+result.data.token+"; path=/";
-		this.setRole(this.getTokenPayload().role);
+		this.dispatchEvent(new Event("change"));
+		//this.setRole(this.getTokenPayload().role);
     }
 
     async checkError(error) {
@@ -49,7 +57,8 @@ export default class AuthProvider {
 
     async logout() {
 		window.document.cookie="qmtoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    	this.setRole(null);
+		this.dispatchEvent(new Event("change"));
+    	//this.setRole(null);
     } 
 
     async getIdentity() {

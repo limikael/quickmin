@@ -142,7 +142,7 @@ function CollectionForm({collection, mode, redirect, conf}) {
     }
 }
 
-export function CollectionEditor({collection, mode, conf}) {
+export default function CollectionEditor({collection, mode, conf}) {
     function redirect() {
         if (collection.type=="singleView")
             return `${collection.id}/single`;
