@@ -11,34 +11,35 @@ export function confGetCategories(conf) {
     return categories;
 }
 
-export function confGetCollectionsByCategoryAndRole(conf, category, role) {
-	let collections=[];
-    for (let cid in conf.collections) {
-        let collection=conf.collections[cid];
-        if (collection.category==category &&
-        		collection.readAccess.includes(role))
-        	collections.push(collection)
-    }
-
-    return collections;
-}
-
-export function confGetCollectionsByRole(conf, role) {
-    let collections=[];
-    for (let cid in conf.collections) {
-        let collection=conf.collections[cid];
-        if (collection.readAccess.includes(role))
-            collections.push(collection)
-    }
-
-    return collections;
-}
-
 export function confGetCategoryByCollection(conf, collectionId) {
 	if (!conf.collections[collectionId])
 		return;
 
 	return conf.collections[collectionId].category;
+}
+
+export function confIsCollectionWritable(conf, collectionId) {
+    let collection=conf.collections[collectionId];
+
+    return collection.access.includes(conf.role);
+}
+
+export function confGetCollections(conf) {
+    return Object.keys(conf.collections).map(id=>conf.collections[id]);
+}
+
+export function confGetReadableCollections(conf) {
+    return (
+        confGetCollections(conf)
+            .filter(collection=>collection.readAccess.includes(conf.role))
+    )
+}
+
+export function confGetReadableCollectionsByCategory(conf, category) {
+    return (
+        confGetReadableCollections(conf)
+            .filter(collection=>collection.category==category)
+    )
 }
 
 export function collectionGetPath(collection) {

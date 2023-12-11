@@ -8,7 +8,7 @@ import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
-import {matchCondition, collectionGetTabs, collectionHasUntabbed} from "./conf-util.js";
+import {matchCondition, collectionGetTabs, collectionHasUntabbed, confIsCollectionWritable} from "./conf-util.js";
 import {singular} from "pluralize";
 
 function EditActionButton({action, actionState}) {
@@ -40,7 +40,7 @@ function useWatchRecord(collection) {
     return watchRecord;
 }
 
-function CollectionToolbar({collection, mode, redirect}) {
+function CollectionToolbar({conf, collection, mode, redirect}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 
@@ -60,7 +60,8 @@ function CollectionToolbar({collection, mode, redirect}) {
     }
 
     toolbarItems.push(<div style="flex-grow: 1"></div>);
-    if (collection.type!="singleView")
+    if (collection.type!="singleView" &&
+            confIsCollectionWritable(conf,collection.id))
         toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
     return (
@@ -81,8 +82,8 @@ function CollectionEditorFields({collection, conf, tab}) {
     for (let fid in collection.fields) {
         let f={...collection.fields[fid]};
 
-        if (collection.disabled)
-            f.disabled=collection.disabled;
+        if (!confIsCollectionWritable(conf,collection.id))
+            f.disabled=true;
 
         let matched=true;
         if (f.condition)
@@ -105,6 +106,7 @@ function CollectionEditorFields({collection, conf, tab}) {
 function CollectionForm({collection, mode, redirect, conf}) {
     let toolbar=(
         <CollectionToolbar
+                conf={conf}
                 collection={collection}
                 mode={mode}
                 redirect={redirect}/>

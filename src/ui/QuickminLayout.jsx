@@ -1,5 +1,5 @@
-import {confGetCategories, confGetCollectionsByCategoryAndRole, confGetCategoryByCollection,
-        collectionGetPath, confGetCollectionsByRole} from "./conf-util.js";
+import {confGetCategories, confGetCategoryByCollection,
+        collectionGetPath, confGetReadableCollections, confGetReadableCollectionsByCategory} from "./conf-util.js";
 import {Admin, Layout, Menu, Resource, MenuItemLink, useResourceContext} from 'react-admin';
 import {makeNameFromSymbol, splitPath} from "../utils/js-util.js";
 import {useLocation} from "react-router";
@@ -23,11 +23,11 @@ function CollectionMenuItem({conf, collection, ...props}) {
     );
 }
 
-function CategoryMenuItems({conf, category, role}) {
+function CategoryMenuItems({conf, category}) {
     let currentResourceId=splitPath(useLocation().pathname)[0];
     let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
 
-    let collections=confGetCollectionsByCategoryAndRole(conf,category,role);
+    let collections=confGetReadableCollectionsByCategory(conf,category);
     if (!collections.length)
         return [];
 
@@ -45,7 +45,7 @@ function CategoryMenuItems({conf, category, role}) {
     );
 
     if (category==currentCategoryId) {
-        for (let collection of confGetCollectionsByCategoryAndRole(conf,category,role))
+        for (let collection of confGetReadableCollectionsByCategory(conf,category))
             menuItems.push(
                 <CollectionMenuItem
                         conf={conf} 
@@ -58,7 +58,7 @@ function CategoryMenuItems({conf, category, role}) {
     return <>{menuItems}</>;
 }
 
-export default function QuickminLayout({conf, role, ...props}) {
+export default function QuickminLayout({conf, ...props}) {
     let menuItems=[];
     menuItems.push(<Menu.DashboardItem/>);
 
@@ -66,7 +66,7 @@ export default function QuickminLayout({conf, role, ...props}) {
     let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
 
     let renderedCategories=[];
-    for (let collection of confGetCollectionsByRole(conf,role)) {
+    for (let collection of confGetReadableCollections(conf)) {
         if (collection.category) {
             if (!renderedCategories.includes(collection.category)
                     && collection.category!="hidden") {
@@ -74,8 +74,7 @@ export default function QuickminLayout({conf, role, ...props}) {
                 menuItems.push(
                     <CategoryMenuItems
                             conf={conf}
-                            category={collection.category}
-                            role={role}/>
+                            category={collection.category}/>
                 );
             }
         }

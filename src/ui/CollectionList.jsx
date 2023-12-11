@@ -3,6 +3,7 @@ import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton,
         useRefresh} from "react-admin";
 import FIELD_TYPES from "./field-types.jsx";
 import {ActionDialog, useActionState} from "./actions.jsx";
+import {confIsCollectionWritable} from "./conf-util.js";
 
 function ListActionButton({action, actionState}) {
     let {selectedIds}=useListContext();
@@ -26,7 +27,7 @@ function GlobalActionButton({action, actionState}) {
     )
 }
 
-export default function CollectionList({collection}) {
+export default function CollectionList({conf, collection}) {
     let refresh=useRefresh();
     let actionState=useActionState(refresh);
 
@@ -81,7 +82,9 @@ export default function CollectionList({collection}) {
         <div style="white-space: nowrap; text-align: right">
             {globalActionItems}
             <FilterButton/>
-            <CreateButton/>
+            {confIsCollectionWritable(conf,collection.id) &&
+                <CreateButton/>
+            }
         </div>
     );
 

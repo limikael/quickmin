@@ -42,6 +42,7 @@ collections:
       author: ${userId}
 
   pages:
+    helperText: "Here are some pages..."
     category: content
     icon: article
     fields:
