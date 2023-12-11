@@ -74,6 +74,7 @@ let yargsConf=yargs(hideBin(process.argv))
     /*.command("export <filename>","Export data to file.")
     .command("import <filename>","Import data from file.")*/
     .command("pull","Pull data from remote.")
+    .command("push","Push data to remote.")
     .command("pull-content","Pull content from remote.")
     .strict()
     .usage("quickmin -- Backend as an app or middleware.")
@@ -249,6 +250,28 @@ switch (command) {
             for (let data of tableDatas) {
                 process.stdout.write((i++)+"/"+tableDatas.length+"\r");
                 await quickmin.api.insert(table,data);
+            }
+            console.log("Done.                     ");
+        }
+        break;
+
+    case "push":
+        if (!options.tables) {
+            console.log("Need tables option.")
+            process.exit();
+        }
+
+        for (let table of options.tables.split(",")) {
+            console.log("Clearing current data in: "+table);
+            for (let existing of await remoteApi.findMany(table))
+                await remoteApi.delete(table,existing.id);
+
+            console.log("Pushing table: "+table);
+            let tableDatas=await quickmin.api.findMany(table);
+            let i=0;
+            for (let data of tableDatas) {
+                process.stdout.write((i++)+"/"+tableDatas.length+"\r");
+                await remoteApi.insert(table,data);
             }
             console.log("Done.                     ");
         }
