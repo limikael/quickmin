@@ -10,10 +10,6 @@ export default class AuthProvider extends EventTarget {
 		super();
 
 		this.url=url;
-
-		/*let tokenPayload=this.getTokenPayload();
-		if (tokenPayload)
-			this.setRole(tokenPayload.role);*/
 	}
 
 	getRole() {
