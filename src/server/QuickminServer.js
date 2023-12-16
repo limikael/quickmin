@@ -9,6 +9,7 @@ import {minimatch} from 'minimatch';
 import QuickminServerApi from "./QuickminServerApi.js";
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {microsoftAuthDriver} from "../auth/microsoft-auth.js";
+import {emailAuthDriver} from "../auth/email-auth.js";
 import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
@@ -65,7 +66,8 @@ export default class QuickminServer {
         drivers=[...drivers,
             googleAuthDriver,
             microsoftAuthDriver,
-            facebookAuthDriver
+            facebookAuthDriver,
+            emailAuthDriver
         ];
 
         for (let driver of drivers)
@@ -76,10 +78,12 @@ export default class QuickminServer {
                 for (let fid in this.collections[cid].fields) {
                     let field=this.collections[cid].fields[fid];
 
-                    if (field.type=="authmethod" &&
-                            this.authMethods[field.provider]) {
+                    if (field.type=="authmethod") {
+                        if (!this.authMethods[field.provider])
+                            throw new Error("Auth provider not set up: "+field.provider);
+
                         if (this.authCollection && this.authCollection!=cid)
-                            throw new Error("Only one collection can be user for auth.");
+                            throw new Error("Only one collection can be used for auth.");
 
                         this.authCollection=cid;
                         this.authMethods[field.provider].fieldId=fid;
@@ -203,63 +207,23 @@ export default class QuickminServer {
             return Response.json(userRecord);
         }
 
+        else if (jsonEq(argv,["_tokenLogin"])) {
+            let reqUrl=new URL(req.url);
+            let redirect=reqUrl.searchParams.get("redirect");
+            let jwtToken=reqUrl.searchParams.get("token");
+            let {token, provider}=jwtVerify(jwtToken,this.conf.jwtSecret);
+
+            return await this.getLoginRedirectResponse(redirect,provider,token);
+        }
+
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
             //console.log("redirect state: ",JSON.parse(reqUrl.searchParams.get("state")));
 
             let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
-
-            //let reurl=urlJoin(reqUrl.origin,this.conf.apiPath,"_oauthRedirect");
             let loginToken=await this.authMethods[provider].process(reqUrl);
-            console.log("login token: "+loginToken+" for provider: "+provider);
 
-            if (!this.authMethods[provider].fieldId)
-                throw new Error("No AuthMethod field set up for provider: "+provider);
-
-            let q={};
-            q[this.authMethods[provider].fieldId]=loginToken;
-
-            let userRecord=await this.db.findOne(this.authCollection,q);
-            if (!userRecord) {
-                if (!this.signupRole) {
-                    let headers=new Headers();
-                    headers.set("location",referer);
-                    return new Response("Moved",{
-                        status: 302,
-                        headers: headers
-                    });
-                }
-
-                let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
-                let q={};
-                q[roleField]=this.signupRole;
-                q[this.authMethods[provider].fieldId]=loginToken;
-
-                userRecord=await this.db.insert(this.authCollection,q);
-            }
-
-            let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
-            let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
-
-            let payload={
-                userId: userRecord.id,
-                role: userRecord[roleField],
-                userName: userRecord[usernameField],
-            };
-
-            let token=jwtSign(payload,this.conf.jwtSecret);
-
-            let headers=new Headers();
-            headers.set("location",referer);
-            headers.set("set-cookie","qmtoken="+token+"; path=/");
-            /*headers.set("access-control-expose-headers","Set-Cookie");
-            headers.set("Access-Control-Allow-Credentials",true);
-            headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
-
-            return new Response("Moved",{
-                status: 302,
-                headers: headers
-            });
+            return await this.getLoginRedirectResponse(referer,provider,loginToken);
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_authUrls"])) {
@@ -341,6 +305,58 @@ export default class QuickminServer {
         }
     }
 
+    async getLoginRedirectResponse(referer, provider, loginToken) {
+        console.log("login: "+provider+":"+loginToken+" -> "+referer);
+
+        if (!this.authMethods[provider].fieldId)
+            throw new Error("No AuthMethod field set up for provider: "+provider);
+
+        let q={};
+        q[this.authMethods[provider].fieldId]=loginToken;
+
+        let userRecord=await this.db.findOne(this.authCollection,q);
+        if (!userRecord) {
+            if (!this.signupRole) {
+                let headers=new Headers();
+                headers.set("location",referer);
+                return new Response("Moved",{
+                    status: 302,
+                    headers: headers
+                });
+            }
+
+            let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+            let q={};
+            q[roleField]=this.signupRole;
+            q[this.authMethods[provider].fieldId]=loginToken;
+
+            userRecord=await this.db.insert(this.authCollection,q);
+        }
+
+        let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+        let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+
+        let payload={
+            userId: userRecord.id,
+            role: userRecord[roleField],
+            userName: userRecord[usernameField],
+        };
+
+        let token=jwtSign(payload,this.conf.jwtSecret);
+
+        let headers=new Headers();
+        headers.set("location",referer);
+        headers.set("set-cookie","qmtoken="+token+"; path=/");
+        /*headers.set("access-control-expose-headers","Set-Cookie");
+        headers.set("Access-Control-Allow-Credentials",true);
+        headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
+
+        return new Response("Moved",{
+            status: 302,
+            headers: headers
+        });
+    }
+
     async getAuthUrls(referer, state={}) {
         let u=new URL(referer);
         let hostConf=this.getHostConf(u.hostname);
@@ -351,12 +367,14 @@ export default class QuickminServer {
 
         let authUrls={};
         for (let method in this.authMethods) {
-            let wrappedState=JSON.stringify({
-                referer: referer,
-                provider: method,
-                ...state
-            });
-            authUrls[method]=this.authMethods[method].getLoginUrl(reurl,wrappedState);
+            if (this.authMethods[method].getLoginUrl) {
+                let wrappedState=JSON.stringify({
+                    referer: referer,
+                    provider: method,
+                    ...state
+                });
+                authUrls[method]=this.authMethods[method].getLoginUrl(reurl,wrappedState);
+            }
         }
 
         return authUrls;

@@ -1,4 +1,5 @@
 import urlJoin from "url-join";
+import {jwtSign} from "../utils/jwt-util.js";
 
 export default class QuickminServerApi {
 	constructor(server) {
@@ -51,7 +52,29 @@ export default class QuickminServerApi {
 		return await this.server.getRoleByRequest(req);
 	}
 
-	async verifyAuthRedirectedUrl(redirectedUrl) {
+	async getTokenLoginUrl(redirect, provider, token) {
+		let redirectUrl=new URL(redirect);
+
+		let urlComps=[redirectUrl.origin];
+		if (this.server.conf.apiPath)
+			urlComps.push(this.server.conf.apiPath);
+
+		urlComps.push("_tokenLogin");
+		let url=new URL(urlJoin(...urlComps));
+
+        let payload={
+            provider: provider,
+            token: token,
+        };
+
+        let jwtToken=jwtSign(payload,this.server.conf.jwtSecret);
+        url.searchParams.set("token",jwtToken);
+        url.searchParams.set("redirect",redirect);
+
+		return url.toString();
+	}
+
+	/*async verifyAuthRedirectedUrl(redirectedUrl) {
 		let url=new URL(redirectedUrl);
 		let state=JSON.parse(url.searchParams.get("state"));
 
@@ -69,5 +92,5 @@ export default class QuickminServerApi {
         	...state,
         	token: token
         };
-	}
+	}*/
 }
