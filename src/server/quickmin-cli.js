@@ -57,6 +57,11 @@ let yargsConf=yargs(hideBin(process.argv))
         description: "Where to build and look for quickmin-bundle.js",
         default: path.join(__dirname,"../../dist/"),
     })
+    .option("minify",{
+        description: "Minify when building ui",
+        type: "boolean",
+        default: true
+    })
     /*.option("rebuild",{
         description: "Rebuild UI files even if they exist.",
         type: "boolean"
@@ -103,7 +108,7 @@ async function makeUi() {
         inject: [path.join(__dirname,"../utils/preact-shim.js")],
         jsxFactory: "h",
         jsxFragment: "Fragment",
-        minify: true,
+        minify: options.minify,
         plugins: [
             moduleAlias({
                 "react": "preact/compat",

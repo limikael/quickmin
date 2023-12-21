@@ -1,6 +1,6 @@
 import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton, BulkDeleteButton,
-        Button, useListContext, DeleteButton, useSaveContext, FilterButton, CreateButton,
-        useRecordContext, useRefresh, TabbedForm} from "react-admin";
+    Button, useListContext, DeleteButton, useSaveContext, FilterButton, CreateButton,
+    useRecordContext, useRefresh, TabbedForm, Form, TabbedFormView} from "react-admin";
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
 import {jsonClone, arrayOnlyUnique, urlGetParams, makeNameFromSymbol} from "../utils/js-util.js";
@@ -8,8 +8,10 @@ import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
-import {matchCondition, collectionGetTabs, collectionHasUntabbed, confIsCollectionWritable} from "./conf-util.js";
+import {matchCondition, collectionGetTabs, collectionHasUntabbed, confIsCollectionWritable,
+    collectionGetVisibleTabs} from "./conf-util.js";
 import {singular} from "pluralize";
+import {SimpleFormView} from "../utils/ra-util.jsx";
 
 function EditActionButton({action, actionState}) {
     let formState=useFormState();
@@ -74,10 +76,7 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     );
 }
 
-function CollectionEditorFields({collection, conf, tab}) {
-    let watchRecord=useWatchRecord(collection);
-    //console.log(watchRecord);
-
+function CollectionEditorFields({collection, conf, tab, watchRecord}) {
     let fieldContent=[];
     for (let fid in collection.fields) {
         let f={...collection.fields[fid]};
@@ -103,7 +102,10 @@ function CollectionEditorFields({collection, conf, tab}) {
     return fieldContent;
 }
 
-function CollectionForm({collection, mode, redirect, conf}) {
+function CollectionFormView({collection, mode, redirect, conf}) {
+    let watchRecord=useWatchRecord(collection);
+    //console.log("watch record: ",watchRecord);
+
     let toolbar=(
         <CollectionToolbar
                 conf={conf}
@@ -113,33 +115,39 @@ function CollectionForm({collection, mode, redirect, conf}) {
     )
 
     let tabs=collectionGetTabs(collection);
+    let visibleTabs=collectionGetVisibleTabs(collection,watchRecord);
     if (tabs.length>0) {
         return (
-            <TabbedForm toolbar={toolbar}>
+            <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
                 {collectionHasUntabbed(collection) &&
                     <TabbedForm.Tab label={singular(collection.id)}>
                         <CollectionEditorFields 
+                                watchRecord={watchRecord}
                                 collection={collection} 
                                 conf={conf}/>
                     </TabbedForm.Tab>
                 }
-                {tabs.map(tab=>
+                {visibleTabs.map(tab=>
                     <TabbedForm.Tab label={tab}>
                         <CollectionEditorFields 
+                                watchRecord={watchRecord}
                                 collection={collection} 
                                 conf={conf} 
                                 tab={tab}/>
                     </TabbedForm.Tab>
                 )}
-            </TabbedForm>
+            </TabbedFormView>
         );
     }
 
     else {
         return (
-            <SimpleForm toolbar={toolbar}>
-                <CollectionEditorFields collection={collection} conf={conf}/>
-            </SimpleForm>
+            <SimpleFormView toolbar={toolbar}>
+                <CollectionEditorFields
+                        collection={collection}
+                        conf={conf}
+                        watchRecord={watchRecord}/>
+            </SimpleFormView>
         );
     }
 }
@@ -159,7 +167,7 @@ export default function CollectionEditor({collection, mode, conf}) {
     }
 
     let content=(
-        <CollectionForm
+        <CollectionFormView
                 collection={collection}
                 mode={mode}
                 redirect={redirect}
@@ -170,14 +178,18 @@ export default function CollectionEditor({collection, mode, conf}) {
         case "edit":
             return (<>
                 <Edit mutationMode="pessimistic" redirect={redirect}>
-                    {content}
+                    <Form>
+                        {content}
+                    </Form>
                 </Edit>
             </>);
 
         case "create":
             return (
                 <Create redirect={redirect}>
-                    {content}
+                    <Form>
+                        {content}
+                    </Form>
                 </Create>
             );
     }
