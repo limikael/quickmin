@@ -68,14 +68,53 @@ class ActionState extends EventTarget {
         }
     }
 
-    async runSingleAction(action, id) {
-        switch (action.type) {
-            case "jsonrpc":
-                return await this.runJsonRpcAction(action,id);
+    // not working...
+    async runModuleAction(action, id) {
+        let moduleUrl=new URL(action.url,window.location);
 
-            case "browser":
-            default:
-                return await this.runBrowserAction(action,id);
+        let htmlString=`
+            <script type="module">
+                console.log("importing module");
+                let mod=await import("${moduleUrl}");
+                console.log("imported...");
+                console.log(mod);
+            </script>
+        `;
+
+        let iframe=document.createElement('iframe');
+        iframe.src="data:text/html;charset=utf-8," + escape(htmlString);
+        document.body.appendChild(iframe);
+
+        await new Promise(r=>{});
+    }
+
+    async runSingleAction(action, id) {
+        let type=action.type;
+        if (!type)
+            type="browser";
+
+        try {
+            switch (type) {
+                case "jsonrpc":
+                    return await this.runJsonRpcAction(action,id);
+                    break;
+
+                case "browser":
+                    return await this.runBrowserAction(action,id);
+                    break;
+
+                case "module":
+                    return await this.runModuleAction(action,id);
+                    break;
+
+                default:
+                    throw new Error("Unknown action type: "+type);
+                    break;
+            }
+        }
+
+        catch (e) {
+            return {error: String(e)}
         }
     }
 
