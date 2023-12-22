@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -16,6 +16,7 @@
   "dependencies": {
     "@hono/node-server": "^1.1.1",
     "better-sqlite3": "^8.5.2",
+    "dayjs": "^1.11.10",
     "drizzle-orm": "^0.28.5",
     "fullstack-utils": "^1.0.1",
     "hono": "^3.5.6",

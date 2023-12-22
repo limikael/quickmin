@@ -17,10 +17,12 @@ export default class DataProvider {
 
     processRead(resource, data) {
         for (let fid in this.collections[resource].fields) {
-            let type=this.collections[resource].fields[fid].type;
-            let processor=FIELD_TYPES[type].readProcessor;
-            if (processor)
-                data[fid]=processor(data[fid],this.conf);
+            if (data.hasOwnProperty(fid)) {
+                let type=this.collections[resource].fields[fid].type;
+                let processor=FIELD_TYPES[type].readProcessor;
+                if (processor)
+                    data[fid]=processor(data[fid],this.conf);
+            }
         }
 
         return data;
@@ -58,10 +60,15 @@ export default class DataProvider {
         return formData;
     }
 
-    getList=(resource, params)=>{
+    getList=async (resource, params)=>{
         //console.log("get list...");
 
-    	return this.simpleRestProvider.getList(resource,params);
+        let result=await this.simpleRestProvider.getList(resource,params);
+        console.log(result.data);
+        for (let data of result.data)
+            this.processRead(resource,data);
+
+    	return result;
     }
 
     getOne=async (resource, params)=>{

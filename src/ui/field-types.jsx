@@ -14,6 +14,12 @@ import {useRef, useEffect, useLayoutEffect} from "react";
 import {Typography } from '@mui/material';
 //import JSONEDITOR_CSS from "inline:../../node_modules/jsoneditor/dist/jsoneditor.min.css";
 import JSONEDITOR_CSS from "inline:../../tmp/jsoneditor.css";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import relativeTime from "dayjs/plugin/relativeTime.js";
+
+dayjs.extend(utc);
+dayjs.extend(relativeTime);
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -182,6 +188,16 @@ function QuickminBooleanField(props) {
         return <DoneIcon fontSize="inherit"/>;
 }
 
+function QuickminDateTimeField(props) {
+    const record=useRecordContext(props);
+
+    let v=record[props.source];
+    if (!v)
+        return;
+
+    return dayjs(v).fromNow();
+}
+
 export const FIELD_TYPES={
     "text": {
         list: TextField,
@@ -226,8 +242,20 @@ export const FIELD_TYPES={
     },
 
     "datetime": {
-        list: DateField,
+        list: QuickminDateTimeField,
         edit: DateTimeInput,
+        readProcessor(v) {
+            if (!v)
+                return v;
+
+            return dayjs.utc(v).toDate();
+        },
+        writeProcessor(v) {
+            if (!v)
+                return;
+
+            return dayjs(v).utc().format("YYYY-MM-DD HH:mm:ss");
+        }
     },
 
     "authmethod": {
