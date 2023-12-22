@@ -73,11 +73,11 @@ export default class QuickminServer {
         for (let driver of drivers)
             driver(this);
 
+        // Initialize auth method.
         for (let cid in this.collections) {
             if (!this.collections[cid].isView()) {
                 for (let fid in this.collections[cid].fields) {
                     let field=this.collections[cid].fields[fid];
-
                     if (field.type=="authmethod") {
                         if (!this.authMethods[field.provider])
                             throw new Error("Auth provider not set up: "+field.provider);
@@ -474,7 +474,7 @@ export default class QuickminServer {
         throw new Error("Unexpected content type: "+contentType);
     }
 
-    async sync({dryRun, force}) {
+    async sync({dryRun, force, test}) {
         let tables={};
         for (let c in this.collections) {
             if (!this.collections[c].isView()) {
@@ -482,7 +482,8 @@ export default class QuickminServer {
                     fields: {
                         id: {
                             type: "integer",
-                            pk: true
+                            pk: true,
+                            notnull: true
                         }
                     },
                 };
@@ -495,10 +496,10 @@ export default class QuickminServer {
                             type: field.sqlType,
                         };
 
-                        if (field.type=="reference") {
+                        /*if (field.type=="reference") {
                             fieldSpec.reference_table=fieldSpec.reference;
                             fieldSpec.reference_field="id";
-                        }
+                        }*/
 
                         tables[c].fields[f]=fieldSpec;
                     }
@@ -511,6 +512,7 @@ export default class QuickminServer {
             tables: tables,
             dryRun: dryRun,
             force: force,
+            test: test,
             transaction: this.db.hasTransactionSupport()
         });
 

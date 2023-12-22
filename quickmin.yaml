@@ -55,7 +55,8 @@ collections:
     icon: person
     recordRepresentation: name
     fields:
-      <Text id="name" username listable/>
+      <Text id="name" username listable default="micke"/>
+      <Boolean id="nice" notnull default="true"/>
       <AuthMethod id="google_auth" provider="google" listable/>
       <AuthMethod id="facebook_auth" provider="facebook" listable/>
       <Select id="role" choices="user,admin" role listable/>

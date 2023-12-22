@@ -1,6 +1,7 @@
 import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton, BulkDeleteButton,
     Button, useListContext, DeleteButton, useSaveContext, FilterButton, CreateButton,
-    useRecordContext, useRefresh, TabbedForm, Form, TabbedFormView} from "react-admin";
+    useRecordContext, useRefresh, TabbedForm, Form, TabbedFormView,
+    SelectInput, BooleanInput} from "react-admin";
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
 import {jsonClone, arrayOnlyUnique, urlGetParams, makeNameFromSymbol} from "../utils/js-util.js";
@@ -93,6 +94,10 @@ function CollectionEditorFields({collection, conf, tab, watchRecord}) {
 
         if (!f.hidden && matched) {
             let Comp=FIELD_TYPES[f.type].edit;
+            delete f.type;
+
+            f.defaultValue=f.default;
+
             fieldContent.push(
                 <Comp source={fid} key={fid} conf={conf} collection={collection} {...f}/>
             );

@@ -2,7 +2,8 @@ import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
         ReferenceField, ReferenceInput,
         NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
-        Button, useRecordContext, useResourceContext, FieldTitle, useInput} from "react-admin";
+        Button, useRecordContext, useResourceContext, FieldTitle, useInput,
+        BooleanField, BooleanInput} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
@@ -171,6 +172,16 @@ function JsonInput(props) {
     </>);
 }
 
+import DoneIcon from '@mui/icons-material/esm/Done';
+//import FormatUnderlined from '@mui/icons-material/esm/FormatUnderlined';
+
+function QuickminBooleanField(props) {
+    const record=useRecordContext(props);
+
+    if (record[props.source])
+        return <DoneIcon fontSize="inherit"/>;
+}
+
 export const FIELD_TYPES={
     "text": {
         list: TextField,
@@ -191,6 +202,11 @@ export const FIELD_TYPES={
     "real": {
         list: NumberField,
         edit: NumberInput,
+    },
+
+    "boolean": {
+        list: QuickminBooleanField,
+        edit: BooleanInput,
     },
 
     "richtext": {

@@ -13,6 +13,7 @@ let SQL_TYPES={
     "real": "real",
     "reference": "integer",
     "json": "text",
+    "boolean": "boolean",
     "referencemany": null
 };
 
@@ -72,15 +73,21 @@ export default class Collection {
         if (!item)
             return item;
 
-        for (let fid in this.fields) {
-            let field=this.fields[fid];
+        let fields=this.fields;
+        if (this.from)
+            fields=this.server.collections[this.from].fields;
 
-            switch (field.type) {
-                case "json":
-                    if (item.hasOwnProperty(fid)) {
+        for (let fid in fields) {
+            if (item.hasOwnProperty(fid)) {
+                switch (fields[fid].type) {
+                    case "json":
                         item[fid]=JSON.stringify(item[fid]);
-                    }
-                    break;
+                        break;
+
+                    case "boolean":
+                        item[fid]=Number(item[fid]);
+                        break;
+                }
             }
         }
 
@@ -93,15 +100,20 @@ export default class Collection {
 
         for (let fid in this.fields) {
             let field=this.fields[fid];
+            if (item.hasOwnProperty(fid)) {
+                switch (field.type) {
+                    case "json":
+                        if (item[fid])
+                            item[fid]=JSON.parse(item[fid]);
 
-            switch (field.type) {
-                case "json":
-                    if (item[fid])
-                        item[fid]=JSON.parse(item[fid]);
+                        else
+                            item[fid]=null;
+                        break;
 
-                    else
-                        item[fid]=null;
-                    break;
+                    case "boolean":
+                        item[fid]=Boolean(item[fid]);
+                        break;
+                }
             }
         }
 
@@ -258,6 +270,10 @@ export class TableCollection extends Collection {
                 ...fieldEl.attributes
             }
 
+            if (el.default && 
+                    ["integer","real","boolean","json"].includes(el.type.toLowerCase()))
+                el.default=JSON.parse(el.default);
+
             if (fieldEl.children.length)
                 el.children=fieldEl.children;
 
@@ -409,8 +425,10 @@ export class ViewCollection extends Collection {
         let retWhere={};
         for (let whereK in this.where) {
             let v=this.where[whereK];
-            for (let replacementK in replacements)
-                v=v.replaceAll(replacementK,replacements[replacementK]);
+            if (typeof v=="string") {
+                for (let replacementK in replacements)
+                    v=v.replaceAll(replacementK,replacements[replacementK]);
+            }
 
             retWhere[whereK]=v;
         }

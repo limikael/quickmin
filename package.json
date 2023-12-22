@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -48,7 +48,7 @@
     "ra-core": "^4.13.1",
     "ra-data-simple-rest": "^4.13.0",
     "ra-ui-materialui": "^4.13.1",
-    "react-admin": "^4.13.0"
+    "react-admin": "^4.16.0"
   },
   "exports": {
     "./hono-middleware": {

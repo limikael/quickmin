@@ -37,7 +37,7 @@ export default class TableSpec {
 		return true;
 	}
 
-	getSyncQueries(force) {
+	getSyncQueries(force, test) {
 		// If it doesn't exist, create.
 		if (!this.existingSpecs) {
 			this.migrator.log("[create]   "+this.name);
@@ -66,12 +66,15 @@ export default class TableSpec {
 			queries.push(sq);
 		}
 
-		queries.push(`ALTER TABLE \`${this.name}\` RENAME TO \`${this.name+"_old"}\``);
-		queries.push(`ALTER TABLE \`${this.name+"_new"}\` RENAME TO \`${this.name}\``);
-		queries.push(`DROP TABLE \`${this.name+"_old"}\``);
+		if (test) {
+			queries.push(`DROP TABLE \`${this.name+"_new"}\``);
+		}
 
-		/*queries.push(`DROP TABLE ${this.name}`);
-		queries.push(`ALTER TABLE ${this.name+"_new"} RENAME TO ${this.name}`);*/
+		else {
+			queries.push(`ALTER TABLE \`${this.name}\` RENAME TO \`${this.name+"_old"}\``);
+			queries.push(`ALTER TABLE \`${this.name+"_new"}\` RENAME TO \`${this.name}\``);
+			queries.push(`DROP TABLE \`${this.name+"_old"}\``);
+		}
 
 		return queries;
 	}

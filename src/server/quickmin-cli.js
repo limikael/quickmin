@@ -53,6 +53,11 @@ let yargsConf=yargs(hideBin(process.argv))
             +"Needed in order to apply foreign key constraints on an existing schema.",
         type: "boolean"
     })
+    .option("test",{
+        description: "Test migrating data to new tables, and then remove the new tables. "
+            +"The existing data will be intact, but might leave garbage tables that needs deletion. ",
+        type: "boolean"
+    })
     .option("uidir",{
         description: "Where to build and look for quickmin-bundle.js",
         default: path.join(__dirname,"../../dist/"),
@@ -206,7 +211,8 @@ switch (command) {
     case "migrate":
         await quickmin.sync({
             dryRun: options.dryRun,
-            force: options.force
+            force: options.force,
+            test: options.test
         });
         break;
 

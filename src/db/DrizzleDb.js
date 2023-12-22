@@ -6,6 +6,7 @@ let DRIZZLE_TYPES={
     "date": text,
     "datetime": text,
     "integer": integer,
+    "boolean": integer,
     "real": real
 }
 
@@ -38,6 +39,9 @@ export default class DrizzleDb {
         let parts=[];
         for (let k in query) {
             let operand=query[k];
+            if (typeof operand=="boolean")
+                operand=Number(operand);
+
             let op;
             if ("~".includes(k.slice(-1))) {
                 op=k.slice(-1);
@@ -53,11 +57,11 @@ export default class DrizzleDb {
                     "%"+operand.replace("%","\\%")+"%"
                 ));
 
-            else if (Array.isArray(query[k]))
-                parts.push(inArray(this.tables[modelName][k],query[k]))
+            else if (Array.isArray(operand))
+                parts.push(inArray(this.tables[modelName][k],operand))
 
             else
-                parts.push(eq(this.tables[modelName][k],query[k]))
+                parts.push(eq(this.tables[modelName][k],operand))
         }
 
         return and(...parts);

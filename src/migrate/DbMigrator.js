@@ -1,11 +1,12 @@
 import TableSpec from "./TableSpec.js";
 
 export default class DbMigrator {
-	constructor({runQueries, tables, dryRun, force, transaction}) {
+	constructor({runQueries, tables, dryRun, force, transaction, test}) {
 		this.runQueries=runQueries;
 		this.dryRun=dryRun;
 		this.force=force;
 		this.transaction=transaction;
+		this.test=test;
 
 		this.tableSpecs={};
 		for (let tableName in tables)
@@ -47,7 +48,7 @@ export default class DbMigrator {
 		for (let tableName in this.tableSpecs)
 			queries=[
 				...queries,
-				...this.tableSpecs[tableName].getSyncQueries(this.force)
+				...this.tableSpecs[tableName].getSyncQueries(this.force, this.test)
 			];
 
 		if (this.transaction)
