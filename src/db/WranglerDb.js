@@ -28,6 +28,9 @@ async function runCommand(command, args) {
 
 export default class WranglerDb {
 	constructor(binding, local) {
+		if (!binding)
+			binding="DB";
+
 		console.log("Running wrangler on: "+binding+", local="+local);
 		this.binding=binding;
 		this.local=local;
