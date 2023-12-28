@@ -474,7 +474,9 @@ export default class QuickminServer {
         throw new Error("Unexpected content type: "+contentType);
     }
 
-    async sync({dryRun, force, test}) {
+    async sync({dryRun, force, test, risky}) {
+        console.log("Migrate:",{dryRun, force, test, risky});
+
         let tables={};
         for (let c in this.collections) {
             if (!this.collections[c].isView()) {
@@ -515,6 +517,15 @@ export default class QuickminServer {
             test: test,
             transaction: this.db.hasTransactionSupport()
         });
+
+        await migrator.analyze();
+
+        if (migrator.isRisky() && !risky)
+            throw new Error(
+                "This migration might result in data loss since columns would be removed. "+
+                "Either them manually, or run with the risky parameter. "+
+                "Columns to be removed: "+migrator.getRemovableColumns()
+            );
 
         await migrator.sync();
     }

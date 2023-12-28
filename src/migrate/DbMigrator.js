@@ -17,7 +17,10 @@ export default class DbMigrator {
 			);
 	}
 
-	async sync() {
+	async analyze() {
+		if (this.haveAnalysis)
+			throw new Error("Analysis should only be run once");
+
 		console.log("Getting existing schema, pass 1...");
 		let nameRes=await this.runQueries(["SELECT name FROM sqlite_schema"]);
 		let nameRows=nameRes[0];
@@ -37,6 +40,28 @@ export default class DbMigrator {
 					this.tableSpecs[tableName].processDescribeRows(infoRes[i]);
 			}
 		}
+
+		this.haveAnalysis=true;
+	}
+
+	getRemovableColumns() {
+		if (!this.haveAnalysis)
+			throw new Error("Analysis not done yet");
+
+		let removable=[];
+		for (let tableName in this.tableSpecs)
+			removable.push(...this.tableSpecs[tableName].getRemovableColumns());
+
+		return removable;
+	}
+
+	isRisky() {
+		return (this.getRemovableColumns().length>0);
+	}
+
+	async sync() {
+		if (!this.haveAnalysis)
+			await this.analyze();
 
 		let queries=[
 			"PRAGMA foreign_keys=OFF",

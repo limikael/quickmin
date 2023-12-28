@@ -53,6 +53,11 @@ let yargsConf=yargs(hideBin(process.argv))
             +"Needed in order to apply foreign key constraints on an existing schema.",
         type: "boolean"
     })
+    .option("risky",{
+        description: "Perform migration even if it might result in data loss, "
+            +"i.e. if existing columns in the database would be removed.",
+        type: "boolean"
+    })
     .option("test",{
         description: "Test migrating data to new tables, and then remove the new tables. "
             +"The existing data will be intact, but might leave garbage tables that needs deletion. ",
@@ -212,7 +217,8 @@ switch (command) {
         await quickmin.sync({
             dryRun: options.dryRun,
             force: options.force,
-            test: options.test
+            test: options.test,
+            risky: options.risky
         });
         break;
 

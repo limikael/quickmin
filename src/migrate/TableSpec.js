@@ -37,6 +37,19 @@ export default class TableSpec {
 		return true;
 	}
 
+	getRemovableColumns() {
+		let existingFieldNames=Object.keys(this.existingSpecs);
+		let fieldNames=Object.keys(this.fieldSpecs)
+		let removable=[];
+		//console.log("wanted,existing=",fieldNames,existingFieldNames)
+
+		for (let existingName of existingFieldNames)
+			if (!fieldNames.includes(existingName))
+				removable.push(this.name+"/"+existingName);
+
+		return removable;
+	}
+
 	getSyncQueries(force, test) {
 		// If it doesn't exist, create.
 		if (!this.existingSpecs) {
