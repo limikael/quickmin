@@ -38,6 +38,9 @@ export default class TableSpec {
 	}
 
 	getRemovableColumns() {
+		if (!this.existingSpecs)
+			return [];
+
 		let existingFieldNames=Object.keys(this.existingSpecs);
 		let fieldNames=Object.keys(this.fieldSpecs)
 		let removable=[];
