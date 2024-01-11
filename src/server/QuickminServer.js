@@ -163,7 +163,15 @@ export default class QuickminServer {
         //await new Promise(r=>setTimeout(r,1000));
 
         if (argv.length==0) {
-            let u=new URL(req.url)
+            /*console.log("url: "+req.url);
+            console.log("headers",req.headers);*/
+            let u=new URL(req.url);
+
+            // for ngrok
+            if (req.headers.get("x-forwarded-proto") &&
+                    req.headers.get("x-forwarded-proto")=="https")
+                u.protocol="https:";
+
             let loaderProps={
                 api: urlJoin(u.origin,this.conf.apiPath),
                 bundleUrl: this.conf.bundleUrl

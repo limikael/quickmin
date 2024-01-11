@@ -91,7 +91,8 @@ export default function CollectionList({conf, collection}) {
     return (<>
         <ActionDialog actionState={actionState}/>
         <List hasCreate={true} exporter={false}
-                filters={filters} actions={actions}>
+                filters={filters} actions={actions}
+                empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
                 {collection.listFields.map(fid=>{

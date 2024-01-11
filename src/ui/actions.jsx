@@ -21,10 +21,6 @@ class ActionState extends EventTarget {
         let url=new URL(action.url,window.location);
         url.searchParams.set("id",id);
 
-        /*let token=window.localStorage.getItem("token");
-        if (token)
-            url.searchParams.set("authorization","Bearer "+token);*/
-
         let message=new Promise(resolve=>{
             function listener(ev) {
                 window.removeEventListener("message",listener);
@@ -38,6 +34,7 @@ class ActionState extends EventTarget {
         iframe.src=url;
 
         document.body.appendChild(iframe);
+        console.log("action started, waiting for message");
         let data=await message;
         document.body.removeChild(iframe);
 
