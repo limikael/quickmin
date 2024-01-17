@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.20",
+  "version": "0.0.23",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -18,12 +18,12 @@
     "better-sqlite3": "^8.5.2",
     "dayjs": "^1.11.10",
     "drizzle-orm": "^0.28.5",
-    "fullstack-utils": "^1.0.1",
+    "fullstack-utils": "^1.0.8",
     "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.3",
-    "quickmin-api": "^1.0.0",
+    "quickmin-api": "^1.0.1",
     "sequelize": "^6.32.1",
     "txml": "^5.1.1",
     "url-join": "^5.0.0",
