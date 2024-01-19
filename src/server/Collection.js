@@ -327,6 +327,9 @@ export class TableCollection extends Collection {
                 break;
 
             case "richtext":
+                if (!data[field.id])
+                    return [];
+
                 return this.getContentFilesFromTags(parseXml(data[field.id]));
                 break;
 
