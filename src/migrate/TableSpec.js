@@ -77,7 +77,7 @@ export default class TableSpec {
 			.filter(fieldName=>existingFieldNames.includes(fieldName));
 
 		if (copyFields.length) {
-			let copyS=copyFields.join(",");
+			let copyS=copyFields.map(s=>"`"+s+"`").join(",");
 			let sq=`INSERT INTO \`${this.name+"_new"}\` (${copyS}) SELECT ${copyS} FROM \`${this.name}\``;
 			queries.push(sq);
 		}
