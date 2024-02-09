@@ -27,6 +27,8 @@ export function quickmin(conf, drivers) {
 
     	    conf={...conf,env: c.env};
 
+    	    //console.log(conf);
+
 			return new QuickminServer(conf,drivers);
 		});
 
