@@ -1,4 +1,4 @@
-import {parse as parseXml} from "txml";
+import {parse as parseXml} from "txml/txml";
 import {jsonClone, jsonEq} from "../utils/js-util.js";
 
 let SQL_TYPES={

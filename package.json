@@ -52,29 +52,14 @@
     "react-admin": "^4.16.0"
   },
   "exports": {
-    "./hono-middleware": {
-      "import": "./src/export/hono-middleware.js"
-    },
-    "./drizzle-sqlite": {
-      "import": "./src/export/drizzle-sqlite.js"
-    },
-    "./drizzle-d1": {
-      "import": "./src/export/drizzle-d1.js"
-    },
-    "./node-storage": {
-      "import": "./src/export/node-storage.js"
-    },
-    "./r2-storage": {
-      "import": "./src/export/r2-storage.js"
-    },
-    "./local-node-bundle": {
-      "import": "./src/export/local-node-bundle.js"
-    },
-    "./api": {
-      "import": "./src/export/quickmin-api.js"
-    },
-    "./use-api": {
-      "import": "./src/export/quickmin-api-react.js"
-    }
+    "./hono-middleware": "./src/export/hono-middleware.js",
+    "./drizzle-sqlite": "./src/export/drizzle-sqlite.js",
+    "./drizzle-d1": "./src/export/drizzle-d1.js",
+    "./node-storage": "./src/export/node-storage.js",
+    "./r2-storage": "./src/export/r2-storage.js",
+    "./local-node-bundle": "./src/export/local-node-bundle.js",
+    "./api": "./src/export/quickmin-api.js",
+    "./use-api": "./src/export/quickmin-api-react.js",
+    "./server": "./src/server/QuickminServer.js"
   }
 }
