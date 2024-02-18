@@ -3,8 +3,10 @@ import fs from "fs";
 
 export default class NodeStorage {
 	constructor(storagePath) {
-		if (!fs.existsSync(storagePath))
-			throw new Error("Storage path doesn't exist: "+storagePath);
+		if (!fs.existsSync(storagePath)) {
+			console.log("Creating storage path: "+storagePath);
+			fs.mkdirSync(storagePath);
+		}
 
 		this.storagePath=storagePath;
 	}

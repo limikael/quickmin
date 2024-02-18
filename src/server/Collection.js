@@ -352,6 +352,17 @@ export class TableCollection extends Collection {
 
         return contentFiles;
     }
+
+    isStorageUsed() {
+        let storageUsed=false;
+        for (let fid in this.fields) {
+            let field=this.fields[fid];
+            if (["image","richtext"].includes(field.type))
+                storageUsed||=true;
+        }
+
+        return storageUsed;
+    }
 }
 
 export class ViewCollection extends Collection {

@@ -133,6 +133,17 @@ export default class QuickminServer {
         return res;
     }
 
+    isStorageUsed() {
+        let storageUsed=false;
+        for (let c in this.collections) {
+            let collection=this.collections[c];
+            if (!collection.isView())
+                storageUsed||=collection.isStorageUsed();
+        }
+
+        return storageUsed;
+    }
+
     getHostConf(hostname) {
         for (let hostConf of this.hostConf) {
             if (minimatch(hostname,hostConf.host))
