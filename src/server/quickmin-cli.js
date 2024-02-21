@@ -19,10 +19,15 @@ import {googleAuthDriver} from "../auth/google-auth.js";
 import {moduleAlias} from "../utils/esbuild-util.js";
 import {QuickminApi} from "quickmin-api";
 import {parse as parseYaml} from "yaml";
+import {DeclaredError} from "../utils/js-util.js";
+import {checkDeclaredError} from "../utils/node-util.js";
+import QUICKMIN_YAML_TEMPLATE from "./quickmin-yaml-template.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let pkg=JSON.parse(fs.readFileSync(path.join(__dirname,"../../package.json")));
 
 let yargsConf=yargs(hideBin(process.argv))
+    .version("version","Show version.",pkg.version)
     .option("port",{
         type: "number",
         default: 3000,
@@ -84,6 +89,7 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .command("serve","Serve restful api and UI (default).")
     .command("migrate","Perform database migration.")
+    .command("init","Create initial quickmin.yaml")
     .command("makeui","Create quickmin-bundle.js for local serving. Only useful if you have devDependencies.")
     .command("gc","Garbage collect uploaded content.")
     /*.command("export <filename>","Export data to file.")
@@ -130,10 +136,30 @@ async function makeUi() {
     });
 }
 
-if (command=="makeui") {
-    await makeUi();
-    process.exit();
-}
+await checkDeclaredError(async ()=>{
+    switch (command) {
+        case "makeui":
+            await makeUi();
+            process.exit();
+            break;
+
+        case "init":
+            if (fs.existsSync(options.conf))
+                throw new DeclaredError("Already exists: "+options.conf);
+
+            let template=QUICKMIN_YAML_TEMPLATE;
+            let secretBytes=new Uint8Array(16);
+            crypto.getRandomValues(secretBytes);
+            let secret=Array
+                .from(secretBytes)
+                .map(c=>c.toString(16).padStart(2,"0")).join("");
+            template=template.replaceAll("$$JWT_SECRET$$",secret);
+            fs.writeFileSync(options.conf,template);
+            console.log("Created: "+options.conf);
+            command="migrate";
+            break;
+    }
+});
 
 if (!fs.existsSync(options.conf)) {
     console.log("Can't find config file:",options.conf);
@@ -143,8 +169,6 @@ if (!fs.existsSync(options.conf)) {
 }
 
 let drivers=[];
-let driverOptions={};
-
 switch (options.driver) {
     case "sequelize":
         throw new Error("Not supported at the moment... Refactoring...");
@@ -174,16 +198,18 @@ if (command!="migrate") {
 drivers.push(googleAuthDriver);
 drivers.push(localNodeBundle);
 
-let conf=parseYaml(fs.readFileSync(options.conf,"utf8"));
-let quickmin=new QuickminServer(conf,drivers);
-//let api=quickmin.api;
+let quickmin;
 let remoteApi;
-if (options.remote) {
-    remoteApi=new QuickminApi({
-        url: options.remote,
-        apiKey: quickmin.conf.apiKey
-    });
-}
+await checkDeclaredError(async ()=>{
+    let conf=parseYaml(fs.readFileSync(options.conf,"utf8"));
+    quickmin=new QuickminServer(conf,drivers);
+    if (options.remote) {
+        remoteApi=new QuickminApi({
+            url: options.remote,
+            apiKey: quickmin.conf.apiKey
+        });
+    }
+});
 
 switch (command) {
     case "serve":
@@ -352,4 +378,3 @@ switch (command) {
         console.log(JSON.stringify(result,null,2));
         break;
 }
-

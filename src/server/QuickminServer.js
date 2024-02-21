@@ -1,4 +1,4 @@
-import {splitPath, jsonEq, getFileExt, parseCookie} from "../utils/js-util.js";
+import {splitPath, jsonEq, getFileExt, parseCookie, DeclaredError} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
 import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
@@ -56,12 +56,8 @@ export default class QuickminServer {
         if (!this.conf.apiPath)
             this.conf.apiPath="";
 
-        if (this.conf.jwtSecret || this.conf.adminUser || this.conf.adminPass) {
-            if (!this.conf.jwtSecret || !this.conf.adminUser || !this.conf.adminPass)
-                throw new Error("Need secret, user, pass for Authorization");
-
-            this.requireAuth=true;
-        }
+        if (!this.conf.jwtSecret)
+            throw new DeclaredError("The config option jwtSecret must be provided.");
 
         drivers=[...drivers,
             googleAuthDriver,
@@ -91,6 +87,17 @@ export default class QuickminServer {
                 }
             }
         }
+
+        if (this.conf.adminUser || this.conf.adminPass)
+            if (!this.conf.adminUser || !this.conf.adminPass)
+                throw new DeclaredError("Need both adminUser and adminPass, not just one.");
+
+        if (!this.authCollection && !this.conf.adminUser)
+            throw new DeclaredError(
+                "No auth methods configured. "+
+                "Either create a 'god user' by settng adminUser/adminPass, or define an auth "+
+                "table by creating an field with an authMethod."
+            );
 
         this.api=new QuickminServerApi(this);
 
@@ -264,7 +271,7 @@ export default class QuickminServer {
 
             return Response.json({
                 collections: collectionsSchema,
-                requireAuth: this.requireAuth,
+                requireAuth: true, //this.requireAuth,
                 authUrls: await this.getAuthUrls(reUrl),
             });
         }

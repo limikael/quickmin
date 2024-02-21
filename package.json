@@ -11,7 +11,7 @@
     "build": "yarn build:info && yarn build:css && yarn build:ui",
     "build:info": "./src/build/create-package-info.js",
     "build:css": "./src/build/create-embedded-css.js",
-    "build:ui": "./src/server/quickmin-cli.js makeui"
+    "build:ui": "./src/server/quickmin-cli.js makeui --minify"
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",

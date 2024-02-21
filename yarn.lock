@@ -1275,10 +1275,10 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
-fullstack-utils@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/fullstack-utils/-/fullstack-utils-1.0.1.tgz#2c49086491da102b1a425ed74a8b4798b6d2c7f1"
-  integrity sha512-Yg6o3EWkxrgVtj2HCHG32RH1ALIDADjX4clRZortCyL9xr2Cnwrosqum+oTN56Gs/u3S+c/9pY1pualXlk9kaA==
+fullstack-utils@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/fullstack-utils/-/fullstack-utils-1.0.8.tgz#ab4e499ef4040f2647f26ec623d1ff7697152167"
+  integrity sha512-gVCIPcg+VYfY23fHFWHzFMwOImaQm/AG1HnBEkDSbJ36smzY+EqfpMeVC50cwHhKYqFNGTCFjI+s8YrY0eAm9A==
   dependencies:
     hono "^3.7.2"
     url-join "^5.0.0"
@@ -2151,10 +2151,10 @@ query-string@^7.1.1:
     split-on-first "^1.0.0"
     strict-uri-encode "^2.0.0"
 
-quickmin-api@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/quickmin-api/-/quickmin-api-1.0.0.tgz#0a007988bd26e65643695d7a976b75402240069e"
-  integrity sha512-UX4XUtDelgp23tpep3LUd1E4SC2SVzkZPdgkhE+Hx96w4unmccMv/5SvxPFotI54ilcpY3EExJja4vKWaaHkRw==
+quickmin-api@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/quickmin-api/-/quickmin-api-1.0.2.tgz#a3ab29fc8ce5dfbdc53e6085ef2aa673161ab6e4"
+  integrity sha512-eMaJKfvzl88tsL2GQrjRYOV+BLzjJ4BjK6ajoCVTT8qTyq2W6Zm9DCQq+88XY1x/+y7odIt78VPR0xYk6WzC4Q==
   dependencies:
     url-join "^5.0.0"
 
