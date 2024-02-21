@@ -2,6 +2,9 @@ Quickmin is a database administration administraon tool builder. It is build on 
 your database schema as a YAML file, and provides a UI as well as a RESTful api to acces your data, without any code needed. Quickmin can work as a standalone app, or as a middleware inside of a web app.
 
 * [Getting Started](#getting-started)
+* [Single Admin Authorization](#single-admin-authorization)
+* [User and Role Based Authorization](#user-and-role-based-authorization)
+* [Secure Views](#secure-views)
 
 ## Getting Started
 
