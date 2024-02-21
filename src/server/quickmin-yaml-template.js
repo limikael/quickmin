@@ -1,6 +1,5 @@
-export default
-`
-jwtSecret: "$$JWT_SECRET$$"
+export default 
+`jwtSecret: "$$JWT_SECRET$$"
 
 # Don't forget to change the password! :)
 adminUser: "admin"
