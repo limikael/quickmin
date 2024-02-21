@@ -1,7 +1,9 @@
 Quickmin is a database administration administraon tool builder. It is build on top of [React-Admin](https://marmelab.com/react-admin/). It takes a configuration of
 your database schema as a YAML file, and provides a UI as well as a RESTful api to acces your data, without any code needed. Quickmin can work as a standalone app, or as a middleware inside of a web app.
 
-## Getting started
+* [Getting Started](#getting-started)
+
+## Getting Started
 
 To get started, create a file called `quickmin.yaml` with the following content:
 
