@@ -6,6 +6,8 @@ your database schema as a YAML file, and provides a UI as well as a RESTful api 
 * [User and Role Based Authorization](#user-and-role-based-authorization)
 * [Secure Views](#secure-views)
 
+![image](https://github.com/limikael/quickmin/assets/902911/16956344-32cb-4f23-888c-01823be6d3fe)
+
 ## Getting Started
 
 To get started, first install the `quickmin` command globally with:
