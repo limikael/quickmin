@@ -12,7 +12,6 @@ your database schema as a YAML file, and provides a UI as well as a RESTful api 
 ![image](https://github.com/limikael/quickmin/assets/902911/16956344-32cb-4f23-888c-01823be6d3fe)
 
 ## Getting Started
-
 To get started, first install the `quickmin` command globally with:
 
 ```bash
@@ -119,3 +118,16 @@ collections:
     where:
       status: published
 ```
+
+# Using Quickmin as a Middleware
+Through the `quickmin` command, quickmin provides a UI and a RESTapi for data access. This can be seen as a "backand as an app", or a self hosted "backend as a service". We can now put a front-end accessing this data, and this way create e.g. a content management system. However, often it is convenient to have these two component run as part of the same app. For this scenarion, Quickmin can be used as a middleware and plug into a web framework. The following code creates a `QuickminServer`.
+
+```javascript
+import QuickminServer from "quickmin/server";
+
+// This would be in a Node.js environment. 
+let config=fs.readFileSync("quickmin.yaml","uft8");
+let quickminServer=new QuickminServer(config);
+```
+
+The instance of the `QuickminServer` has a method called `handleRequest` that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This is in order to make it as generic as possible, so the exact details on how to get it to work depends on your framework.
