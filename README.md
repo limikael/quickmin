@@ -121,7 +121,7 @@ collections:
       status: published
 ```
 
-# Using Quickmin as a Middleware
+## Using Quickmin as a Middleware
 Through the `quickmin` command, quickmin provides a UI and a RESTapi for data access. This can be seen as a "backand as an app", or a self hosted "backend as a service". We can now put a front-end accessing this data, and this way create e.g. a content management system. However, often it is convenient to have these two component run as part of the same app. For this scenarion, Quickmin can be used as a middleware and plug into a web framework. The following code creates a `QuickminServer`.
 
 ```javascript
@@ -134,5 +134,5 @@ let quickminServer=new QuickminServer(config);
 
 The instance of the `QuickminServer` has a method called `handleRequest` that takes a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This is in order to make it as generic as possible, so the exact details on how to get it to work depends on your framework.
 
-# Client Api
+## Client Api
 The Quickmin server provides a RESTful api for accessing data, as well as handling client side authentication. There is also a wrapper for this api to make using it convenient.
