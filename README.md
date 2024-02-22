@@ -85,3 +85,37 @@ collections:
 
 This configuration snippet outlines the structure of the "users" collection in the database. It includes fields for capturing the user's name, role, and an authentication method specifically configured for Google. The use of tags, i.e. `username`, `role` and the special field type `AuthMethod` provides context and functionality to these fields within the admin interface. So, one one hand there is nothing special with this table, and it could be called something else than "users", and we are free to store whatever information we want there. On the other hand, the table is designated as the auth table by tagging certain fields to give them special meaning for the sake of
 authentication and authorization.
+
+## Secure Views
+Secure views are a database feature that allows you to control access to specific columns or rows of a table, providing an fine grained layer of security. This feature is particularly useful when you want to restrict users' access to sensitive information or when you need to present a simplified or filtered view of the data.
+
+Secure views are often read-only to maintain data integrity and security. However, writable views, a related concept, allow users to perform write operations (such as inserts, updates, or deletes) on the view itself. Not all database systems support writable views, and within the set of engines supporting them, the exact details of how to use and configure them varies.
+
+Therefore, quickmin provides its own impementation of secure and writeable views independent of the database engine. For example, we might we want a table for posts, that is, by default, only accessible by the admin user. There can also be a view of this table, allowing the author of the post to edit it. Then, there can be a view of public posts, readable by everyone. This would be configured like this:
+
+```yaml
+collections:
+  users:
+    # ...let's assume the users table is defined here...
+
+  posts:
+    access: admin
+    fields:
+      <Text id="title" fullWidth listable/>
+      <Image id="image" tab="image"/>
+      <Reference id="author" reference="users" listable tab="author"/>
+      <Select id="status" choices="draft,published" listable tab="publication"/>
+      <RichText id="content" fullWidth />
+
+  my_posts:
+    access: user
+    from: posts
+    where:
+      author: $uid
+
+  published_posts:
+    readAccess: public
+    from: posts
+    where:
+      status: published
+```
