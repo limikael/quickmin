@@ -64,9 +64,7 @@ collections:
 ```
 
 ## Single Admin Authorization
-With regards to authorization, quickmin can work with two different kinds of users. The first kind is a 'god user', which has its password configured in the
-`quickmin.yaml` file. The second type of user is stored in a user authentication table. The 'god user' is easier to get stated with, but the other type of user
-is generally what you would use in a real system once it is up and running, since it allows more fine grained role based authentication. The god user is defined in the `quickmin.yaml` file with the following lines. The god user will always have the role `admin`.
+With regards to authorization, quickmin can work with two different kinds of users. The first type is called "configurations suers". The configuration user is defined in the `quickmin.yaml`, offering a quick setup for users. This user is particularly convenient for initial system deployment and works seamlessly even when the database is empty. However, the configuration user is limited - only one configuration user can be defined, and the credentals are fixed in the configuration file, they can not be changed during can not be changed during runtime. The configuration user will always have the role `admin`, and is defined like this in the `quickmin.yaml` file:
 
 ```yaml
 adminUser: "admin"
@@ -74,3 +72,16 @@ adminPass: "admin"
 ```
 
 ## User and Role Based Authorization
+The other type of user, called "database user", on the other hand, is defined within a dedicated database table. To enable the use of database users, the system must be configured to identify the location of these users. This involves tagging specific fields in the database that correspond to user data, as well as using specific
+field types. For example, to enable authorization with database users, we can create a table called `users` like this:
+
+```yaml
+collections:
+  users:
+    <Text id="name" username listable/>
+    <Select id="role" choices="customer,user,admin" role listable filter/>
+    <AuthMethod id="google_auth" provider="google" listable tab="auth"/>
+```
+
+This configuration snippet outlines the structure of the "users" collection in the database. It includes fields for capturing the user's name, role, and an authentication method specifically configured for Google. The use of tags, i.e. `username`, `role` and the special field type `AuthMethod` provides context and functionality to these fields within the admin interface. So, one one hand there is nothing special with this table, and it could be called something else than "users", and we are free to store whatever information we want there. On the other hand, the table is designated as the auth table by tagging certain fields to give them special meaning for the sake of
+authentication and authorization.
