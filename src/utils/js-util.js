@@ -14,7 +14,6 @@ export function urlGetParams(url) {
 	return Object.fromEntries(u.searchParams);
 }
 
-
 export function jsonEq(a,b) {
 	return (JSON.stringify(a)==JSON.stringify(b));
 }
