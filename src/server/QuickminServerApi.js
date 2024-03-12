@@ -7,41 +7,67 @@ export default class QuickminServerApi {
 	}
 
 	async findOne(table, query={}) {
-		return this.server.presentItem(
+		return await this.server.qql.query({
+			oneFrom: table,
+			where: query
+		});
+
+		/*return this.server.presentItem(
 			table,
 			await this.server.db.findOne(table,query)
-		);
+		);*/
 	}
 
 	async findMany(table, query={}) {
-		let items=await this.server.db.findMany(table,query);
+		return await this.server.qql.query({
+			manyFrom: table,
+			where: query
+		});
+
+		//console.log("finding many!!!!");
+		/*let items=await this.server.db.findMany(table,query);
 		items=items.map(item=>this.server.presentItem(table, item));
-		return items;
+		return items;*/
 	}
 
 	async update(table, id, data) {
-		let updateResult=await this.server.db.update(
+		let pkField=this.server.qql.getTable(table).getPrimaryKeyFieldName();
+		return await this.server.qql.query({
+			update: table,
+			where: {[pkField]: id},
+			set: data,
+			return: "item"
+		})
+
+		/*let updateResult=await this.server.db.update(
 			table,
 			{id: String(id)},
 			this.server.representItem(table,data)
 		);
 
-		return this.server.presentItem(table,updateResult);
+		return this.server.presentItem(table,updateResult);*/
 	}
 
+	// this one is the only one tested...
 	async insert(table, data) {
-		let insertResult=await this.server.db.insert(
-			table,
-			this.server.representItem(table,data)
-		);
-
-		return this.server.presentItem(table,insertResult);
+		return await this.server.qql.query({
+			insertInto: table,
+			set: data,
+			return: "item"
+		});
 	}
 
 	async delete(table, id) {
-		let deleteResult=await this.server.db.delete(table,{id: String(id)});
+		let pkField=this.server.qql.getTable(table).getPrimaryKeyFieldName();
+		return await this.server.qql.query({
+			deleteFrom: table,
+			where: {[pkField]: id},
+			return: "item"
+		});
 
-		return this.server.presentItem(table,deleteResult);
+		/*let deleteResult=await this.server.db.delete(table,{id: String(id)});
+
+		return this.server.presentItem(table,deleteResult);*/
 	}
 
 	async getUserByRequest(req) {

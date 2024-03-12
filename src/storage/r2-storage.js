@@ -1,4 +1,4 @@
-export default class R2Storage {
+export class R2Storage {
     constructor(r2) {
         this.r2=r2;
     }
@@ -53,3 +53,20 @@ export default class R2Storage {
         await this.r2.delete(fn);
     }
 }
+
+export function r2StorageDriver(server) {
+    if (!server.isStorageUsed())
+        return;
+
+    let r2Bucket=server.conf.r2Bucket;
+    if (!r2Bucket)
+        r2Bucket="BUCKET";
+
+    let r2=server.conf.env[r2Bucket];
+    if (!r2)
+        throw new Error("Storage bucket not available: "+r2Bucket);
+
+    server.storage=new R2Storage(r2);
+}
+
+export default r2StorageDriver;

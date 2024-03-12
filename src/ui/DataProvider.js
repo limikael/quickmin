@@ -64,7 +64,7 @@ export default class DataProvider {
         //console.log("get list...");
 
         let result=await this.simpleRestProvider.getList(resource,params);
-        console.log(result.data);
+        //console.log(result.data);
         for (let data of result.data)
             this.processRead(resource,data);
 

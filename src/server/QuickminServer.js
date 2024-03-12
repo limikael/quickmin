@@ -1,9 +1,8 @@
 import {splitPath, jsonEq, getFileExt, parseCookie, DeclaredError} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
-import DbMigrator from "../migrate/DbMigrator.js";
 import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
-import {TableCollection, ViewCollection} from "./Collection.js";
+import Collection from "./Collection.js";
 import urlJoin from "url-join";
 import {minimatch} from 'minimatch';
 import QuickminServerApi from "./QuickminServerApi.js";
@@ -13,6 +12,7 @@ import {emailAuthDriver} from "../auth/email-auth.js";
 import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
+import {Qql, QqlRestServer} from "qql";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -36,21 +36,11 @@ export default class QuickminServer {
         for (let collectionId in this.conf.collections) {
             let collectionConf=this.conf.collections[collectionId];
 
-            if (collectionConf.from || collectionConf.singleFrom) {
-                this.collections[collectionId]=new ViewCollection(
-                    collectionId,
-                    this.conf.collections[collectionId],
-                    this
-                );
-            }
-
-            else {
-                this.collections[collectionId]=new TableCollection(
-                    collectionId,
-                    this.conf.collections[collectionId],
-                    this
-                );
-            }
+            this.collections[collectionId]=new Collection(
+                collectionId,
+                collectionConf,
+                this
+            );
         }
 
         if (!this.conf.apiPath)
@@ -103,41 +93,31 @@ export default class QuickminServer {
 
         if (!this.conf.bundleUrl)
             this.conf.bundleUrl=`https://unpkg.com/quickmin@${packageInfo.version}/dist/quickmin-bundle.js`;
-    }
 
-    presentItem(collectionId, item) {
-        let collection=this.collections[collectionId];
-        if (!collection)
-            throw new Error("No such collection: "+collectionId);
+        let qqlTables={};
+        for (let collectionId in this.collections)
+            qqlTables[collectionId]=this.collections[collectionId].getQqlDef();
 
-        return collection.presentItem(item);
-    }
+        //console.log(JSON.stringify(qqlTables,null,2));
 
-    representItem(collectionId, item) {
-        let collection=this.collections[collectionId];
-        if (!collection)
-            throw new Error("No such collection: "+collectionId);
+        /*if (!this.qqlDriver)
+            throw new Error("No database driver configured.");*/
 
-        return collection.representItem(item);
-    }
+        /*if (this.isStorageUsed() && !this.storage)
+            throw new Error("There are fields using storage, but not storage driver.");*/
 
-    findReferencesForTable(tableName) {
-        let res=[];
 
-        for (let collectionId in this.collections) {
-            let collection=this.collections[collectionId];
-            for (let fieldId in collection.fields) {
-                let field=collection.fields[fieldId];
-                if (field.type=="reference"
-                        && field.reference==tableName)
-                    res.push({
-                        collectionId: collectionId,
-                        fieldId: fieldId
-                    });
-            }
+        if (this.qqlDriver) {
+            this.qql=new Qql({
+                tables: qqlTables,
+                driver: this.qqlDriver
+            });
+
+            this.qqlRestServer=new QqlRestServer(this.qql,{
+                path: this.conf.apiPath,
+                putFile: (fn,file)=>this.storage.putFile(fn,file)
+            });
         }
-
-        return res;
     }
 
     isStorageUsed() {
@@ -167,6 +147,19 @@ export default class QuickminServer {
     }
 
     handleRequest=async (req)=>{
+        try {
+            return await this.safeHandleRequest(req);
+        }
+
+        catch (e) {
+            console.log("**** quickmin request error");
+            console.log(e);
+            console.log("**** that was the error");
+            return new Response(e.message,{status: 500});
+        }
+    }
+
+    safeHandleRequest=async (req)=>{
         //await new Promise(resolve=>setTimeout(resolve,500));
 
         let argv=splitPath(new URL(req.url).pathname);
@@ -224,7 +217,12 @@ export default class QuickminServer {
             if (!userId)
                 return Response.json(null);
 
-            let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+            let userRecord=await this.qql.query({
+                oneFrom: this.authCollection,
+                where: {
+                    id: userId
+                }
+            });
             if (!userRecord)
                 return Response.json(null);
 
@@ -326,8 +324,14 @@ export default class QuickminServer {
         }
 
         else if (this.collections[argv[0]]) {
-            let collection=this.collections[argv[0]];
-            return await collection.handleRequest(req, argv.slice(1));
+            let env=this.qql.env({
+                role: await this.getRoleByRequest(req),
+                uid: await this.getUserIdByRequest(req)
+            });
+
+            return await this.qqlRestServer.handleEnvRequest(env,req);
+            //let collection=this.collections[argv[0]];
+            //return await collection.handleRequest(req, argv.slice(1));
         }
     }
 
@@ -340,7 +344,10 @@ export default class QuickminServer {
         let q={};
         q[this.authMethods[provider].fieldId]=loginToken;
 
-        let userRecord=await this.db.findOne(this.authCollection,q);
+        let userRecord=await this.qql.query({
+            oneFrom: this.authCollection,
+            where: q
+        });
         if (!userRecord) {
             if (!this.signupRole) {
                 let headers=new Headers();
@@ -356,7 +363,11 @@ export default class QuickminServer {
             q[roleField]=this.signupRole;
             q[this.authMethods[provider].fieldId]=loginToken;
 
-            userRecord=await this.db.insert(this.authCollection,q);
+            throw new Error("not tested");
+            userRecord=await this.qql.query({
+                insertInto: this.authCollection,
+                set: q
+            });
         }
 
         let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
@@ -425,9 +436,15 @@ export default class QuickminServer {
         if (req.headers.get("cookie")) {
             let cookies=parseCookie(req.headers.get("cookie"));
             if (cookies.qmtoken) {
-                let payload=jwtVerify(cookies.qmtoken,this.conf.jwtSecret);
-                if (payload.userId)
-                    return payload.userId;
+                try {
+                    let payload=jwtVerify(cookies.qmtoken,this.conf.jwtSecret);
+                    if (payload.userId)
+                        return payload.userId;
+                }
+
+                catch (e) {
+                    console.log("token error: "+e.message);
+                }
             }
         }
     }
@@ -437,7 +454,12 @@ export default class QuickminServer {
         if (!userId)
             return;
 
-        let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+        let userRecord=await this.qql.query({
+            oneFrom: this.authCollection,
+            where: {
+                id: userId
+            }
+        });
         return userRecord;
     }
 
@@ -451,7 +473,13 @@ export default class QuickminServer {
         if (!this.authCollection)
             return "public";
 
-        let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+        //let userRecord=await this.db.findOne(this.authCollection,{id: userId});
+        let userRecord=await this.qql.query({
+            oneFrom: this.authCollection,
+            where: {
+                id: userId
+            }
+        });
         if (!userRecord)
             return "public";
 
@@ -501,7 +529,20 @@ export default class QuickminServer {
     }
 
     async sync({dryRun, force, test, risky}) {
+        if (!this.qql)
+            throw new Error("Can't migrate, no qql driver configured.");
+
+        await this.qql.migrate({
+            dryRun,
+            force,
+            test,
+            risky
+        });
+    }
+
+    /*async sync({dryRun, force, test, risky}) {
         console.log("Migrate:",{dryRun, force, test, risky});
+        throw new Error("migrate disabled... wip...");
 
         let tables={};
         for (let c in this.collections) {
@@ -523,11 +564,6 @@ export default class QuickminServer {
                             pk: false,
                             type: field.sqlType,
                         };
-
-                        /*if (field.type=="reference") {
-                            fieldSpec.reference_table=fieldSpec.reference;
-                            fieldSpec.reference_field="id";
-                        }*/
 
                         tables[c].fields[f]=fieldSpec;
                     }
@@ -554,7 +590,7 @@ export default class QuickminServer {
             );
 
         await migrator.sync();
-    }
+    }*/
 
     async getContentFiles() {
         let contentFiles=[];

@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 
-export default class NodeStorage {
+export class NodeStorage {
 	constructor(storagePath) {
 		if (!fs.existsSync(storagePath)) {
 			console.log("Creating storage path: "+storagePath);
@@ -32,3 +32,16 @@ export default class NodeStorage {
 		fs.unlinkSync(path.join(this.storagePath,name));
 	}
 }
+
+export function nodeStorageDriver(server) {
+	if (!server.isStorageUsed())
+		return;
+
+	let upload=server.conf.upload;
+	if (!upload)
+		upload="upload";
+
+	server.storage=new NodeStorage(upload);
+}
+
+export default nodeStorageDriver;

@@ -92,7 +92,7 @@ function CollectionEditorFields({collection, conf, tab, watchRecord}) {
         if (f.tab!=tab)
             matched=false;
 
-        if (!f.hidden && matched) {
+        if (/*!f.hidden &&*/ matched) {
             let Comp=FIELD_TYPES[f.type].edit;
             delete f.type;
 

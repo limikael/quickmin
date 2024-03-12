@@ -15,10 +15,22 @@ facebookClientId: "1065424318125619"
 facebookClientSecret: "609e058d009f2be76e00aa335ec5d502"
 
 collections:
+  users:
+    icon: person
+    recordRepresentation: name
+    fields:
+      <Text id="name" username listable default="micke"/>
+      <Boolean id="nice" notnull default="true"/>
+      <AuthMethod id="google_auth" provider="google" listable/>
+      <AuthMethod id="facebook_auth" provider="facebook" listable/>
+      <Select id="role" choices="user,admin" role listable/>
+      <ReferenceMany id="posts" reference="posts" target="author"/>
+      <ReferenceMany id="pages" reference="pages" target="author"/>
+
   posts:
     helperText: "Here are some posts..."
     access: admin
-    readAccess: [public,user]
+    readAccess: public
     category: content
     icon: text_snippet
     actions:
@@ -40,7 +52,7 @@ collections:
     access: user
     from: posts
     where:
-      author: ${userId}
+      author: $uid
 
   pages:
     helperText: "Here are some pages..."
@@ -52,30 +64,23 @@ collections:
       <Reference id="author" reference="users" listable/>
       <RichText id="content" fullWidth/>
 
-  users:
-    icon: person
-    recordRepresentation: name
-    fields:
-      <Text id="name" username listable default="micke"/>
-      <Boolean id="nice" notnull default="true"/>
-      <AuthMethod id="google_auth" provider="google" listable/>
-      <AuthMethod id="facebook_auth" provider="facebook" listable/>
-      <Select id="role" choices="user,admin" role listable/>
-      <ReferenceMany id="posts" reference="posts" target="author"/>
-      <ReferenceMany id="pages" reference="pages" target="author"/>
-
   profile:
     category: profile
     access: user
     singleFrom: users
+    exclude: [posts,pages]
     where:
-      id: ${userId}
+      id: $uid
 
   about_me:
     category: profile
     access: user
     singleFrom: pages
     where:
-      author: ${userId}
+      author: $uid
       slug: about
 
+  orders:
+    fields:
+      <Integer id="id" disabled notnull/>
+      <Text id="name"/>

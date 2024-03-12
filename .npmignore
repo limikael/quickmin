@@ -2,3 +2,6 @@ yarn.lock
 attic
 tmp
 upload
+quickmin.db
+quickmin.yaml
+*.db

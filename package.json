@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.30",
+  "version": "0.0.36",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -15,16 +15,15 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.1.1",
-    "better-sqlite3": "^8.5.2",
     "dayjs": "^1.11.10",
-    "drizzle-orm": "^0.28.5",
     "fullstack-utils": "^1.0.8",
     "hono": "^3.5.6",
     "jsrsasign": "^10.8.6",
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.3",
-    "quickmin-api": "^1.0.2",
-    "sequelize": "^6.32.1",
+    "qql": "^1.0.2",
+    "quickmin-api": "^1.0.3",
+    "sqlite3": "^5.1.7",
     "txml": "^5.1.1",
     "url-join": "^5.0.0",
     "yaml": "^2.3.2",
@@ -52,11 +51,11 @@
     "react-admin": "^4.16.0"
   },
   "exports": {
+    "./node-storage": "./src/storage/node-storage.js",
+    "./r2-storage": "./src/storage/r2-storage.js",
+    "./sqlite-driver": "./src/db/sqlite-driver.js",
+    "./d1-driver": "./src/db/d1-driver.js",
     "./hono-middleware": "./src/export/hono-middleware.js",
-    "./drizzle-sqlite": "./src/export/drizzle-sqlite.js",
-    "./drizzle-d1": "./src/export/drizzle-d1.js",
-    "./node-storage": "./src/export/node-storage.js",
-    "./r2-storage": "./src/export/r2-storage.js",
     "./local-node-bundle": "./src/export/local-node-bundle.js",
     "./api": "./src/export/quickmin-api.js",
     "./use-api": "./src/export/quickmin-api-react.js",

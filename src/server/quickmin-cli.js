@@ -10,10 +10,10 @@ import {fileURLToPath} from 'url';
 import {Hono} from 'hono'
 import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
-import {drizzleSqliteDriver} from "../export/drizzle-sqlite.js";
-import {nodeStorageDriver} from "../export/node-storage.js";
+import {quickminSqliteDriver} from "../db/sqlite-driver.js";
+import {wranglerDb, wranglerDbLocal} from "../db/wrangler-driver.js";
+import {nodeStorageDriver} from "../storage/node-storage.js";
 import {localNodeBundle} from "../export/local-node-bundle.js";
-import {wranglerDb,wranglerDbLocal} from "../export/wrangler-db.js";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
 import {moduleAlias} from "../utils/esbuild-util.js";
@@ -39,8 +39,8 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .option("driver",{
         description: "Database driver to use.",
-        choices: ["drizzle","wrangler","wrangler-local"],
-        default: "drizzle"
+        choices: ["sqlite","wrangler","wrangler-local"],
+        default: "sqlite"
     })
     .option("storage",{
         description: "Storage driver to use.",
@@ -170,12 +170,8 @@ if (!fs.existsSync(options.conf)) {
 
 let drivers=[];
 switch (options.driver) {
-    case "sequelize":
-        throw new Error("Not supported at the moment... Refactoring...");
-        break;
-
-    case "drizzle":
-        drivers.push(drizzleSqliteDriver);
+    case "sqlite":
+        drivers.push(quickminSqliteDriver);
         break;
 
     case "wrangler":
