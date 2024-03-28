@@ -31,7 +31,7 @@ export default class QuickminServerApi {
 	}
 
 	async update(table, id, data) {
-		let pkField=this.server.qql.getTable(table).getPrimaryKeyFieldName();
+		let pkField=this.server.qql.getTableByName(table).getPrimaryKeyFieldName();
 		return await this.server.qql.query({
 			update: table,
 			where: {[pkField]: id},
@@ -58,7 +58,7 @@ export default class QuickminServerApi {
 	}
 
 	async delete(table, id) {
-		let pkField=this.server.qql.getTable(table).getPrimaryKeyFieldName();
+		let pkField=this.server.qql.getTableByName(table).getPrimaryKeyFieldName();
 		return await this.server.qql.query({
 			deleteFrom: table,
 			where: {[pkField]: id},

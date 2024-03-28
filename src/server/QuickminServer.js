@@ -12,7 +12,7 @@ import {emailAuthDriver} from "../auth/email-auth.js";
 import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
-import {Qql, QqlRestServer} from "qql";
+import {Qql, QqlRestServer, QqlServer} from "qql";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
@@ -106,7 +106,6 @@ export default class QuickminServer {
         /*if (this.isStorageUsed() && !this.storage)
             throw new Error("There are fields using storage, but not storage driver.");*/
 
-
         if (this.qqlDriver) {
             this.qql=new Qql({
                 tables: qqlTables,
@@ -116,6 +115,10 @@ export default class QuickminServer {
             this.qqlRestServer=new QqlRestServer(this.qql,{
                 path: this.conf.apiPath,
                 putFile: (fn,file)=>this.storage.putFile(fn,file)
+            });
+
+            this.qqlServer=new QqlServer(this.qql,{
+                path: urlJoin(this.conf.apiPath,"_qql")
             });
         }
     }
@@ -323,6 +326,15 @@ export default class QuickminServer {
             return Response.json(result);
         }
 
+        else if (req.method=="POST" && jsonEq(argv,["_qql"])) {
+            let env=this.qql.env({
+                role: await this.getRoleByRequest(req),
+                uid: await this.getUserIdByRequest(req)
+            });
+
+            return await this.qqlServer.handleEnvRequest(env,req);
+        }
+
         else if (this.collections[argv[0]]) {
             let env=this.qql.env({
                 role: await this.getRoleByRequest(req),
@@ -330,8 +342,6 @@ export default class QuickminServer {
             });
 
             return await this.qqlRestServer.handleEnvRequest(env,req);
-            //let collection=this.collections[argv[0]];
-            //return await collection.handleRequest(req, argv.slice(1));
         }
     }
 
@@ -418,6 +428,7 @@ export default class QuickminServer {
     }
 
     getUserIdByRequest(req) {
+        //console.log("get user id by req",req.headers);
         if (req.headers.get("x-api-key")
                 && this.conf.apiKey
                 && req.headers.get("x-api-key")==this.conf.apiKey) {

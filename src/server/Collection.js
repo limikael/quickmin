@@ -205,6 +205,7 @@ export default class Collection {
             };
         }
 
+        def.recordRepresentation=this.recordRepresentation;
         def.access=this.access;
         def.readAccess=this.readAccess;
 
