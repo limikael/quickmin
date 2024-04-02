@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.39",
+  "version": "0.0.41",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -21,7 +21,7 @@
     "jsrsasign": "^10.8.6",
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.3",
-    "qql": "^1.0.5",
+    "qql": "^1.0.6",
     "quickmin-api": "^1.0.3",
     "sqlite3": "^5.1.7",
     "txml": "^5.1.1",

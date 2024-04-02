@@ -373,10 +373,10 @@ export default class QuickminServer {
             q[roleField]=this.signupRole;
             q[this.authMethods[provider].fieldId]=loginToken;
 
-            throw new Error("not tested");
             userRecord=await this.qql.query({
                 insertInto: this.authCollection,
-                set: q
+                set: q,
+                return: "item"
             });
         }
 

@@ -185,7 +185,9 @@ export default class Collection {
                         type: field.qqlType,
                         default: field.default,
                         reference: field.reference,
-                        notnull: field.notnull
+                        notnull: field.notnull,
+                        prop: field.prop,
+                        refprop: field.refprop
                     }
             }
 
