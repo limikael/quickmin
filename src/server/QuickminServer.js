@@ -436,7 +436,6 @@ export default class QuickminServer {
     }
 
     getUserIdByRequest(req) {
-        //console.log("get user id by req",req.headers);
         if (req.headers.get("x-api-key")
                 && this.conf.apiKey
                 && req.headers.get("x-api-key")==this.conf.apiKey) {
@@ -452,8 +451,12 @@ export default class QuickminServer {
             return payload.userId;
         }
 
-        if (req.headers.get("cookie")) {
-            let cookies=parseCookie(req.headers.get("cookie"));
+        let cookieHeader=req.headers.get("cookie");
+        if (req.headers.get("x-cookie"))
+            cookieHeader=req.headers.get("x-cookie");
+
+        if (cookieHeader) {
+            let cookies=parseCookie(cookieHeader);
             if (cookies[this.conf.cookie]) {
                 try {
                     let payload=jwtVerify(cookies[this.conf.cookie],this.conf.jwtSecret);
@@ -471,6 +474,9 @@ export default class QuickminServer {
     async getUserByRequest(req) {
         let userId=this.getUserIdByRequest(req);
         if (!userId)
+            return;
+
+        if (!this.authCollection)
             return;
 
         let userRecord=await this.qql.query({

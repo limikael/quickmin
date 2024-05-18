@@ -17,7 +17,7 @@ export function useQuickminConf(apiUrl) {
 	    });
 
 	    let conf=response.data;
-	    console.log("quickmin conf",conf);
+	    //console.log("quickmin conf",conf);
 	    conf.apiUrl=apiUrl;
 
 	    if (conf.requireAuth) {
