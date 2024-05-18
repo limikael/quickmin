@@ -17,10 +17,11 @@ export function useQuickminConf(apiUrl) {
 	    });
 
 	    let conf=response.data;
+	    console.log("quickmin conf",conf);
 	    conf.apiUrl=apiUrl;
 
 	    if (conf.requireAuth) {
-	        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"));
+	        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),conf.cookie);
 	        conf.authProvider.addEventListener("change",()=>{
 	        	conf.role=conf.authProvider.getRole();
 	        	setForceUpdateState({});

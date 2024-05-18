@@ -43,6 +43,9 @@ export default class QuickminServer {
             );
         }
 
+        if (!this.conf.cookie)
+            this.conf.cookie="qmtoken";
+
         if (!this.conf.apiPath)
             this.conf.apiPath="";
 
@@ -168,10 +171,14 @@ export default class QuickminServer {
         let argv=splitPath(new URL(req.url).pathname);
 
         if (this.conf.apiPath) {
-            if (argv[0]!=this.conf.apiPath)
-                return;
+            let splitApiPath=splitPath(this.conf.apiPath);
+            while (splitApiPath.length) {
+                if (argv[0]!=splitApiPath[0])
+                    return;
 
-            argv.shift();
+                argv.shift();
+                splitApiPath.shift();
+            }
         }
 
         //await new Promise(r=>setTimeout(r,1000));
@@ -272,6 +279,7 @@ export default class QuickminServer {
 
             return Response.json({
                 collections: collectionsSchema,
+                cookie: this.conf.cookie,
                 requireAuth: true, //this.requireAuth,
                 authUrls: await this.getAuthUrls(reUrl),
             });
@@ -393,7 +401,7 @@ export default class QuickminServer {
 
         let headers=new Headers();
         headers.set("location",referer);
-        headers.set("set-cookie","qmtoken="+token+"; path=/");
+        headers.set("set-cookie",this.conf.cookie+"="+token+"; path=/");
         /*headers.set("access-control-expose-headers","Set-Cookie");
         headers.set("Access-Control-Allow-Credentials",true);
         headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
@@ -446,9 +454,9 @@ export default class QuickminServer {
 
         if (req.headers.get("cookie")) {
             let cookies=parseCookie(req.headers.get("cookie"));
-            if (cookies.qmtoken) {
+            if (cookies[this.conf.cookie]) {
                 try {
-                    let payload=jwtVerify(cookies.qmtoken,this.conf.jwtSecret);
+                    let payload=jwtVerify(cookies[this.conf.cookie],this.conf.jwtSecret);
                     if (payload.userId)
                         return payload.userId;
                 }

@@ -6,10 +6,14 @@ import {jwtDecode} from "jwt-decode";
 export class AuthError extends Error {};
 
 export default class AuthProvider extends EventTarget {
-	constructor(url) {
+	constructor(url, cookieName) {
 		super();
 
 		this.url=url;
+		this.cookieName=cookieName;
+
+		if (!this.cookieName)
+			throw new Error("Got no cookie name for AuthProvider!!!");
 	}
 
 	getRole() {
@@ -20,8 +24,8 @@ export default class AuthProvider extends EventTarget {
 
 	getTokenPayload() {
 		let cookies=parseCookie(document.cookie);
-		if (cookies.qmtoken)
-			return jwtDecode(cookies.qmtoken);
+		if (cookies[this.cookieName])
+			return jwtDecode(cookies[this.cookieName]);
 	}
 
 	async checkAuth() {
@@ -40,7 +44,7 @@ export default class AuthProvider extends EventTarget {
     	if (result.status<200 || result.status>=300)
 	    	throw new Error("Unable to log in");
 
-		window.document.cookie="qmtoken="+result.data.token+"; path=/";
+		window.document.cookie=this.cookieName+"="+result.data.token+"; path=/";
 		this.dispatchEvent(new Event("change"));
 		//this.setRole(this.getTokenPayload().role);
     }
@@ -52,7 +56,7 @@ export default class AuthProvider extends EventTarget {
     }
 
     async logout() {
-		window.document.cookie="qmtoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		window.document.cookie=this.cookieName+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 		this.dispatchEvent(new Event("change"));
     	//this.setRole(null);
     } 

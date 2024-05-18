@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -21,8 +21,8 @@
     "jsrsasign": "^10.8.6",
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.3",
-    "qql": "^1.0.7",
-    "quickmin-api": "^1.0.4",
+    "qql": "^1.0.8",
+    "quickmin-api": "^1.0.5",
     "sqlite3": "^5.1.7",
     "txml": "^5.1.1",
     "url-join": "^5.0.0",
@@ -54,6 +54,7 @@
     "./node-storage": "./src/storage/node-storage.js",
     "./r2-storage": "./src/storage/r2-storage.js",
     "./sqlite-driver": "./src/db/sqlite-driver.js",
+    "./qql-driver": "./src/db/qql-driver.js",
     "./d1-driver": "./src/db/d1-driver.js",
     "./hono-middleware": "./src/export/hono-middleware.js",
     "./local-node-bundle": "./src/export/local-node-bundle.js",
