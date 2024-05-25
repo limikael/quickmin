@@ -9,6 +9,7 @@ let QQL_TYPES={
     "datetime": "datetime",
     "select": "text",
     "image": "text",
+    "file": "text",
     "authmethod": "text",
     "integer": "integer",
     "real": "real",

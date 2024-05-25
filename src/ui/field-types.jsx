@@ -3,7 +3,7 @@ import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         ReferenceField, ReferenceInput,
         NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
         Button, useRecordContext, useResourceContext, FieldTitle, useInput,
-        BooleanField, BooleanInput} from "react-admin";
+        BooleanField, BooleanInput, FileInput, FileField} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
@@ -20,6 +20,14 @@ import relativeTime from "dayjs/plugin/relativeTime.js";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
+
+function QuickminFileInput(props) {
+    return (
+        <FileInput source={props.source} label={props.title}>
+            <FileField source="src" title="title"/>
+        </FileInput>
+    );
+}
 
 function QuickminImageInput(props) {
     let sx,options;
@@ -130,7 +138,7 @@ function JsonInput(props) {
 
     useLayoutEffect(()=>{
         if (!editorRef.current) {
-            console.log("create json editor");
+            //console.log("create json editor");
             let modes=["tree","text"];
             if (props.disabled)
                 modes=["view"];
@@ -308,6 +316,32 @@ export const FIELD_TYPES={
             return null;
         },
     },
+
+    "file": {
+        edit: QuickminFileInput,
+        readProcessor(data, conf) {
+            if (!data)
+                return;
+
+            let url=urlJoin(conf.apiUrl,"_content",data);
+            return {
+                title: 'File',
+                src: url,
+                current: data
+            }
+        },
+        writeProcessor(field) {
+            if (field) {
+                if (field.rawFile)
+                    return field.rawFile
+
+                else
+                    return field.current;
+            }
+
+            return null;
+        },
+    }
 };
 
 export default FIELD_TYPES;
