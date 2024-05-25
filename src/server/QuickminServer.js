@@ -529,8 +529,8 @@ export default class QuickminServer {
                         //console.log("putting: "+data.name+" size: "+data.size);
 
                         let ext=getFileExt(data.name).toLowerCase();
-                        if (!exts.includes(ext))
-                            throw new Error("Unknown file type: "+ext);
+                        /*if (!exts.includes(ext))
+                            throw new Error("Unknown file type: "+ext);*/
 
                         let fn=crypto.randomUUID()+ext;
                         await this.storage.putFile(fn,data);
