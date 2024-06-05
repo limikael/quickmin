@@ -12,12 +12,14 @@ import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
 import {Qql, QqlRestServer, QqlServer} from "qql";
-import {quickminCanonicalizeConf} from "./quickmin-canonicalize-conf.js";
+import {quickminCanonicalizeConf, quickminMergeConf} from "./quickmin-conf-util.js";
 
-export default class QuickminServer {
+export {quickminCanonicalizeConf, quickminMergeConf};
+
+export class QuickminServer {
     constructor(confYaml, drivers=[]) {
         //this.conf=quickminCanonicalizeConf(confYaml);
-        this.conf=quickminCanonicalizeConf(quickminCanonicalizeConf(confYaml));
+        this.conf={...quickminCanonicalizeConf(confYaml)};
         this.authMethods={};
 
         this.signupRole=this.conf.signupRole;
@@ -662,3 +664,5 @@ export default class QuickminServer {
         }
     }
 }
+
+export default QuickminServer;
