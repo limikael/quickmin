@@ -11,7 +11,8 @@
     "build": "yarn build:info && yarn build:css && yarn build:ui",
     "build:info": "./src/build/create-package-info.js",
     "build:css": "./src/build/create-embedded-css.js",
-    "build:ui": "./src/server/quickmin-cli.js makeui --minify"
+    "build:ui": "./src/server/quickmin-cli.js makeui --minify",
+    "test": "jasmine"
   },
   "dependencies": {
     "@hono/node-server": "^1.11.1",
@@ -42,6 +43,7 @@
     "clsx": "^2.1.1",
     "esbuild": "^0.21.4",
     "esbuild-plugin-inline-import": "^1.0.4",
+    "jasmine": "^5.1.0",
     "jsoneditor": "^10.0.3",
     "pluralize": "^8.0.0",
     "preact": "^10.22.0",
