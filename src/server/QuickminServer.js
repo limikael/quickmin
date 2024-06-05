@@ -1,6 +1,5 @@
 import {splitPath, jsonEq, getFileExt, parseCookie, DeclaredError} from "../utils/js-util.js";
 import {jwtSign, jwtVerify} from "../utils/jwt-util.js";
-import {parse as parseYaml} from "yaml";
 import {getElementsByTagName, getElementByTagName} from "../utils/xml-util.js";
 import Collection from "./Collection.js";
 import urlJoin from "url-join";
@@ -13,13 +12,12 @@ import {facebookAuthDriver} from "../auth/facebook-auth.js";
 import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
 import {Qql, QqlRestServer, QqlServer} from "qql";
+import {quickminCanonicalizeConf} from "./quickmin-canonicalize-conf.js";
 
 export default class QuickminServer {
     constructor(confYaml, drivers=[]) {
-        if (typeof confYaml=="string")
-            confYaml=parseYaml(confYaml);
-
-        this.conf=confYaml;
+        //this.conf=quickminCanonicalizeConf(confYaml);
+        this.conf=quickminCanonicalizeConf(quickminCanonicalizeConf(confYaml));
         this.authMethods={};
 
         this.signupRole=this.conf.signupRole;

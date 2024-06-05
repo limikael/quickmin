@@ -52,7 +52,24 @@ export default class Collection {
         this.fields={};
         this.listFields=[];
 
-        let fieldEls=parseXml(conf.fields);
+        for (let fieldId in conf.fields) {
+            let fieldConf={...conf.fields[fieldId]};
+            if (fieldConf.listable)
+                this.listFields.push(fieldId);
+
+            if (!QQL_TYPES.hasOwnProperty(fieldConf.type))
+                throw new Error("Unknown field type: "+type);
+
+            fieldConf.qqlType=QQL_TYPES[fieldConf.type];
+
+            if (fieldConf.default && 
+                    ["integer","real","boolean","json"].includes(fieldConf.type.toLowerCase()))
+                fieldConf.default=JSON.parse(fieldConf.default);
+
+            this.fields[fieldId]=fieldConf;
+        }
+
+        /*let fieldEls=parseXml(conf.fields);
         for (let fieldEl of fieldEls) {
             if (!fieldEl.attributes.id)
                 throw new Error("Id missing from field: "+ìd+": "+JSON.stringify(fieldEl.attributes));
@@ -78,11 +95,11 @@ export default class Collection {
                     ["integer","real","boolean","json"].includes(el.type.toLowerCase()))
                 el.default=JSON.parse(el.default);
 
-            /*if (fieldEl.children.length)
-                el.children=fieldEl.children;*/
+            //if (fieldEl.children.length)
+            //  el.children=fieldEl.children;
 
             this.fields[fieldEl.attributes.id]=el;
-        }
+        }*/
 
         if (!this.listFields.length)
             this.listFields=Object.keys(this.fields);
