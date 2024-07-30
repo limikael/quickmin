@@ -25,7 +25,8 @@ export const FrugalTextInput = (props) => {
         sx,
         toolbar,
         apiPath,
-        httpClient
+        httpClient,
+        fileUpload,
     } = props;
 
     const resource = useResourceContext(props);
@@ -59,13 +60,14 @@ export const FrugalTextInput = (props) => {
                         disabled={disabled} 
                         helperText={helperText}
                         apiPath={apiPath}
-                        httpClient={httpClient}/>
+                        httpClient={httpClient}
+                        fileUpload={fileUpload}/>
             </Labeled>
         </Root>
     );
 };
 
-function FrugalTextInputContent({field, disabled, helperText, apiPath, httpClient}) {
+function FrugalTextInputContent({field, disabled, helperText, apiPath, httpClient, fileUpload}) {
     let dispatcher=useMemo(()=>new EventTarget(),[]);
 
     return (<>
@@ -73,7 +75,8 @@ function FrugalTextInputContent({field, disabled, helperText, apiPath, httpClien
                 dispatcher={dispatcher} 
                 disabled={disabled} 
                 apiPath={apiPath} 
-                httpClient={httpClient}/>
+                httpClient={httpClient}
+                fileUpload={fileUpload}/>
 
         <FrugalTextInputEditor 
                 dispatcher={dispatcher} 

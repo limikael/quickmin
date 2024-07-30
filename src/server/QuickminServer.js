@@ -18,7 +18,6 @@ export {quickminCanonicalizeConf, quickminMergeConf};
 
 export class QuickminServer {
     constructor(confYaml, drivers=[]) {
-        //this.conf=quickminCanonicalizeConf(confYaml);
         this.conf={...quickminCanonicalizeConf(confYaml)};
         this.authMethods={};
 

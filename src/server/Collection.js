@@ -69,38 +69,6 @@ export default class Collection {
             this.fields[fieldId]=fieldConf;
         }
 
-        /*let fieldEls=parseXml(conf.fields);
-        for (let fieldEl of fieldEls) {
-            if (!fieldEl.attributes.id)
-                throw new Error("Id missing from field: "+ìd+": "+JSON.stringify(fieldEl.attributes));
-
-            for (let k in fieldEl.attributes)
-                if (fieldEl.attributes[k]===null)
-                    fieldEl.attributes[k]=true;
-
-            if (fieldEl.attributes.listable)
-                this.listFields.push(fieldEl.attributes.id);
-
-            let type=fieldEl.tagName.toLowerCase();
-            if (!QQL_TYPES.hasOwnProperty(type))
-                throw new Error("Unknown field type: "+type);
-
-            let el={
-                type: type,
-                qqlType: QQL_TYPES[type],
-                ...fieldEl.attributes
-            }
-
-            if (el.default && 
-                    ["integer","real","boolean","json"].includes(el.type.toLowerCase()))
-                el.default=JSON.parse(el.default);
-
-            //if (fieldEl.children.length)
-            //  el.children=fieldEl.children;
-
-            this.fields[fieldEl.attributes.id]=el;
-        }*/
-
         if (!this.listFields.length)
             this.listFields=Object.keys(this.fields);
     }
@@ -162,8 +130,10 @@ export default class Collection {
         let storageUsed=false;
         for (let fid in this.fields) {
             let field=this.fields[fid];
-            if (["image","richtext"].includes(field.type))
-                storageUsed||=true;
+            if (["image","richtext"].includes(field.type)) {
+                if (field.fileUpload!==false && field.fileUpload!="false")
+                    storageUsed||=true;
+            }
         }
 
         return storageUsed;

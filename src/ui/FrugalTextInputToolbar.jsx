@@ -19,7 +19,7 @@ import FormatListNumbered from '@mui/icons-material/esm/FormatListNumbered';
 import Link from '@mui/icons-material/esm/Link';
 import Image from '@mui/icons-material/esm/Image';
 
-export function FrugalTextInputToolbar({dispatcher, disabled, apiPath, httpClient}) {
+export function FrugalTextInputToolbar({dispatcher, disabled, apiPath, httpClient, fileUpload}) {
     let toolbarState=useRef({marks:[], level:"normal"});
     let forceUpdate=useForceUpdate();
     let fileInputRef=useRef();
@@ -152,6 +152,10 @@ export function FrugalTextInputToolbar({dispatcher, disabled, apiPath, httpClien
         });
     }
 
+    let rightMostMarks={"link": Link};
+    if (fileUpload!==false && fileUpload!=="false")
+        rightMostMarks["image"]=Image;
+
     return (
         <Root className={classes.root}>
             <Select style={{width: "8em", height: "2.7em", "font-size": "0.8em"}}
@@ -188,10 +192,7 @@ export function FrugalTextInputToolbar({dispatcher, disabled, apiPath, httpClien
             </ToggleButtonGroup>
 
             <ToggleButtonGroup value={toolbarState.current.marks}>
-                {markButtons({
-                    "link": Link,
-                    "image": Image
-                })}
+                {markButtons(rightMostMarks)}
             </ToggleButtonGroup>
 
             <input type="file" style="display:none"
