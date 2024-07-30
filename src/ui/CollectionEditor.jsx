@@ -45,7 +45,7 @@ function useWatchRecord(collection) {
 
 function CollectionToolbar({conf, collection, mode, redirect}) {
     let refresh=useRefresh();
-    let actionState=useActionState(refresh);
+    let actionState=useActionState(conf, refresh);
 
     let toolbarItems=[];
     toolbarItems.push(<SaveButton/>);

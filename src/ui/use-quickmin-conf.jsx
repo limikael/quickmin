@@ -6,6 +6,7 @@ import AuthProvider from "./AuthProvider";
 import DataProvider from "./DataProvider";
 import FIELD_TYPES from "./field-types.jsx";
 import {fetchUtils} from "ra-core";
+import {createQqlClient} from "qql";
 
 export function useQuickminConf(apiUrl) {
 	let [conf,setConf]=useState();
@@ -48,6 +49,10 @@ export function useQuickminConf(apiUrl) {
 	                processor(conf.collections[cid].fields[fid],conf);
 	        }
 	    }
+
+	    conf.qql=createQqlClient(urlJoin(apiUrl,"_qql"),{
+	    	fetch: window.fetch.bind(window)
+	    });
 
 	    setConf(conf);
 

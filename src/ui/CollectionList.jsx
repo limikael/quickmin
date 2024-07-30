@@ -19,7 +19,7 @@ function ListActionButton({action, actionState}) {
 
 function GlobalActionButton({action, actionState}) {
     async function onClick() {
-        await actionState.runGlobalAction(action);
+        await actionState.runAction(action);
     }
 
     return (
@@ -29,12 +29,12 @@ function GlobalActionButton({action, actionState}) {
 
 export default function CollectionList({conf, collection}) {
     let refresh=useRefresh();
-    let actionState=useActionState(refresh);
+    let actionState=useActionState(conf, refresh);
 
     function BulkActions() {
         let actionItems=[];
         for (let action of collection.actions) {
-            if (!action.global) {
+            if (action.scope!="global") {
                 actionItems.push(
                     <ListActionButton 
                             action={action} 
@@ -69,7 +69,7 @@ export default function CollectionList({conf, collection}) {
 
     let globalActionItems=[];
     for (let action of collection.actions) {
-        if (action.global) {
+        if (action.scope=="global") {
             globalActionItems.push(
                 <GlobalActionButton 
                         action={action}
