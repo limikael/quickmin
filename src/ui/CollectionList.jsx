@@ -57,7 +57,7 @@ export default function CollectionList({conf, collection}) {
                 throw new Error("Can't filter on that");
 
             let alwaysOn=true;
-            if (f.filter=="optional")
+            if (String(f.filter).includes("optional"))
                 alwaysOn=false;
 
             let Comp=FIELD_TYPES[f.type].filter;

@@ -61,7 +61,20 @@ export default class DataProvider {
     }
 
     getList=async (resource, params)=>{
-        //console.log("get list...");
+        if (params.filter) {
+            let filterKeys=Object.keys(params.filter);
+
+            for (let filterKey of filterKeys) {
+                if (this.collections[resource].fields[filterKey]) {
+                    let field=this.collections[resource].fields[filterKey];
+                    if (String(field.filter).includes("substr")) {
+                        let filterQuery=params.filter[filterKey];
+                        delete params.filter[filterKey]
+                        params.filter[filterKey+"~"]=filterQuery;
+                    }
+                }
+            }
+        }
 
         let result=await this.simpleRestProvider.getList(resource,params);
         //console.log(result.data);
