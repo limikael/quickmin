@@ -18,10 +18,17 @@ export class NodeStorage {
 	}
 
 	async getResponse(pathname) {
+		//console.log("getting node storage response with content type...");
+
 		let fn=path.join(this.storagePath,pathname);
 		let data=fs.readFileSync(fn);
 
-		return new Response(data);
+		// todo: respond with correct mime type
+		return new Response(data/*,{
+			headers: {
+				"content-type": "image/png"
+			}
+		}*/);
 	}
 
 	async listFiles() {
