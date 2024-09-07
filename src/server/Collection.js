@@ -130,7 +130,7 @@ export default class Collection {
         let storageUsed=false;
         for (let fid in this.fields) {
             let field=this.fields[fid];
-            if (["image","richtext"].includes(field.type)) {
+            if (["image","richtext","file"].includes(field.type)) {
                 if (field.fileUpload!==false && field.fileUpload!="false")
                     storageUsed||=true;
             }

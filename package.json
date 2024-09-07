@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.57",
+  "version": "0.0.58",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -55,11 +55,13 @@
   "exports": {
     "./node-storage": "./src/storage/node-storage.js",
     "./r2-storage": "./src/storage/r2-storage.js",
+    "./fs-storage": "./src/storage/fs-storage.js",
     "./sqlite-driver": "./src/db/sqlite-driver.js",
     "./qql-driver": "./src/db/qql-driver.js",
     "./d1-driver": "./src/db/d1-driver.js",
     "./hono-middleware": "./src/export/hono-middleware.js",
     "./local-node-bundle": "./src/export/local-node-bundle.js",
+    "./local-fs-bundle": "./src/export/local-fs-bundle.js",
     "./api": "./src/export/quickmin-api.js",
     "./use-api": "./src/export/quickmin-api-react.js",
     "./server": "./src/server/QuickminServer.js"

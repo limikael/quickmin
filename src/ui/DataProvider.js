@@ -16,6 +16,8 @@ export default class DataProvider {
 	}
 
     processRead(resource, data) {
+        //console.log("process read ",resource,data);
+
         for (let fid in this.collections[resource].fields) {
             if (data.hasOwnProperty(fid)) {
                 let type=this.collections[resource].fields[fid].type;

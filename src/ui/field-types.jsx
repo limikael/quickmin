@@ -29,6 +29,14 @@ function QuickminFileInput(props) {
     );
 }
 
+function QuickminFileField({source, ...props}) {
+    let record=useRecordContext();
+    if (!record || !record[source] || !record[source].src)
+        return;
+
+    return (<a href={record[source].src}>{record[source].title}</a>);
+}
+
 function QuickminImageInput(props) {
     let sx,options;
     if (props.disabled) {
@@ -41,6 +49,24 @@ function QuickminImageInput(props) {
                 options={options} sx={sx}>
            <ImageField source="src" title="title"/>
         </ImageInput>
+    );
+}
+
+function QuickminImageField({source, ...props}) {
+    let record=useRecordContext();
+    if (!record || !record[source] || !record[source].src)
+        return;
+
+    let style={
+        height: "2em",
+        width: "2em",
+        marginTop: "-0.5em",
+        marginBottom: "-0.5em",
+        objectFit: "contain",
+    };
+
+    return (
+        <img src={record[source].src} style={style}/>
     );
 }
 
@@ -289,7 +315,7 @@ export const FIELD_TYPES={
     },
 
     "image": {
-//        list: QuickminImageField,
+        list: QuickminImageField,
         edit: QuickminImageInput,
         readProcessor(data, conf) {
             //console.log("got data: "+data);
@@ -318,6 +344,7 @@ export const FIELD_TYPES={
     },
 
     "file": {
+        list: QuickminFileField,
         edit: QuickminFileInput,
         readProcessor(data, conf) {
             if (!data)

@@ -102,11 +102,12 @@ export class QuickminServer {
 
         //console.log(JSON.stringify(qqlTables,null,2));
 
+        // todo: really really fix this... it crashes when katnip is run under node...
         /*if (!this.qqlDriver)
             throw new Error("No database driver configured.");*/
 
         /*if (this.isStorageUsed() && !this.storage)
-            throw new Error("There are fields using storage, but not storage driver.");*/
+            throw new Error("There are fields using storage, but no storage driver.");*/
 
         if (this.qqlDriver) {
             this.qql=new Qql({
@@ -116,7 +117,10 @@ export class QuickminServer {
 
             this.qqlRestServer=new QqlRestServer(this.qql,{
                 path: this.conf.apiPath,
-                putFile: (fn,file)=>this.storage.putFile(fn,file)
+                putFile: (fn,file)=>{
+                    console.log("from qql rest server... the storage=",this.storage);
+                    this.storage.putFile(fn,file)
+                }
             });
 
             this.qqlServer=new QqlServer(this.qql,{
@@ -525,7 +529,7 @@ export class QuickminServer {
                 let record={};
                 for (let [name,data] of formData.entries()) {
                     if (data instanceof File) {
-                        //console.log("putting: "+data.name+" size: "+data.size);
+                        console.log("putting: "+data.name+" size: "+data.size);
 
                         let ext=getFileExt(data.name).toLowerCase();
                         /*if (!exts.includes(ext))
