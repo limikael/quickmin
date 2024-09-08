@@ -118,7 +118,7 @@ export class QuickminServer {
             this.qqlRestServer=new QqlRestServer(this.qql,{
                 path: this.conf.apiPath,
                 putFile: (fn,file)=>{
-                    console.log("from qql rest server... the storage=",this.storage);
+                    //console.log("from qql rest server... the storage=",this.storage);
                     this.storage.putFile(fn,file)
                 }
             });
@@ -315,7 +315,10 @@ export class QuickminServer {
                     status: 403
                 });
 
-            let data=await this.getRequestFormData(req);
+            /*console.log("recv upload");
+            throw new Error("nope, no data for you!!");*/
+
+            let data=await this.qqlRestServer.decodeRequestData(req);
             return Response.json({
                 file: data.file
             });
@@ -519,7 +522,7 @@ export class QuickminServer {
         return this.getRoleByUserId(this.getUserIdByRequest(req));
     }
 
-    async getRequestFormData(req) {
+    /*async getRequestFormData(req) {
         let exts=[".jpg",".jpeg",".png",".webp"];
         let contentType=req.headers.get("content-type").split(";")[0];
 
@@ -529,11 +532,11 @@ export class QuickminServer {
                 let record={};
                 for (let [name,data] of formData.entries()) {
                     if (data instanceof File) {
-                        console.log("putting: "+data.name+" size: "+data.size);
+                        //console.log("putting: "+data.name+" size: "+data.size);
 
                         let ext=getFileExt(data.name).toLowerCase();
-                        /*if (!exts.includes(ext))
-                            throw new Error("Unknown file type: "+ext);*/
+                        //if (!exts.includes(ext))
+                        //    throw new Error("Unknown file type: "+ext);
 
                         let fn=crypto.randomUUID()+ext;
                         await this.storage.putFile(fn,data);
@@ -554,7 +557,7 @@ export class QuickminServer {
         }
 
         throw new Error("Unexpected content type: "+contentType);
-    }
+    }*/
 
     async sync({dryRun, force, test, risky}) {
         if (!this.qql)
@@ -567,58 +570,6 @@ export class QuickminServer {
             risky
         });
     }
-
-    /*async sync({dryRun, force, test, risky}) {
-        console.log("Migrate:",{dryRun, force, test, risky});
-        throw new Error("migrate disabled... wip...");
-
-        let tables={};
-        for (let c in this.collections) {
-            if (!this.collections[c].isView()) {
-                tables[c]={
-                    fields: {
-                        id: {
-                            type: "integer",
-                            pk: true,
-                            notnull: true
-                        }
-                    },
-                };
-                for (let f in this.collections[c].fields) {
-                    let field=this.collections[c].fields[f];
-                    if (field.id!="id" && field.sqlType) {
-                        let fieldSpec={
-                            ...field,
-                            pk: false,
-                            type: field.sqlType,
-                        };
-
-                        tables[c].fields[f]=fieldSpec;
-                    }
-                }
-            }
-        }
-
-        let migrator=new DbMigrator({
-            runQueries: this.db.runQueries,
-            tables: tables,
-            dryRun: dryRun,
-            force: force,
-            test: test,
-            transaction: this.db.hasTransactionSupport()
-        });
-
-        await migrator.analyze();
-
-        if (migrator.isRisky() && !risky)
-            throw new Error(
-                "This migration might result in data loss since columns would be removed. "+
-                "Either them manually, or run with the risky parameter. "+
-                "Columns to be removed: "+migrator.getRemovableColumns()
-            );
-
-        await migrator.sync();
-    }*/
 
     async getContentFiles() {
         let contentFiles=[];
