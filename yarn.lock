@@ -2307,6 +2307,11 @@ parse-json@^5.0.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
+path-browserify@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-1.0.1.tgz#d98454a9c3753d5790860f16f68867b9e46be1fd"
+  integrity sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==
+
 path-is-absolute@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-is-absolute/-/path-is-absolute-1.0.1.tgz#174b9268735534ffbc7ace6bf53a5a9e1b5c5f5f"
@@ -2571,10 +2576,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-qql@^1.0.10:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/qql/-/qql-1.0.10.tgz#08390c7c25124f1922d1ebae25b1905e0f8d5c1e"
-  integrity sha512-woZ9NZx1ttF7abqGLi1eEgU4e8s+S/MqqhK5iRjFjEHUxnrqWgTZnZqAGVu6S5oiOOL8g1VsSMDkopW+6O7rww==
+qql@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/qql/-/qql-1.0.11.tgz#10b928edb2c9514d6b1e00bc9252103f4e238218"
+  integrity sha512-Rf1P9QurLhTMn+RI4aiRntn0800e5QIfgqasMgGQ4pvlM0BLwp7fErwBj6hCk1kG33PHY7C/YIK5M5jVQLhKRw==
   dependencies:
     sqlstring "^2.3.3"
     sqlstring-sqlite "^0.1.1"
@@ -2589,10 +2594,10 @@ query-string@^7.1.1:
     split-on-first "^1.0.0"
     strict-uri-encode "^2.0.0"
 
-quickmin-api@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/quickmin-api/-/quickmin-api-1.0.6.tgz#58ff7af20c16b11715b526cc3d92240cb71be621"
-  integrity sha512-5FQA/wxrPIv5FENF+CEl40RlawCkEcf5rdpC9CLNRYaTufApoi2fByfqN2IcSzC5BUrJAVNUomB7p8Walc0SMA==
+quickmin-api@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/quickmin-api/-/quickmin-api-1.0.7.tgz#c49af4113438d78c7027f935f66f087768601396"
+  integrity sha512-m+3U+EvxpjZH7UC930+QIO5eE2aRdEdck0OKymBybC/3UwLdXnfWVHm6Ie7v3gweeY2e7tFmweSO5+N6el5oWg==
   dependencies:
     url-join "^5.0.0"
 
