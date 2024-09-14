@@ -117,9 +117,9 @@ export class QuickminServer {
 
             this.qqlRestServer=new QqlRestServer(this.qql,{
                 path: this.conf.apiPath,
-                putFile: (fn,file)=>{
+                putFile: async (fn,file)=>{
                     //console.log("from qql rest server... the storage=",this.storage);
-                    this.storage.putFile(fn,file)
+                    await this.storage.putFile(fn,file)
                 }
             });
 

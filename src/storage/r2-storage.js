@@ -4,8 +4,11 @@ export class R2Storage {
     }
 
     async putFile(name, f) {
+        //console.log("putting in R2: "+name);
         let arrayBuffer=await f.arrayBuffer();
         let object=await this.r2.put(name,arrayBuffer);
+        //console.log("did put in R2");
+        //console.log(object);
     }
 
     async getResponse(key, req) {

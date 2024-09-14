@@ -236,6 +236,7 @@ switch (command) {
         break;
 
     case "migrate":
+        //console.log("migrate...");
         await quickmin.sync({
             dryRun: options.dryRun,
             force: options.force,
