@@ -71,6 +71,14 @@ export default class Collection {
 
         if (!this.listFields.length)
             this.listFields=Object.keys(this.fields);
+
+        this.listFields=this.listFields.filter(fieldName=>{
+            let cantList=["referencemany"];
+            if (cantList.includes(this.fields[fieldName].type.toLowerCase()))
+                return false;
+
+            return true;
+        });
     }
 
     constructView(conf) {

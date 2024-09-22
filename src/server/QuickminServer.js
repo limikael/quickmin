@@ -504,7 +504,6 @@ export class QuickminServer {
         if (!this.authCollection)
             return "public";
 
-        //let userRecord=await this.db.findOne(this.authCollection,{id: userId});
         let userRecord=await this.qql.query({
             oneFrom: this.authCollection,
             where: {
@@ -521,43 +520,6 @@ export class QuickminServer {
     async getRoleByRequest(req) {
         return this.getRoleByUserId(this.getUserIdByRequest(req));
     }
-
-    /*async getRequestFormData(req) {
-        let exts=[".jpg",".jpeg",".png",".webp"];
-        let contentType=req.headers.get("content-type").split(";")[0];
-
-        switch (contentType) {
-            case "multipart/form-data":
-                let formData=await req.formData();
-                let record={};
-                for (let [name,data] of formData.entries()) {
-                    if (data instanceof File) {
-                        //console.log("putting: "+data.name+" size: "+data.size);
-
-                        let ext=getFileExt(data.name).toLowerCase();
-                        //if (!exts.includes(ext))
-                        //    throw new Error("Unknown file type: "+ext);
-
-                        let fn=crypto.randomUUID()+ext;
-                        await this.storage.putFile(fn,data);
-                        record[name]=fn;
-                    }
-
-                    else {
-                        record[name]=JSON.parse(data);
-                    }
-                }
-
-                return record;
-                break;
-
-            case "application/json":
-                return await req.json();
-                break;
-        }
-
-        throw new Error("Unexpected content type: "+contentType);
-    }*/
 
     async sync({dryRun, force, test, risky}) {
         if (!this.qql)

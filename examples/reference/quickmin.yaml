@@ -1,0 +1,15 @@
+jwtSecret: "helloworld"
+adminUser: "admin"
+adminPass: "admin"
+
+collections:
+  users:
+    fields:
+      <Text id="name"/>
+      <ReferenceMany id="blogs" reference="blogs" target="user_id"/>
+
+  blogs:
+    fields:
+      <Text id="title" listable/>
+      <Reference id="user_id" reference="users"/>
+      <RichText id="content" fullWidth />
