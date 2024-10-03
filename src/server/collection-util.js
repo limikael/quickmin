@@ -21,6 +21,7 @@ function getContentFilesFromTags(tags) {
 export function getFieldContentFiles(field, data) {
     switch (field.type) {
         case "image":
+        case "file":
             let v=data[field.id];
             if (v)
                 return [v];
