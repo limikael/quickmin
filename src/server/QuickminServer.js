@@ -555,7 +555,7 @@ export class QuickminServer {
         return missing;
     }
 
-    async garbageCollect({dryRun}) {
+    async garbageCollect({dryRun}={}) {
         dryRun=!!dryRun;
         console.log("Garbage collect, dryRun="+dryRun);
 
@@ -568,6 +568,7 @@ export class QuickminServer {
 
         if (!dryRun) {
             for (let f of garbage) {
+                console.log("Garbage: "+f);
                 await this.storage.deleteFile(f);
             }
         }

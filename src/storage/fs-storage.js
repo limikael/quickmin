@@ -47,7 +47,7 @@ export class FsStorage {
 	}
 
 	async deleteFile(name) {
-		await this.fs.unlink(path.join(this.storagePath,name));
+		await this.fs.promises.unlink(path.join(this.storagePath,name));
 	}
 }
 
