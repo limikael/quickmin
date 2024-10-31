@@ -557,6 +557,12 @@ export class QuickminServer {
 
     async garbageCollect({dryRun}={}) {
         dryRun=!!dryRun;
+
+        if (!this.isStorageUsed()) {
+            console.log("No gc, because no storage...");
+            return;
+        }
+
         console.log("Garbage collect, dryRun="+dryRun);
 
         let contentFiles=await this.getContentFiles();
