@@ -1,4 +1,3 @@
-import {parse as parseXml} from "txml/txml";
 import {jsonClone, jsonEq, arrayDifference, arrayIntersection, arrayify} from "../utils/js-util.js";
 import {getFieldContentFiles} from "./collection-util.js";
 

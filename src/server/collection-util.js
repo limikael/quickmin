@@ -1,3 +1,5 @@
+import {parse as parseXml} from "txml/txml";
+
 function getContentFilesFromTags(tags) {
     let contentFiles=[];
 
@@ -5,7 +7,7 @@ function getContentFilesFromTags(tags) {
         if (tag.children) {
             contentFiles=[
                 ...contentFiles,
-                ...this.getContentFilesFromTags(tag.children)
+                ...getContentFilesFromTags(tag.children)
             ];
         }
 
