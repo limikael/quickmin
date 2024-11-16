@@ -31,12 +31,12 @@ export class FsStorage {
 		if (mimeTypesByExt[path.extname(pathname)])
 			contentType=mimeTypesByExt[path.extname(pathname)];
 
+		let headers=new Headers();
+		headers.set("content-type",contentType);
+        headers.set("Access-Control-Allow-Origin","*");
+
 		// todo: respond with correct mime type
-		return new Response(data,{
-			headers: {
-				"content-type": contentType
-			}
-		});
+		return new Response(data,{headers});
 	}
 
 	async listFiles() {

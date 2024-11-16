@@ -28,6 +28,7 @@ export class R2Storage {
         object.writeHttpMetadata(headers);
         //headers.set('etag', object.httpEtag.replaceAll('"',""));
         headers.set('etag', object.httpEtag);
+        headers.set("Access-Control-Allow-Origin","*");
 
         if (!object.body)
             return new Response(null,{

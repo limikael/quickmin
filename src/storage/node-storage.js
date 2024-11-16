@@ -23,12 +23,11 @@ export class NodeStorage {
 		let fn=path.join(this.storagePath,pathname);
 		let data=fs.readFileSync(fn);
 
+		let headers=new Headers();
+        headers.set("Access-Control-Allow-Origin","*");
+
 		// todo: respond with correct mime type
-		return new Response(data/*,{
-			headers: {
-				"content-type": "image/png"
-			}
-		}*/);
+		return new Response(data,{headers});
 	}
 
 	async listFiles() {
