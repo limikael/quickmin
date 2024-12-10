@@ -1,7 +1,10 @@
 import {runCommand} from "../utils/node-util.js";
+import {QqlDriverBase} from "qql";
 
-class WranglerQqlDriver {
+class WranglerQqlDriver extends QqlDriverBase {
 	constructor({d1Binding, local, remote}) {
+		super({escapeFlavor: "sqlite"});
+
 		if (!d1Binding)
 			d1Binding="DB";
 
@@ -10,9 +13,17 @@ class WranglerQqlDriver {
 		this.remote=remote;
 	}
 
+	query=async(query, params, returnType)=>{
+		if (params.length)
+			throw new Error("params not supported by wrangler driver");
+
+		let queriesRes=await this.queries([query],returnType);
+		return queriesRes[0];
+	}
+
 	queries=async(queries, returnType)=>{
-		if (returnType!="rows")
-			throw new Error("Only rows supported as return type.");
+		if (!["rows","none"].includes(returnType))
+			throw new Error("Only rows and none supported as return type.");
 
 		let sql=queries.join(";");
     	let args=["d1","execute",this.d1Binding,"--json","--command",sql];
@@ -22,8 +33,8 @@ class WranglerQqlDriver {
     	if (this.remote)
     		args.push("--remote")
 
-    	//console.log(args);
     	//console.log("wrangler",args);
+    	//process.exit();
 
 		let out=await runCommand("wrangler",args);
 		let responses=JSON.parse(out);
@@ -42,13 +53,13 @@ class WranglerQqlDriver {
 	}
 }
 
-export function wranglerDb(server) {
+export function wranglerDbRemote(server) {
 	let wranglerQqlDriver=new WranglerQqlDriver({
 		d1Binding: server.conf.d1Binding,
 		remote: true
 	});
 
-	server.qqlDriver=wranglerQqlDriver.queries;
+	server.qqlDriver=wranglerQqlDriver;
 }
 
 export function wranglerDbLocal(server) {
@@ -57,5 +68,5 @@ export function wranglerDbLocal(server) {
 		local: true
 	});
 
-	server.qqlDriver=wranglerQqlDriver.queries;
+	server.qqlDriver=wranglerQqlDriver;
 }

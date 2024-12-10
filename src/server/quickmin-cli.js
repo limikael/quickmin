@@ -10,8 +10,6 @@ import {fileURLToPath} from 'url';
 import {Hono} from 'hono'
 import {serve} from '@hono/node-server'
 import {serveStatic} from '@hono/node-server/serve-static'
-import {quickminSqliteDriver} from "../db/sqlite-driver.js";
-import {wranglerDb, wranglerDbLocal} from "../db/wrangler-driver.js";
 import {nodeStorageDriver} from "../storage/node-storage.js";
 import {localNodeBundle} from "../export/local-node-bundle.js";
 import urlJoin from 'url-join';
@@ -22,6 +20,8 @@ import {parse as parseYaml} from "yaml";
 import {DeclaredError} from "../utils/js-util.js";
 import {checkDeclaredError} from "../utils/node-util.js";
 import QUICKMIN_YAML_TEMPLATE from "./quickmin-yaml-template.js";
+import {dsnDb} from "../db/dsn-db.js";
+import {wranglerDbLocal, wranglerDbRemote} from "../db/wrangler-db.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let pkg=JSON.parse(fs.readFileSync(path.join(__dirname,"../../package.json")));
@@ -39,8 +39,8 @@ let yargsConf=yargs(hideBin(process.argv))
     })
     .option("driver",{
         description: "Database driver to use.",
-        choices: ["sqlite","wrangler","wrangler-local"],
-        default: "sqlite"
+        choices: ["dsn","wrangler-local","wrangler-remote"],
+        default: "dsn"
     })
     .option("storage",{
         description: "Storage driver to use.",
@@ -170,12 +170,12 @@ if (!fs.existsSync(options.conf)) {
 
 let drivers=[];
 switch (options.driver) {
-    case "sqlite":
-        drivers.push(quickminSqliteDriver);
+    case "dsn":
+        drivers.push(dsnDb);
         break;
 
-    case "wrangler":
-        drivers.push(wranglerDb);
+    case "wrangler-remote":
+        drivers.push(wranglerDbRemote);
         break;
 
     case "wrangler-local":

@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.73",
+  "version": "0.0.77",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -23,7 +23,7 @@
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.4",
     "path-browserify": "^1.0.1",
-    "qql": "^1.0.18",
+    "qql": "^1.0.22",
     "quickmin-api": "^1.0.7",
     "sqlite3": "^5.1.7",
     "txml": "^5.1.1",
@@ -57,14 +57,15 @@
     "./node-storage": "./src/storage/node-storage.js",
     "./r2-storage": "./src/storage/r2-storage.js",
     "./fs-storage": "./src/storage/fs-storage.js",
-    "./sqlite-driver": "./src/db/sqlite-driver.js",
-    "./qql-driver": "./src/db/qql-driver.js",
-    "./d1-driver": "./src/db/d1-driver.js",
+    "./mock-storage": "./src/storage/mock-storage.js",
     "./hono-middleware": "./src/export/hono-middleware.js",
     "./local-node-bundle": "./src/export/local-node-bundle.js",
     "./local-fs-bundle": "./src/export/local-fs-bundle.js",
     "./api": "./src/export/quickmin-api.js",
     "./use-api": "./src/export/quickmin-api-react.js",
-    "./server": "./src/server/QuickminServer.js"
+    "./server": "./src/server/QuickminServer.js",
+    "./dsn-db": "./src/db/dsn-db.js",
+    "./d1-db": "./src/db/d1-db.js",
+    "./wrangler-db": "./src/db/wrangler-db.js"
   }
 }

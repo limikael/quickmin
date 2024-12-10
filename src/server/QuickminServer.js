@@ -96,37 +96,38 @@ export class QuickminServer {
         if (!this.conf.bundleUrl)
             this.conf.bundleUrl=`https://unpkg.com/quickmin@${packageInfo.version}/dist/quickmin-bundle.js`;
 
+        if (this.conf.uninitialized)
+            return;
+
         let qqlTables={};
         for (let collectionId in this.collections)
             qqlTables[collectionId]=this.collections[collectionId].getQqlDef();
 
-        //console.log(JSON.stringify(qqlTables,null,2));
+        if (this.conf.qqlDriver)
+            this.qqlDriver=this.conf.qqlDriver;
 
-        // todo: really really fix this... it crashes when katnip is run under node...
-        /*if (!this.qqlDriver)
-            throw new Error("No database driver configured.");*/
+        if (!this.qqlDriver)
+            throw new Error("No database driver configured.");
 
-        /*if (this.isStorageUsed() && !this.storage)
-            throw new Error("There are fields using storage, but no storage driver.");*/
+        if (this.isStorageUsed() && !this.storage)
+            throw new Error("There are fields using storage, but no storage driver.");
 
-        if (this.qqlDriver) {
-            this.qql=new Qql({
-                tables: qqlTables,
-                driver: this.qqlDriver
-            });
+        this.qql=new Qql({
+            tables: qqlTables,
+            driver: this.qqlDriver
+        });
 
-            this.qqlRestServer=new QqlRestServer(this.qql,{
-                path: this.conf.apiPath,
-                putFile: async (fn,file)=>{
-                    //console.log("from qql rest server... the storage=",this.storage);
-                    await this.storage.putFile(fn,file)
-                }
-            });
+        this.qqlRestServer=new QqlRestServer(this.qql,{
+            path: this.conf.apiPath,
+            putFile: async (fn,file)=>{
+                //console.log("from qql rest server... the storage=",this.storage);
+                await this.storage.putFile(fn,file)
+            }
+        });
 
-            this.qqlServer=new QqlServer(this.qql,{
-                path: urlJoin(this.conf.apiPath,"_qql")
-            });
-        }
+        this.qqlServer=new QqlServer(this.qql,{
+            path: urlJoin(this.conf.apiPath,"_qql")
+        });
     }
 
     isStorageUsed() {
