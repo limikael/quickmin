@@ -43,6 +43,10 @@ export async function runCommand(command, args=[], options={}) {
 			});
 		}
 
+		child.on("error",(e)=>{
+			reject(e);
+		});
+
 		child.on('close', (code) => {
 			if (code) {
 				console.log(out);
