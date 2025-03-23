@@ -45,6 +45,7 @@ collections:
       <Select id="status" choices="draft,published" listable tab="publication"/>
       <Date id="published" listable condition='{"status":"published"}' tab="publication"/>
       <DateTime id="updated" listable/>
+      <Select id="jsontype" choices="person,thing,plant" default="person"/>
       <Json id="jsontest" schema_cb="getJsonTestSchema"/>
       <RichText id="content" fullWidth />
 

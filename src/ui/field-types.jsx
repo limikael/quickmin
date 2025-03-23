@@ -2,23 +2,18 @@ import {TextField, TextInput, DateField, DateInput, DateTimeInput,
         SelectField, SelectInput, ImageField, ImageInput,
         ReferenceField, ReferenceInput,
         NumberField, NumberInput, ReferenceManyField, Datagrid, Labeled,
-        Button, useRecordContext, useResourceContext, FieldTitle, useInput,
+        Button, useRecordContext, useResourceContext, FieldTitle,
         BooleanField, BooleanInput, FileInput, FileField} from "react-admin";
 import {FrugalTextInput} from './FrugalTextInput.jsx';
 import urlJoin from 'url-join';
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
 import ContentAdd from '@mui/icons-material/esm/Add';
 import {Link, useNavigate} from 'react-router-dom';
-import JsonEditor from "jsoneditor/dist/jsoneditor-minimalist.min.js";
 import {useRef, useEffect, useLayoutEffect} from "react";
-import {Typography } from '@mui/material';
-//import JSONEDITOR_CSS from "inline:../../node_modules/jsoneditor/dist/jsoneditor.min.css";
-import JSONEDITOR_CSS from "inline:../../tmp/jsoneditor.css";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import relativeTime from "dayjs/plugin/relativeTime.js";
-import {jsonSchemaCreateDefault} from "../utils/json-schema-util.js";
-import {quickminGetClientMethod} from "../server/quickmin-conf-util.js";
+import {JsonInput} from "../controls/json-control.jsx";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -146,97 +141,6 @@ function QuickminReferenceManyInput(props) {
                 <ContentAdd /> Add
             </Button>
         }
-    </>);
-}
-
-let __JSONEDITOR_CSS_ADDED=false;
-
-function JsonInput(props) {
-    if (!__JSONEDITOR_CSS_ADDED) {
-        let styleSheet=document.createElement("style");
-        styleSheet.innerText=JSONEDITOR_CSS;
-        document.head.appendChild(styleSheet)
-
-        __JSONEDITOR_CSS_ADDED=true;
-    }
-
-    let containerRef=useRef();
-    let editorRef=useRef();
-    let input=useInput({source: props.source})
-
-    useLayoutEffect(()=>{
-        if (!editorRef.current) {
-            //console.log("create json editor");
-            let modes=["tree","text"];
-            if (props.disabled)
-                modes=["view"];
-
-            let schema;
-            if (props.schema)
-                schema=props.schema;
-
-            if (props.schema_cb) {
-                let method=quickminGetClientMethod(props.conf,props.schema_cb);
-                if (!method)
-                    throw new Error("Undefined client method: "+props.schema_cb);
-
-                schema=method();
-            }
-
-            if (typeof schema=="string")
-                schema=JSON.parse(schema);
-
-            let options={
-                name: props.id,
-                search: false,
-                mainMenuBar: true,
-                modes: modes,
-                navigationBar: false,
-                enableSort: false,
-                enableTransform: false,
-                history: false,
-                schema: schema,
-                allowSchemaSuggestions: true,
-                onValidate(data) {
-                    return null;
-                },
-                onChangeJSON(json) {
-                    console.log("change...",json);
-                    input.field.onChange(json);
-                },
-                onChangeText(s) {
-                    try {
-                        let json=JSON.parse(s);
-                        input.field.onChange(json);
-                    }
-
-                    catch (e) {
-                        console.log("unable to parse json, but that's ok...");
-                    }
-                }
-            };
-
-            let val=input.field.value;
-            if (schema)
-                val={...jsonSchemaCreateDefault(schema),...val}
-
-            //console.log(val);
-
-            let jsoneditor=new JsonEditor(
-                containerRef.current,
-                options,
-                val
-            );
-
-            editorRef.current=jsoneditor;
-        }
-    });
-
-    return (<>
-        <Typography color="text.secondary" sx={{fontSize: "12px"}}>
-            {makeNameFromSymbol(props.id)}
-        </Typography>
-        <div ref={containerRef} style="width: 100%; margin-bottom: 12px"/>
     </>);
 }
 
