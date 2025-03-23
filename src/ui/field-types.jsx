@@ -17,6 +17,8 @@ import JSONEDITOR_CSS from "inline:../../tmp/jsoneditor.css";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import relativeTime from "dayjs/plugin/relativeTime.js";
+import {jsonSchemaCreateDefault} from "../utils/json-schema-util.js";
+import {quickminGetClientMethod} from "../server/quickmin-conf-util.js";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -169,6 +171,21 @@ function JsonInput(props) {
             if (props.disabled)
                 modes=["view"];
 
+            let schema;
+            if (props.schema)
+                schema=props.schema;
+
+            if (props.schema_cb) {
+                let method=quickminGetClientMethod(props.conf,props.schema_cb);
+                if (!method)
+                    throw new Error("Undefined client method: "+props.schema_cb);
+
+                schema=method();
+            }
+
+            if (typeof schema=="string")
+                schema=JSON.parse(schema);
+
             let options={
                 name: props.id,
                 search: false,
@@ -178,8 +195,13 @@ function JsonInput(props) {
                 enableSort: false,
                 enableTransform: false,
                 history: false,
+                schema: schema,
+                allowSchemaSuggestions: true,
+                onValidate(data) {
+                    return null;
+                },
                 onChangeJSON(json) {
-                    console.log("change...");
+                    console.log("change...",json);
                     input.field.onChange(json);
                 },
                 onChangeText(s) {
@@ -194,10 +216,16 @@ function JsonInput(props) {
                 }
             };
 
+            let val=input.field.value;
+            if (schema)
+                val={...jsonSchemaCreateDefault(schema),...val}
+
+            //console.log(val);
+
             let jsoneditor=new JsonEditor(
                 containerRef.current,
                 options,
-                input.field.value
+                val
             );
 
             editorRef.current=jsoneditor;

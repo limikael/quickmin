@@ -18,8 +18,13 @@ export function useQuickminConf(apiUrl) {
 	    });
 
 	    let conf=response.data;
-	    //console.log("quickmin conf",conf);
 	    conf.apiUrl=apiUrl;
+
+	    conf.clientModules=[];
+	    for (let clientImport of conf.clientImports) {
+	    	let u=new URL(clientImport,conf.apiUrl+"/");
+	    	conf.clientModules.push(await import(u));
+	    }
 
 	    if (conf.requireAuth) {
 	        conf.authProvider=new AuthProvider(urlJoin(apiUrl,"_login"),conf.cookie);

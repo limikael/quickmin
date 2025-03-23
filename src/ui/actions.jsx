@@ -69,6 +69,21 @@ class ActionRunner {
         }*/
     }
 
+    async runClient(params) {
+        console.log(this.action.method);
+
+        let method;
+        for (let clientModule of this.conf.clientModules)
+            if (clientModule[this.action.method])
+                method=clientModule[this.action.method]
+
+        if (!method)
+            throw new Error("Callback method not found: "+this.action.method);
+
+        params.qql=this.conf.qql;
+        return await method(params);
+    }
+
     async runModule(params) {
         if (!this.mod) {
             let moduleUrl=new URL(this.action.url,window.location);
@@ -82,9 +97,13 @@ class ActionRunner {
     async runWithParams(params) {
         let type=this.action.type;
         if (!type)
-            type="browser";
+            type="client";
 
         switch (type) {
+            case "client":
+                return await this.runClient(params)
+                break;
+
             case "jsonrpc":
                 return await this.runJsonRpc(params);
                 break;
@@ -141,156 +160,6 @@ class ActionState extends EventTarget {
         this.refresh=refresh;
     }
 
-    /*async runBrowserAction(action, id) {
-        let url=new URL(action.url,window.location);
-        url.searchParams.set("id",id);
-
-        let message=new Promise(resolve=>{
-            function listener(ev) {
-                window.removeEventListener("message",listener);
-                resolve(ev.data);
-            }
-
-            window.addEventListener("message",listener);
-        });
-
-        let iframe=document.createElement('iframe');
-        iframe.src=url;
-
-        document.body.appendChild(iframe);
-        console.log("action started, waiting for message");
-        let data=await message;
-        document.body.removeChild(iframe);
-
-        return data;
-    }
-
-    async runJsonRpcAction(action, id) {
-        let h=new Headers();
-        let token=window.localStorage.getItem("token");
-        if (token)
-            h.set("authorization","Bearer "+token);
-
-        let rpc=createQuickRpcProxy({url: action.url, headers: h});
-
-        console.log("running json rpc action...");
-        try {
-            let result=await rpc[action.method](id);
-            return {
-                result: result
-            }
-        }
-
-        catch (e) {
-            console.error(e);
-            return {
-                error: e.message
-            }
-        }
-    }
-
-    async runModuleAction(action, id) {
-        let moduleUrl=new URL(action.url,window.location);
-        let mod=await import(moduleUrl);
-
-        console.log("running module action...");
-        //console.log(this.conf.qql);
-
-        try {
-            let result=await mod[action.method]({
-                qql: this.conf.qql,
-                id: id
-            });
-            return {
-                result: result
-            }
-        }
-
-        catch (e) {
-            console.error(e);
-            return {
-                error: e.message
-            }
-        }
-
-        await new Promise(r=>{});
-    }
-
-    async runSingleAction(action, id) {
-        let type=action.type;
-        if (!type)
-            type="browser";
-
-        try {
-            switch (type) {
-                case "jsonrpc":
-                    return await this.runJsonRpcAction(action,id);
-                    break;
-
-                case "browser":
-                    return await this.runBrowserAction(action,id);
-                    break;
-
-                case "module":
-                    return await this.runModuleAction(action,id);
-                    break;
-
-                default:
-                    throw new Error("Unknown action type: "+type);
-                    break;
-            }
-        }
-
-        catch (e) {
-            return {error: String(e)}
-        }
-    }
-
-    async runAction(action, ids) {
-        //console.log("running action "+action.name+" on: "+ids);
-        this.currentAction=action;
-        this.complete=false;
-        this.result=null;
-        this.error=null;
-        this.dispatchEvent(new Event("change"));
-
-        let data={result: null, error: null};
-        for (let id of ids) {
-            if (!data.error)
-                data=await this.runSingleAction(action,id);
-        }
-
-        this.result=data.result;
-        this.error=data.error;
-        this.complete=true;
-
-        if (!this.result && !this.error)
-            this.close();
-
-        this.refresh();
-        this.dispatchEvent(new Event("change"));
-    }
-
-    async runGlobalAction(action) {
-        this.currentAction=action;
-        this.complete=false;
-        this.result=null;
-        this.error=null;
-        this.dispatchEvent(new Event("change"));
-
-        let data=await this.runSingleAction(action);
-
-        this.result=data.result;
-        this.error=data.error;
-        this.complete=true;
-
-        if (!this.result && !this.error)
-            this.close();
-
-        this.refresh();
-        this.dispatchEvent(new Event("change"));
-    }*/
-
     async runAction(action, ids) {
         this.currentAction=new ActionRunner({action, ids, conf: this.conf});
         this.complete=false;
@@ -342,7 +211,7 @@ export function ActionDialog({actionState}) {
         <Dialog open={show} fullWidth maxWidth="xs" onClose={actionState.close}>
             {show && <>
                 <DialogTitle id="alert-dialog-title">
-                    {actionState.currentAction.name}
+                    {actionState.currentAction.action.name}
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

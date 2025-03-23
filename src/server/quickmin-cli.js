@@ -198,6 +198,9 @@ let quickmin;
 let remoteApi;
 await checkDeclaredError(async ()=>{
     let conf=parseYaml(fs.readFileSync(options.conf,"utf8"));
+    if (conf.static) {
+        conf.fs=fs;
+    }
     quickmin=new QuickminServer(conf,drivers);
     if (options.remote) {
         remoteApi=new QuickminApi({

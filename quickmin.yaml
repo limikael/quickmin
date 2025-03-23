@@ -7,7 +7,8 @@ adminPass: "admin"
 #apiPath: "admin"
 upload: "upload"
 oauthHostname: localhost
-
+static: spec/static
+clientImports: _static/client-functions.js
 googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
 googleClientSecret: "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"
 
@@ -35,10 +36,8 @@ collections:
     icon: text_snippet
     actions:
       - name: test action
-        url: /test_action
-        type: jsonrpc
         method: testMethod
-    fields:
+    fields: |
       <Text id="title" fullWidth listable/>
       <Image id="image" tab="image" listable/>
       <File id="file" tab="image" listable/>
@@ -46,7 +45,7 @@ collections:
       <Select id="status" choices="draft,published" listable tab="publication"/>
       <Date id="published" listable condition='{"status":"published"}' tab="publication"/>
       <DateTime id="updated" listable/>
-      <Json id="jsontest"/>
+      <Json id="jsontest" schema_cb="getJsonTestSchema"/>
       <RichText id="content" fullWidth />
 
   my_posts:

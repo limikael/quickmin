@@ -1,5 +1,12 @@
 import {parse as parseYaml} from "yaml";
 import {parse as parseXml} from "txml/txml";
+import {arrayify} from "../utils/js-util.js";
+
+export function quickminGetClientMethod(conf, name) {
+    for (let clientModule of conf.clientModules)
+        if (clientModule[name])
+            return clientModule[name]
+}
 
 export function quickminCanonicalizeConf(conf) {
 	if (!conf)
@@ -10,6 +17,8 @@ export function quickminCanonicalizeConf(conf) {
 
     if (!conf.collections)
     	conf.collections={};
+
+    conf.clientImports=arrayify(conf.clientImports);
 
     for (let collectionId in conf.collections) {
     	let collectionConf=conf.collections[collectionId];
@@ -43,6 +52,8 @@ export function quickminMergeConf(conf1, conf2) {
 	conf1=quickminCanonicalizeConf(conf1);
 	conf2=quickminCanonicalizeConf(conf2);
 	let conf={...conf1,...conf2};
+
+	conf.clientImports=[...conf1.clientImports,...conf2.clientImports];
 
 	conf.collections={...conf1.collections,...conf2.collections};
 	for (let collectionId in conf.collections)

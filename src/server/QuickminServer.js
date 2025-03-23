@@ -13,6 +13,7 @@ import {loaderTemplate} from "../ui/loader-template.js";
 import packageInfo from "../build/package-info.js";
 import {Qql, QqlRestServer, QqlServer} from "qql";
 import {quickminCanonicalizeConf, quickminMergeConf} from "./quickmin-conf-util.js";
+import path from "path-browserify";
 
 export {quickminCanonicalizeConf, quickminMergeConf};
 
@@ -214,6 +215,23 @@ export class QuickminServer {
             });
         }
 
+        else if (argv[0]=="_static") {
+            if (!this.conf.static || !this.conf.fs)
+                throw new Error("No static dir");
+
+            let fn=path.join(this.conf.static,...argv.slice(1));
+            let data=this.conf.fs.readFileSync(fn);
+
+            let headers=new Headers();
+            headers.set("Access-Control-Allow-Origin","*");
+
+            if (fn.endsWith(".js"))
+                headers.set("content-type","text/javascript");
+
+            // todo: respond with correct mime type
+            return new Response(data,{headers});
+        }
+
         else if (argv[0]=="_dist" && this.distHandler) {
             return await this.distHandler(argv[1]);
 //            return new Response("hello");
@@ -282,6 +300,7 @@ export class QuickminServer {
                 collectionsSchema[cid]=this.collections[cid].getSchema();
 
             return Response.json({
+                clientImports: this.conf.clientImports,
                 collections: collectionsSchema,
                 cookie: this.conf.cookie,
                 requireAuth: true, //this.requireAuth,
