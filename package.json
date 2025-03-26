@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.80",
+  "version": "0.0.83",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
