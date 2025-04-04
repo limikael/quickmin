@@ -7,6 +7,7 @@ import {useInput} from "react-admin";
 import {searchParamsFromObject, makeNameFromSymbol} from "../utils/js-util.js";
 import {quickminGetClientMethod} from "../server/quickmin-conf-util.js";
 import {jsonSchemaCreateDefault} from "../utils/json-schema-util.js";
+import {useIsValueChangedJson} from "../utils/react-util.jsx";
 
 let __JSONEDITOR_CSS_ADDED=false;
 
@@ -26,7 +27,7 @@ function useJsonInputSchema({schema, schema_cb, conf, record}) {
         if (!method)
             throw new Error("Undefined client method: "+props.schema_cb);
 
-        schema=method();
+        schema=method({item: record});
     }
 
     if (typeof schema=="string")
@@ -41,19 +42,26 @@ export function JsonInput(props) {
         watchParams=undefined;
 
     let record=useWatch(watchParams);
-    //let watch=useWatch();
-    //console.log("render json input...",watch);
+    //console.log(record)
 
     useJsonEditorCss();
     let containerRef=useRef();
     let editorRef=useRef();
     let input=useInput({source: props.source});
     let schema=useJsonInputSchema({schema: props.schema, schema_cb: props.schema_cb, conf: props.conf, record});
-    console.log("render json input",record);
+    let schemaChanged=useIsValueChangedJson(schema);
+
+    if (schemaChanged && editorRef.current) {
+        console.log("updating schema",schema);
+        editorRef.current.setSchema(schema);
+    }
+
+    //console.log("render json input",record);
+    //console.log("schemaChange: "+schemaChanged);
 
     useLayoutEffect(()=>{
         if (!editorRef.current) {
-            //console.log("create json editor");
+            console.log("create json editor");
             let modes=["tree","text"];
             if (props.disabled)
                 modes=["view"];
@@ -68,7 +76,7 @@ export function JsonInput(props) {
                 enableTransform: false,
                 history: false,
                 schema: schema,
-                allowSchemaSuggestions: true,
+                //allowSchemaSuggestions: true,
                 onValidate(data) {
                     return null;
                 },

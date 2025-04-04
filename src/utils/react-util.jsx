@@ -60,3 +60,16 @@ export function useForceUpdate() {
         setValue({});
     },[]);
 }
+
+export function useIsValueChanged(val) {
+	let ref=useRef();
+	if (val==ref.current)
+		return false;
+
+	ref.current=val;
+	return true;
+}
+
+export function useIsValueChangedJson(val) {
+	return useIsValueChanged(JSON.stringify(val));
+}
