@@ -19,6 +19,9 @@ export function jsonEq(a,b) {
 }
 
 export function jsonClone(o) {
+	if (o===undefined)
+		return o;
+
 	return JSON.parse(JSON.stringify(o));
 }
 
@@ -130,4 +133,21 @@ export class DeclaredError extends Error {
 		super(...args);
 		this.declared=true;
 	}
+}
+
+export function objectRemoveUnknown(o, known) {
+	let res={};
+	for (let k in o)
+		if (known.includes(k))
+			res[k]=o[k];
+
+	return res;
+}
+
+export function arrayUnique(a) {
+	function onlyUnique(value, index, array) {
+		return array.indexOf(value) === index;
+	}
+
+	return a.filter(onlyUnique);
 }

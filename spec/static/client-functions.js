@@ -22,7 +22,8 @@ export function getJsonTestSchema({item}) {
 					"name": {
 			            "title": "The Name",
 						"description": "The name of the person",
-						"default": "micke"
+						"default": "micke",
+			            "type": "string",
 					}
 				}
 			}
@@ -40,8 +41,9 @@ export function getJsonTestSchema({item}) {
 		            },
 			        "data": {
 			            "description": "Should we do it?",
-			            "enum": [1,2,3,"something","somethingelse"],
-			            "default": 3
+			            "type": "string",
+			            "enum": ["1","2","3","something","somethingelse"],
+			            "default": "3"
 			        }
 		        }
 		    }
