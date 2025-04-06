@@ -1,23 +1,9 @@
 import {Typography } from '@mui/material';
 import {makeNameFromSymbol} from "../utils/js-util.js";
-import {FixingJsonEditor} from "./ReactJsonEditor.jsx";
+import JsonEditorReact from "./JsonEditorReact.jsx";
 import {quickminGetClientMethod} from "../server/quickmin-conf-util.js";
 import {useInput} from "react-admin";
 import {useWatch} from 'react-hook-form';
-import JSONEditor from "jsoneditor/dist/jsoneditor-minimalist.min.js";
-import JSONEDITOR_CSS from "inline:../../tmp/jsoneditor.css";
-
-let __JSONEDITOR_CSS_ADDED=false;
-
-function useJsonEditorCss() {
-    if (!__JSONEDITOR_CSS_ADDED) {
-        let styleSheet=document.createElement("style");
-        styleSheet.innerText=JSONEDITOR_CSS;
-        document.head.appendChild(styleSheet)
-
-        __JSONEDITOR_CSS_ADDED=true;
-    }
-}
 
 function useJsonInputSchema({schema, schema_cb, conf, record}) {
     if (schema_cb) {
@@ -35,15 +21,14 @@ function useJsonInputSchema({schema, schema_cb, conf, record}) {
 }
 
 export function JsonInput(props) {
-    useJsonEditorCss();
-
-    let input=useInput({source: props.source});
-
     let watchParams={name: []};
     if (props.schema_cb)
         watchParams=undefined;
 
     let record=useWatch(watchParams);
+    let input=useInput({source: props.source});
+    //console.log("input",input);
+
     let schema=useJsonInputSchema({
         schema: props.schema, 
         schema_cb: props.schema_cb, 
@@ -51,22 +36,24 @@ export function JsonInput(props) {
         record
     });
 
+    // I want {} to be the default, it was before, not 100% sure why needed.
+    let value=input.field.value;
+    if (value==="")
+    	value={};
+
 	function handleChange(v) {
-        setTimeout(()=>{
-            input.field.onChange(v);
-        },0);
+        input.field.onChange(v);
 	}
 
     return (<>
         <Typography color="text.secondary" sx={{fontSize: "12px"}}>
             {makeNameFromSymbol(props.id)}
         </Typography>
-        <FixingJsonEditor 
+        <JsonEditorReact 
                 style="width: 100%; margin-bottom: 12px"
         		name={props.id}
-	        	value={input.field.value}
+	        	value={value}
                 schema={schema}
-	        	onChange={handleChange}
-                JSONEditor={JSONEditor}/>
+	        	onChange={handleChange}/>
     </>);
 }
