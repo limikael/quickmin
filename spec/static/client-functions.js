@@ -1,18 +1,10 @@
 export async function testMethod({id, qql}) {
+	await new Promise(r=>setTimeout(r,1000));
 	console.log("checking stuff: "+id);
 }
 
 export function getJsonTestSchema({item}) {
-/*			return {
-				"type": "object",
-				"properties": {
-					"name": {
-			            "title": "The Name",
-						"description": "The name of the person",
-						"default": "micke"
-					}
-				}
-			}*/
+	console.log("getting schema",item);
 
 	switch (item.jsontype) {
 		case "person":

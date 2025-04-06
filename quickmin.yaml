@@ -46,7 +46,7 @@ collections:
       <Date id="published" listable condition='{"status":"published"}' tab="publication"/>
       <DateTime id="updated" listable/>
       <Select id="jsontype" choices="person,thing,plant" default="person"/>
-      <Json id="jsontest" schema_cb="getJsonTestSchema"/>
+      <Json id="jsontest" schema_cb="getJsonTestSchema" dep="jsontype"/>
       <RichText id="content" fullWidth />
 
   my_posts:

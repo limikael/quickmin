@@ -19,13 +19,43 @@ function useJsonEditorCss() {
     }
 }
 
-function useJsonInputSchema({schema, schema_cb, conf, record}) {
-    if (schema_cb) {
-        let method=quickminGetClientMethod(conf,schema_cb);
+// ["hello"] => a record with hello
+// [] => an empty record
+// undefined => the whole record
+function useDepRecord(deps) {
+    let watchParams;
+    if (Array.isArray(deps))
+        watchParams={name: deps};
+
+    let record=useWatch(watchParams);
+    if (Array.isArray(deps)) {
+        record=Object.fromEntries(
+            [...Array(deps.length).keys()].map(i=>[deps[i],record[i]])
+        )
+    }
+
+    return record;
+}
+
+function useJsonInputSchema(props) {
+    let dep=[];
+    if (props.schema_cb) {
+        if (props.dep)
+            dep=props.dep.split(",").map(s=>s.trim());
+
+        else
+            dep=undefined;
+    }
+
+    let depRecord=useDepRecord(dep);
+
+    let schema=props.schema;
+    if (props.schema_cb) {
+        let method=quickminGetClientMethod(props.conf,props.schema_cb);
         if (!method)
             throw new Error("Undefined client method: "+props.schema_cb);
 
-        schema=method({item: record});
+        schema=method({item: depRecord});
     }
 
     if (typeof schema=="string")
@@ -38,24 +68,17 @@ export function JsonInput(props) {
     useJsonEditorCss();
 
     let input=useInput({source: props.source});
-
-    let watchParams={name: []};
-    if (props.schema_cb)
-        watchParams=undefined;
-
-    let record=useWatch(watchParams);
-    let schema=useJsonInputSchema({
-        schema: props.schema, 
-        schema_cb: props.schema_cb, 
-        conf: props.conf, 
-        record
-    });
+    let schema=useJsonInputSchema(props);
 
 	function handleChange(v) {
+        input.field.onChange(v);
+	}
+
+    function handleImmediateChange(v) {
         setTimeout(()=>{
             input.field.onChange(v);
         },0);
-	}
+    }
 
     return (<>
         <Typography color="text.secondary" sx={{fontSize: "12px"}}>
@@ -67,6 +90,7 @@ export function JsonInput(props) {
 	        	value={input.field.value}
                 schema={schema}
 	        	onChange={handleChange}
+                onImmediateChange={handleImmediateChange}
                 JSONEditor={JSONEditor}/>
     </>);
 }
