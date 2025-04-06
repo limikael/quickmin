@@ -7,8 +7,8 @@ adminPass: "admin"
 #apiPath: "admin"
 upload: "upload"
 oauthHostname: localhost
-static: spec/static
-clientImports: _static/client-functions.js
+#static: spec/static
+#clientImports: _static/client-functions.js
 googleClientId: "873713985278-rn59ha657823mq55rdjuslebfbuv3g7q.apps.googleusercontent.com"
 googleClientSecret: "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"
 
