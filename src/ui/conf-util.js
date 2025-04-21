@@ -60,6 +60,16 @@ export function collectionGetTabs(collection) {
     return arrayOnlyUnique(tabs);
 }
 
+export function collectionGetSectionsForTab(collection, tab) {
+    let sections=[];
+    for (let field of Object.values(collection.fields)) {
+        if (field.tab==tab)
+            sections.push(field.section);
+    }
+
+    return arrayOnlyUnique(sections);
+}
+
 export function collectionGetVisibleTabs(collection, watchRecord) {
     let tabs=[];
     for (let field of Object.values(collection.fields)) {

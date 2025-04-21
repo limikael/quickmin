@@ -45,8 +45,8 @@ collections:
       <Select id="status" choices="draft,published" listable tab="publication" filter/>
       <Date id="published" listable condition='{"status":"published"}' tab="publication"/>
       <DateTime id="updated" listable/>
-      <Select id="jsontype" choices="person,thing,plant" default="person"/>
-      <Json id="jsontest" schema_cb="getJsonTestSchema" dep="jsontype"/>
+      <Select id="jsontype" choices="person,thing,plant" default="person" section="JSON"/>
+      <Json id="jsontest" schema_cb="getJsonTestSchema" dep="jsontype" section="JSON"/>
       <RichText id="content" fullWidth />
 
   my_posts:
@@ -61,9 +61,9 @@ collections:
     icon: article
     fields:
       <Text id="slug" listable/>
-      <Text id="title" fullWidth listable/>
+      <Text id="title" fullWidth listable section="title and content"/>
       <Reference id="author" reference="users" listable/>
-      <RichText id="content" fullWidth/>
+      <RichText id="content" fullWidth section="title and content"/>
 
   profile:
     category: profile

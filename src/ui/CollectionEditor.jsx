@@ -10,7 +10,7 @@ import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
 import {matchCondition, collectionGetTabs, collectionHasUntabbed, confIsCollectionWritable,
-    collectionGetVisibleTabs} from "./conf-util.js";
+    collectionGetVisibleTabs, collectionGetSectionsForTab} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
 
@@ -77,7 +77,7 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     );
 }
 
-function CollectionEditorFields({collection, conf, tab, watchRecord}) {
+function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
     let fieldContent=[];
     for (let fid in collection.fields) {
         let f={...collection.fields[fid]};
@@ -90,6 +90,9 @@ function CollectionEditorFields({collection, conf, tab, watchRecord}) {
             matched=matchCondition(watchRecord,JSON.parse(f.condition));
 
         if (f.tab!=tab)
+            matched=false;
+
+        if (f.section!=section)
             matched=false;
 
         if (/*!f.hidden &&*/ matched) {
@@ -105,6 +108,42 @@ function CollectionEditorFields({collection, conf, tab, watchRecord}) {
     }
 
     return fieldContent;
+}
+
+function SectionHeader({section}) {
+    if (!section)
+        return;
+
+    let style={
+        color: "#2196F3",
+        marginTop: "1rem",
+        marginBottom: "1rem",
+        borderBottom: "1px solid #2196F3",
+        fontWeight: "bold",
+        width: "100%"
+    }
+
+    return (
+        <div style={style}>
+            {section}
+        </div>
+    );
+}
+
+function CollectionEditorFieldsSections({collection, watchRecord, conf, tab}) {
+    return (<>
+        {collectionGetSectionsForTab(collection, tab).map(section=>
+            <>
+                <SectionHeader section={section}/>
+                <CollectionEditorFields
+                        collection={collection}
+                        watchRecord={watchRecord}
+                        conf={conf}
+                        tab={tab}
+                        section={section}/>
+            </>
+        )}
+    </>);
 }
 
 function CollectionFormView({collection, mode, redirect, conf}) {
@@ -126,7 +165,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
             <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
                 {collectionHasUntabbed(collection) &&
                     <TabbedForm.Tab label={singular(collection.id)}>
-                        <CollectionEditorFields 
+                        <CollectionEditorFieldsSections 
                                 watchRecord={watchRecord}
                                 collection={collection} 
                                 conf={conf}/>
@@ -134,7 +173,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
                 }
                 {visibleTabs.map(tab=>
                     <TabbedForm.Tab label={tab}>
-                        <CollectionEditorFields 
+                        <CollectionEditorFieldsSections 
                                 watchRecord={watchRecord}
                                 collection={collection} 
                                 conf={conf} 
@@ -148,10 +187,10 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     else {
         return (
             <SimpleFormView toolbar={toolbar}>
-                <CollectionEditorFields
-                        collection={collection}
-                        conf={conf}
-                        watchRecord={watchRecord}/>
+                <CollectionEditorFieldsSections
+                            watchRecord={watchRecord}
+                            collection={collection}
+                            conf={conf}/>
             </SimpleFormView>
         );
     }
