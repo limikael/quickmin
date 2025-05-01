@@ -30,13 +30,18 @@ collections:
 
   posts:
     helperText: "Here are some posts..."
-    access: admin
-    readAccess: public
+#    access: [public,user,admin]
+#    readAccess: [public,user,admin]
     category: content
     icon: text_snippet
+    policies:
+    - roles: user
+      where:
+        author: $uid
+    - roles: admin
     actions:
-      - name: test action
-        method: testMethod
+    - name: test action
+      method: testMethod
     fields: |
       <Text id="title" fullWidth listable/>
       <Image id="image" tab="image" listable/>
@@ -67,7 +72,7 @@ collections:
 
   profile:
     category: profile
-    access: user
+#    access: user
     singleFrom: users
     exclude: [posts,pages]
     where:
@@ -75,7 +80,7 @@ collections:
 
   about_me:
     category: profile
-    access: user
+#    access: user
     singleFrom: pages
     where:
       author: $uid

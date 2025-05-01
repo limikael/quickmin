@@ -78,6 +78,8 @@ export default class Collection {
 
             return true;
         });
+
+        this.policies=conf.policies;
     }
 
     constructView(conf) {
@@ -200,11 +202,13 @@ export default class Collection {
             def={
                 fields: fieldDefs
             };
+
+            def.access=this.access;
+            def.readAccess=this.readAccess;
+            def.policies=this.policies;
         }
 
-        def.recordRepresentation=this.recordRepresentation;
-        def.access=this.access;
-        def.readAccess=this.readAccess;
+        //def.recordRepresentation=this.recordRepresentation;
 
         return def;
     }
