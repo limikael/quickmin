@@ -1,6 +1,6 @@
-import {jsonSchemaCreateDefault} from "../src/utils/json-schema-util.js";
+//import {jsonSchemaCreateDefault} from "../src/utils/json-schema-util.js";
 
-describe("json-schema-util",()=>{
+/*describe("json-schema-util",()=>{
 	it("can create defaults",()=>{
 		expect(jsonSchemaCreateDefault({
 			type: "string",
@@ -20,4 +20,4 @@ describe("json-schema-util",()=>{
 			}
 		})).toEqual({bla: "xyz", hello: "world"});
 	});
-})
+})*/

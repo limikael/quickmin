@@ -8,6 +8,48 @@ export function quickminGetClientMethod(conf, name) {
             return clientModule[name]
 }
 
+export function parseArrayOrCsvRow(row) {
+    if (row===undefined)
+        return [];
+
+    if (Array.isArray(row))
+    	return row;
+
+    return String(row).split(",").filter(s=>s!=="").map(s=>s.trim());
+}
+
+function canonicalizePolicy(policy) {
+	policy.roles=parseArrayOrCsvRow(policy.roles);
+	policy.operations=parseArrayOrCsvRow(policy.operations);
+}
+
+function canonicalizeCollectionConf(collectionConf) {
+	if (typeof collectionConf.fields=="string") {
+        let fieldConf={};
+        let fieldEls=parseXml(collectionConf.fields);
+        for (let fieldEl of fieldEls) {
+        	if (!fieldEl.attributes.id)
+        		throw new Error("Field missing id: "+JSON.stringify(fieldEl));
+
+            for (let k in fieldEl.attributes)
+                if (fieldEl.attributes[k]===null)
+                    fieldEl.attributes[k]=true;
+
+        	fieldConf[fieldEl.attributes.id]={
+        		type: fieldEl.tagName.toLowerCase(),
+        		...fieldEl.attributes
+        	}
+        }
+
+        collectionConf.fields=fieldConf;
+        if (!collectionConf.policies)
+        	collectionConf.policies=[];
+
+        for (let i=0; i<collectionConf.policies.length; i++)
+        	canonicalizePolicy(collectionConf.policies[i]);
+	}
+}
+
 export function quickminCanonicalizeConf(conf) {
 	if (!conf)
 		conf={};
@@ -20,29 +62,8 @@ export function quickminCanonicalizeConf(conf) {
 
     conf.clientImports=arrayify(conf.clientImports);
 
-    for (let collectionId in conf.collections) {
-    	let collectionConf=conf.collections[collectionId];
-
-    	if (typeof collectionConf.fields=="string") {
-	        let fieldConf={};
-	        let fieldEls=parseXml(collectionConf.fields);
-	        for (let fieldEl of fieldEls) {
-	        	if (!fieldEl.attributes.id)
-	        		throw new Error("Field missing id: "+JSON.stringify(fieldEl));
-
-	            for (let k in fieldEl.attributes)
-	                if (fieldEl.attributes[k]===null)
-	                    fieldEl.attributes[k]=true;
-
-	        	fieldConf[fieldEl.attributes.id]={
-	        		type: fieldEl.tagName.toLowerCase(),
-	        		...fieldEl.attributes
-	        	}
-	        }
-
-	        collectionConf.fields=fieldConf;
-    	}
-    }
+    for (let collectionId in conf.collections)
+    	canonicalizeCollectionConf(conf.collections[collectionId]);
 
     //console.log(conf.collections);
     return conf;
