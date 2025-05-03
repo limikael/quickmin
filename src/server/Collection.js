@@ -1,4 +1,4 @@
-import {jsonClone, jsonEq, arrayDifference, arrayIntersection, arrayify} from "../utils/js-util.js";
+import {jsonClone, jsonEq, arrayDifference, arrayIntersection, arrayify, arrayUnique} from "../utils/js-util.js";
 import {getFieldContentFiles} from "./collection-util.js";
 
 let QQL_TYPES={
@@ -23,18 +23,13 @@ export default class Collection {
 		this.id=id;
         this.server=server;
 
-        if (!conf.access && !conf.readAccess) {
-            conf.access="admin";
-            conf.readAccess="public";
-        }
-
-        this.access=arrayify(conf.access);
-        this.readAccess=[...this.access,...arrayify(conf.readAccess)];
         this.helperText=conf.helperText;
         this.recordRepresentation=conf.recordRepresentation;
         this.actions=conf.actions;
         this.category=conf.category;
         this.icon=conf.icon;
+        this.hideFor=conf.hideFor;
+        this.showFor=conf.showFor;
 
         if (!this.actions)
             this.actions=[];
@@ -112,19 +107,43 @@ export default class Collection {
         this.listFields=arrayIntersection(this.include,this.getCollection().listFields);
     }
 
+    getAccess() {
+        let policies=this.getCollection().policies;
+        let roles=[];
+        for (let policy of policies)
+            if (policy.operations.includes("create") ||
+                    policy.operations.includes("update") ||
+                    policy.operations.includes("delete"))
+                roles.push(...policy.roles);
+
+        return arrayUnique(roles);
+    }
+
+    getReadAccess() {
+        let policies=this.getCollection().policies;
+        let roles=[];
+        for (let policy of policies)
+            if (policy.operations.includes("read"))
+                roles.push(...policy.roles);
+
+        return arrayUnique(roles);
+    }
+
 	getSchema() {
 		return {
 			id: this.id,
             type: this.type,
         	fields: this.fields,
         	listFields: this.listFields,
-            access: this.access,
-            readAccess: this.readAccess,
+            access: this.getAccess(),
+            readAccess: this.getReadAccess(),
             helperText: this.helperText,
             recordRepresentation: this.recordRepresentation,
             actions: this.actions,
             category: this.category,
-            icon: this.icon
+            icon: this.icon,
+            showFor: this.showFor,
+            hideFor: this.hideFor
 		}
 	}
 
@@ -203,8 +222,8 @@ export default class Collection {
                 fields: fieldDefs
             };
 
-            def.access=this.access;
-            def.readAccess=this.readAccess;
+            /*def.access=this.access;
+            def.readAccess=this.readAccess;*/
             def.policies=this.policies;
         }
 

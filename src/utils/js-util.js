@@ -102,14 +102,6 @@ export function arrayIntersection(a, b) {
 	return a.filter(item=>b.includes(item));
 }
 
-export function arrayOnlyUnique(a) {
-	function onlyUnique(value, index, array) {
-		return array.indexOf(value) === index;
-	}
-
-	return a.filter(onlyUnique);
-}
-
 export function arrayify(cand) {
     if (!cand)
         return [];

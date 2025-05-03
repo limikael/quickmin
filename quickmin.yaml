@@ -19,6 +19,13 @@ collections:
   users:
     icon: person
     recordRepresentation: name
+    policies:
+    - roles: admin
+    - roles: user
+      operations: read
+    - roles: user
+      where:
+        id: $uid
     fields:
       <Text id="name" username listable default="micke"/>
       <Boolean id="nice" notnull default="true"/>
@@ -30,8 +37,6 @@ collections:
 
   posts:
     helperText: "Here are some posts..."
-#    access: [public,user,admin]
-#    readAccess: [public,user,admin]
     category: content
     icon: text_snippet
     policies:
@@ -39,6 +44,8 @@ collections:
       where:
         author: $uid
     - roles: admin
+    - roles: user
+      operations: read
     actions:
     - name: test action
       method: testMethod
@@ -55,7 +62,6 @@ collections:
       <RichText id="content" fullWidth />
 
   my_posts:
-    access: user
     from: posts
     where:
       author: $uid
@@ -64,6 +70,10 @@ collections:
     helperText: "Here are some pages..."
     category: content
     icon: article
+    policies:
+    - roles: admin
+    - roles: user
+      operations: read
     fields:
       <Text id="slug" listable/>
       <Text id="title" fullWidth listable section="title and content"/>
@@ -71,8 +81,8 @@ collections:
       <RichText id="content" fullWidth section="title and content"/>
 
   profile:
+    hideFor: admin
     category: profile
-#    access: user
     singleFrom: users
     exclude: [posts,pages]
     where:
@@ -80,7 +90,6 @@ collections:
 
   about_me:
     category: profile
-#    access: user
     singleFrom: pages
     where:
       author: $uid

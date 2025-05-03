@@ -1,5 +1,5 @@
-import {confGetCategories, confGetCategoryByCollection,
-        collectionGetPath, confGetReadableCollections, confGetReadableCollectionsByCategory} from "./conf-util.js";
+import {confGetCategoryByCollection, collectionGetPath, 
+        confGetVisibleCollections, confGetVisibleCollectionsByCategory} from "./conf-util.js";
 import {Admin, Layout, Menu, Resource, MenuItemLink, useResourceContext} from 'react-admin';
 import {makeNameFromSymbol, splitPath} from "../utils/js-util.js";
 import {useLocation} from "react-router";
@@ -27,7 +27,7 @@ function CategoryMenuItems({conf, category}) {
     let currentResourceId=splitPath(useLocation().pathname)[0];
     let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
 
-    let collections=confGetReadableCollectionsByCategory(conf,category);
+    let collections=confGetVisibleCollectionsByCategory(conf,category);
     if (!collections.length)
         return [];
 
@@ -45,7 +45,7 @@ function CategoryMenuItems({conf, category}) {
     );
 
     if (category==currentCategoryId) {
-        for (let collection of confGetReadableCollectionsByCategory(conf,category))
+        for (let collection of confGetVisibleCollectionsByCategory(conf,category))
             menuItems.push(
                 <CollectionMenuItem
                         conf={conf} 
@@ -63,13 +63,12 @@ export default function QuickminLayout({conf, ...props}) {
     menuItems.push(<Menu.DashboardItem/>);
 
     let currentResourceId=splitPath(useLocation().pathname)[0];
-    let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
+    //let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
 
     let renderedCategories=[];
-    for (let collection of confGetReadableCollections(conf)) {
+    for (let collection of confGetVisibleCollections(conf)) {
         if (collection.category) {
-            if (!renderedCategories.includes(collection.category)
-                    && collection.category!="hidden") {
+            if (!renderedCategories.includes(collection.category)) {
                 renderedCategories.push(collection.category);
                 menuItems.push(
                     <CategoryMenuItems

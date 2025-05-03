@@ -4,7 +4,7 @@ import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton,
     SelectInput, BooleanInput} from "react-admin";
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
-import {jsonClone, arrayOnlyUnique, urlGetParams, makeNameFromSymbol} from "../utils/js-util.js";
+import {jsonClone, arrayUnique, urlGetParams, makeNameFromSymbol} from "../utils/js-util.js";
 import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
@@ -34,7 +34,7 @@ function useWatchRecord(collection) {
             conditionDeps.push(...Object.keys(JSON.parse(field.condition)));
     }
 
-    conditionDeps=arrayOnlyUnique(conditionDeps);
+    conditionDeps=arrayUnique(conditionDeps);
     let watch=useWatch({name: conditionDeps});
     let watchRecord=Object.fromEntries(
         [...Array(conditionDeps.length).keys()].map(i=>[conditionDeps[i],watch[i]])

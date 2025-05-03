@@ -21,6 +21,8 @@ export function parseArrayOrCsvRow(row) {
 function canonicalizePolicy(policy) {
 	policy.roles=parseArrayOrCsvRow(policy.roles);
 	policy.operations=parseArrayOrCsvRow(policy.operations);
+    if (!policy.operations.length)
+        policy.operations=["create","read","update","delete"];
 }
 
 function canonicalizeCollectionConf(collectionConf) {
@@ -42,12 +44,16 @@ function canonicalizeCollectionConf(collectionConf) {
         }
 
         collectionConf.fields=fieldConf;
-        if (!collectionConf.policies)
-        	collectionConf.policies=[];
-
-        for (let i=0; i<collectionConf.policies.length; i++)
-        	canonicalizePolicy(collectionConf.policies[i]);
 	}
+
+    if (!collectionConf.policies)
+        collectionConf.policies=[];
+
+    for (let i=0; i<collectionConf.policies.length; i++)
+        canonicalizePolicy(collectionConf.policies[i]);
+
+    collectionConf.hideFor=parseArrayOrCsvRow(collectionConf.hideFor);
+    collectionConf.showFor=parseArrayOrCsvRow(collectionConf.showFor);
 }
 
 export function quickminCanonicalizeConf(conf) {

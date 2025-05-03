@@ -1,14 +1,32 @@
-import {arrayOnlyUnique} from "../utils/js-util.js";
+import {arrayUnique} from "../utils/js-util.js";
 
-export function confGetCategories(conf) {
-    let categories=[];
-    for (let cid in conf.collections) {
-        let collection=conf.collections[cid];
-        if (collection.category && !categories.includes(collection.category))
-            categories.push(collection.category);
-    }
+export function confIsCollectionVisible(conf, collectionId) {
+    let collection=conf.collections[collectionId];
 
-    return categories;
+    if (!collection.readAccess.includes(conf.role))
+        return false;
+
+    if (collection.showFor.length && collection.showFor.includes(conf.role))
+        return true;
+
+    if (collection.hideFor.length && collection.hideFor.includes(conf.role))
+        return false;
+
+    return true;
+}
+
+export function confGetVisibleCollections(conf) {
+    return (
+        confGetCollections(conf)
+            .filter(collection=>confIsCollectionVisible(conf,collection.id))
+    )
+}
+
+export function confGetVisibleCollectionsByCategory(conf, category) {
+    return (
+        confGetVisibleCollections(conf)
+            .filter(collection=>collection.category==category)
+    )
 }
 
 export function confGetCategoryByCollection(conf, collectionId) {
@@ -28,20 +46,6 @@ export function confGetCollections(conf) {
     return Object.keys(conf.collections).map(id=>conf.collections[id]);
 }
 
-export function confGetReadableCollections(conf) {
-    return (
-        confGetCollections(conf)
-            .filter(collection=>collection.readAccess.includes(conf.role))
-    )
-}
-
-export function confGetReadableCollectionsByCategory(conf, category) {
-    return (
-        confGetReadableCollections(conf)
-            .filter(collection=>collection.category==category)
-    )
-}
-
 export function collectionGetPath(collection) {
     let to="/"+collection.id;
     if (collection.type=="singleView")
@@ -57,7 +61,7 @@ export function collectionGetTabs(collection) {
             tabs.push(field.tab);
     }
 
-    return arrayOnlyUnique(tabs);
+    return arrayUnique(tabs);
 }
 
 export function collectionGetSectionsForTab(collection, tab) {
@@ -67,7 +71,7 @@ export function collectionGetSectionsForTab(collection, tab) {
             sections.push(field.section);
     }
 
-    return arrayOnlyUnique(sections);
+    return arrayUnique(sections);
 }
 
 export function collectionGetVisibleTabs(collection, watchRecord) {
@@ -81,7 +85,7 @@ export function collectionGetVisibleTabs(collection, watchRecord) {
             tabs.push(field.tab);
     }
 
-    return arrayOnlyUnique(tabs);
+    return arrayUnique(tabs);
 }
 
 export function collectionHasUntabbed(collection) {
