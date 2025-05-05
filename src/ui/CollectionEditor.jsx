@@ -9,7 +9,7 @@ import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
-import {matchCondition, collectionHasUntabbed, collectionGetVisibleTabs} from "./conf-util.js";
+import {matchCondition} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
 
@@ -156,12 +156,12 @@ function CollectionFormView({collection, mode, redirect, conf}) {
                 redirect={redirect}/>
     )
 
-    let tabs=collection.getTabs(); //collection);
-    let visibleTabs=collectionGetVisibleTabs(collection,watchRecord);
+    let tabs=collection.getTabs();
+    let visibleTabs=collection.getVisibleTabs(watchRecord);
     if (tabs.length>0) {
         return (
             <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
-                {collectionHasUntabbed(collection) &&
+                {collection.hasUntabbed() &&
                     <TabbedForm.Tab label={singular(collection.id)}>
                         <CollectionEditorFieldsSections 
                                 watchRecord={watchRecord}

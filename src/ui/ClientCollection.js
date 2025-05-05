@@ -1,4 +1,5 @@
 import {arrayUnique} from "../utils/js-util.js";
+import {matchCondition} from "./conf-util.js";
 
 export default class ClientCollection {
 	constructor(data, conf) {
@@ -50,4 +51,25 @@ export default class ClientCollection {
 	    return arrayUnique(sections);
 	}
 
+	getVisibleTabs(watchRecord) {
+	    let tabs=[];
+	    for (let field of Object.values(this.fields)) {
+	        let matched=true;
+	        if (field.condition)
+	            matched=matchCondition(watchRecord,JSON.parse(field.condition));
+
+	        if (field.tab && matched)
+	            tabs.push(field.tab);
+	    }
+
+	    return arrayUnique(tabs);
+	}
+
+	hasUntabbed() {
+	    for (let field of Object.values(this.fields))
+	        if (!field.tab)
+	            return true;
+
+	    return false;
+	}
 }
