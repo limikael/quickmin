@@ -1,5 +1,3 @@
-import {confGetCategoryByCollection, collectionGetPath, 
-        confGetVisibleCollections, confGetVisibleCollectionsByCategory} from "./conf-util.js";
 import {Admin, Layout, Menu, Resource, MenuItemLink, useResourceContext} from 'react-admin';
 import {makeNameFromSymbol, splitPath} from "../utils/js-util.js";
 import {useLocation} from "react-router";
@@ -16,7 +14,7 @@ function CollectionIcon({collection}) {
 function CollectionMenuItem({conf, collection, ...props}) {
     return (
         <Menu.Item 
-                to={collectionGetPath(collection)} 
+                to={collection.getPath()} 
                 primaryText={makeNameFromSymbol(collection.id)} 
                 leftIcon={<CollectionIcon collection={collection}/>}
                 {...props}/>
@@ -25,9 +23,12 @@ function CollectionMenuItem({conf, collection, ...props}) {
 
 function CategoryMenuItems({conf, category}) {
     let currentResourceId=splitPath(useLocation().pathname)[0];
-    let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
+    let currentCategoryId;
 
-    let collections=confGetVisibleCollectionsByCategory(conf,category);
+    if (currentResourceId && conf.collections[currentResourceId])
+        currentCategoryId=conf.collections[currentResourceId].category;
+
+    let collections=conf.getVisibleCollectionsByCategory(category);
     if (!collections.length)
         return [];
 
@@ -38,14 +39,14 @@ function CategoryMenuItems({conf, category}) {
     let menuItems=[];
     menuItems.push(
         <Menu.Item 
-                to={collectionGetPath(collections[0])}
+                to={collections[0].getPath()}
                 primaryText={makeNameFromSymbol(category)}
                 leftIcon={<CollectionIcon collection={collections[0]}/>}
                 sx={sx}/>
     );
 
     if (category==currentCategoryId) {
-        for (let collection of confGetVisibleCollectionsByCategory(conf,category))
+        for (let collection of conf.getVisibleCollectionsByCategory(category))
             menuItems.push(
                 <CollectionMenuItem
                         conf={conf} 
@@ -63,10 +64,9 @@ export default function QuickminLayout({conf, ...props}) {
     menuItems.push(<Menu.DashboardItem/>);
 
     let currentResourceId=splitPath(useLocation().pathname)[0];
-    //let currentCategoryId=confGetCategoryByCollection(conf,currentResourceId);
 
     let renderedCategories=[];
-    for (let collection of confGetVisibleCollections(conf)) {
+    for (let collection of conf.getVisibleCollections()) {
         if (collection.category) {
             if (!renderedCategories.includes(collection.category)) {
                 renderedCategories.push(collection.category);

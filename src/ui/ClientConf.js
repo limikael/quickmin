@@ -96,8 +96,12 @@ export default class ClientConf extends EventTarget {
 	}
 
 	getVisibleCollections() {
-		return this.getCollections().map(c=>c.isVisible());
+		return this.getCollections().filter(c=>c.isVisible());
 	}
+
+    getVisibleCollectionsByCategory(category) {
+    	return this.getVisibleCollections().filter(c=>c.category==category);
+    }
 }
 
 export function useQuickminConf(apiUrl) {

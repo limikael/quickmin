@@ -4,7 +4,6 @@ import Typography from '@mui/material/Typography';
 import {Button, CardContent, Link, CardActions} from '@mui/material';
 import {fetchEx, makeNameFromSymbol} from "../utils/js-util.js";
 import {Title} from 'react-admin';
-import {confGetVisibleCollections} from "./conf-util.js";
 
 function DashboardItem({collection}) {
     let link="#/"+collection.id;
@@ -44,7 +43,8 @@ function DashboardItem({collection}) {
 
 export default function QuickminDashboard({conf}) {
     let dashboardItems=[];
-    for (let collection of confGetVisibleCollections(conf)) {
+
+    for (let collection of conf.getVisibleCollections()) {
         if (collection.helperText) {
             dashboardItems.push(
                 <DashboardItem collection={collection}/>

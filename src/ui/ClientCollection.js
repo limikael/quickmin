@@ -21,5 +21,6 @@ export default class ClientCollection {
 	    if (this.hideFor.length && this.hideFor.includes(this.conf.role))
 	        return false;
 
+		return true;
 	}
 }
