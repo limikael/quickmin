@@ -1,11 +1,5 @@
 import {arrayUnique} from "../utils/js-util.js";
 
-export function confIsCollectionWritable(conf, collectionId) {
-    let collection=conf.collections[collectionId];
-
-    return collection.access.includes(conf.role);
-}
-
 export function collectionGetTabs(collection) {
     let tabs=[];
     for (let field of Object.values(collection.fields)) {

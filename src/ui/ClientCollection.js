@@ -23,4 +23,8 @@ export default class ClientCollection {
 
 		return true;
 	}
+
+	isWritable() {
+	    return this.access.includes(this.conf.role);
+	}
 }

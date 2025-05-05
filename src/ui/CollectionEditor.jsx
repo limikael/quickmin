@@ -9,7 +9,7 @@ import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
-import {matchCondition, collectionGetTabs, collectionHasUntabbed, confIsCollectionWritable,
+import {matchCondition, collectionGetTabs, collectionHasUntabbed,
     collectionGetVisibleTabs, collectionGetSectionsForTab} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
@@ -63,8 +63,7 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     }
 
     toolbarItems.push(<div style="flex-grow: 1"></div>);
-    if (collection.type!="singleView" &&
-            confIsCollectionWritable(conf,collection.id))
+    if (collection.type!="singleView" && collection.isWritable())
         toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
     return (
@@ -82,7 +81,7 @@ function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
     for (let fid in collection.fields) {
         let f={...collection.fields[fid]};
 
-        if (!confIsCollectionWritable(conf,collection.id))
+        if (!collection.isWritable())
             f.disabled=true;
 
         let matched=true;
