@@ -20,11 +20,10 @@ export function jsonSchemaFix(schema, value) {
 			if (value===undefined)
 				value=schema.default;
 
-			return Number(value);
 			if (schema.enum && !schema.enum.includes(value))
 				value=schema.default;
 
-			return value;
+			return Number(value);
 			break;
 
 		case "boolean":

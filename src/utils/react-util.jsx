@@ -1,5 +1,4 @@
 import {useEffect, useState, useMemo, useRef, useCallback, useLayoutEffect} from "preact/compat";
-import {fetchEx} from "./js-util.js";
 
 export function useAsyncMemo(fn, deps) {
 	let [val,setVal]=useState();

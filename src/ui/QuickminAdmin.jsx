@@ -1,7 +1,7 @@
 import {Admin, Resource} from 'react-admin';
 import {useState, render} from "react";
-import {useQuickminConf} from "./use-quickmin-conf.jsx";
-import {confGetCollections} from "./conf-util.js";
+import {useQuickminConf} from "./ClientConf.js";
+//import {confGetCollections} from "./conf-util.js";
 import QuickminLogin from "./QuickminLogin.jsx";
 import QuickminDashboard from "./QuickminDashboard.jsx";
 import QuickminLayout from "./QuickminLayout.jsx";
@@ -11,12 +11,28 @@ import CollectionEditor from "./CollectionEditor.jsx";
 function QuickminAdmin({api, onload}) {
     let [onloadCalled,setOnloadCalled]=useState();
     let conf=useQuickminConf(api);
-    if (!conf)
+    console.log("render qm, loading="+conf.isLoading()+" role="+conf.role);
+
+    if (conf.isLoading())
         return;
 
     if (!onloadCalled) {
         setOnloadCalled(true);
         onload();
+    }
+
+    if (conf.isError()) {
+        let errorStyle={
+            textAlign: "center",
+            color: "#ff0000",
+            position: "fixed",
+            width: "100%",
+            bottom: "50%"
+        }
+
+        return (<>
+            <div style={errorStyle}>{conf.error.message}</div>
+        </>);
     }
 
     return (<>
@@ -26,7 +42,7 @@ function QuickminAdmin({api, onload}) {
                 loginPage={<QuickminLogin conf={conf}/>}
                 layout={(props)=><QuickminLayout conf={conf} {...props}/>}
                 dashboard={()=><QuickminDashboard conf={conf}/>}>
-            {confGetCollections(conf).map(collection=>
+            {conf.getCollections().map(collection=>
                 <Resource
                         name={collection.id}
                         key={collection.id}
