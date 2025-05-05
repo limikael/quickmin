@@ -1,25 +1,5 @@
 import {arrayUnique} from "../utils/js-util.js";
 
-export function collectionGetTabs(collection) {
-    let tabs=[];
-    for (let field of Object.values(collection.fields)) {
-        if (field.tab)
-            tabs.push(field.tab);
-    }
-
-    return arrayUnique(tabs);
-}
-
-export function collectionGetSectionsForTab(collection, tab) {
-    let sections=[];
-    for (let field of Object.values(collection.fields)) {
-        if (field.tab==tab)
-            sections.push(field.section);
-    }
-
-    return arrayUnique(sections);
-}
-
 export function collectionGetVisibleTabs(collection, watchRecord) {
     let tabs=[];
     for (let field of Object.values(collection.fields)) {

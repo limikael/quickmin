@@ -1,3 +1,5 @@
+import {arrayUnique} from "../utils/js-util.js";
+
 export default class ClientCollection {
 	constructor(data, conf) {
 		Object.assign(this,data);
@@ -27,4 +29,25 @@ export default class ClientCollection {
 	isWritable() {
 	    return this.access.includes(this.conf.role);
 	}
+
+	getTabs() {
+	    let tabs=[];
+	    for (let field of Object.values(this.fields)) {
+	        if (field.tab)
+	            tabs.push(field.tab);
+	    }
+
+	    return arrayUnique(tabs);
+	}
+
+	getSectionsForTab(tab) {
+	    let sections=[];
+	    for (let field of Object.values(this.fields)) {
+	        if (field.tab==tab)
+	            sections.push(field.section);
+	    }
+
+	    return arrayUnique(sections);
+	}
+
 }

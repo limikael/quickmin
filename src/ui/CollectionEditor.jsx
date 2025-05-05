@@ -9,8 +9,7 @@ import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
-import {matchCondition, collectionGetTabs, collectionHasUntabbed,
-    collectionGetVisibleTabs, collectionGetSectionsForTab} from "./conf-util.js";
+import {matchCondition, collectionHasUntabbed, collectionGetVisibleTabs} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
 
@@ -131,7 +130,7 @@ function SectionHeader({section}) {
 
 function CollectionEditorFieldsSections({collection, watchRecord, conf, tab}) {
     return (<>
-        {collectionGetSectionsForTab(collection, tab).map(section=>
+        {collection.getSectionsForTab(tab).map(section=>
             <>
                 <SectionHeader section={section}/>
                 <CollectionEditorFields
@@ -157,7 +156,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
                 redirect={redirect}/>
     )
 
-    let tabs=collectionGetTabs(collection);
+    let tabs=collection.getTabs(); //collection);
     let visibleTabs=collectionGetVisibleTabs(collection,watchRecord);
     if (tabs.length>0) {
         return (
