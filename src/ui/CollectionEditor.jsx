@@ -62,7 +62,9 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     }
 
     toolbarItems.push(<div style="flex-grow: 1"></div>);
-    if (collection.type!="singleView" && collection.isWritable())
+    if (collection.type!="singleView"
+            && collection.isWritable()
+            && collection.getActivePolicy().operations.includes("delete"))
         toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
     return (
@@ -77,10 +79,11 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
 
 function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
     let fieldContent=[];
-    for (let fid in collection.fields) {
-        let f={...collection.fields[fid]};
+    for (let f of collection.getVisibleFields()) {
+        f={...f};
 
-        if (!collection.isWritable())
+        if (!collection.isWritable() ||
+                !collection.isFieldWritable(f.id))
             f.disabled=true;
 
         let matched=true;
@@ -93,14 +96,14 @@ function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
         if (f.section!=section)
             matched=false;
 
-        if (/*!f.hidden &&*/ matched) {
+        if (matched) {
             let Comp=FIELD_TYPES[f.type].edit;
             delete f.type;
 
             f.defaultValue=f.default;
 
             fieldContent.push(
-                <Comp source={fid} key={fid} conf={conf} collection={collection} {...f}/>
+                <Comp source={f.id} key={f.id} conf={conf} collection={collection} {...f}/>
             );
         }
     }

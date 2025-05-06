@@ -40,8 +40,7 @@ collections:
     policies:
     - roles: admin
     - roles: user
-      where:
-        author: $uid
+      operations: read
     actions:
     - name: test action
       method: testMethod
@@ -59,6 +58,10 @@ collections:
 
   my_posts:
     from: posts
+    policies:
+    - roles: user
+      operations: read,update
+      readonly: status
     where:
       author: $uid
 
@@ -77,10 +80,12 @@ collections:
       <RichText id="content" fullWidth section="title and content"/>
 
   profile:
-    hideFor: admin
     category: profile
     singleFrom: users
     exclude: [posts,pages]
+    policies:
+    - roles: user
+      readonly: role
     where:
       id: $uid
 

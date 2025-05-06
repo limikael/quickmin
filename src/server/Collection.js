@@ -1,5 +1,6 @@
 import {jsonClone, jsonEq, arrayDifference, arrayIntersection, arrayify, arrayUnique} from "../utils/js-util.js";
 import {getFieldContentFiles} from "./collection-util.js";
+import {canonicalizePolicyForFields} from "./quickmin-conf-util.js";
 
 let QQL_TYPES={
     "text": "text",
@@ -28,8 +29,6 @@ export default class Collection {
         this.actions=conf.actions;
         this.category=conf.category;
         this.icon=conf.icon;
-        this.hideFor=conf.hideFor;
-        this.showFor=conf.showFor;
         this.policies=conf.policies;
 
         if (!this.actions)
@@ -129,20 +128,21 @@ export default class Collection {
     }
 
 	getSchema() {
+        let schemaPolicies=this.policies.map(p=>
+            canonicalizePolicyForFields(p,Object.keys(this.fields))
+        );
+
 		return {
 			id: this.id,
             type: this.type,
         	fields: this.fields,
         	listFields: this.listFields,
-            access: this.getAccess(),
-            readAccess: this.getReadAccess(),
+            policies: schemaPolicies,
             helperText: this.helperText,
             recordRepresentation: this.recordRepresentation,
             actions: this.actions,
             category: this.category,
             icon: this.icon,
-            showFor: this.showFor,
-            hideFor: this.hideFor
 		}
 	}
 

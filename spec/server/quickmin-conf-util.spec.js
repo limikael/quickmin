@@ -6,17 +6,21 @@ describe("quickmin conf util",()=>{
         let p=canonicalizePolicy({
             roles: "user",
             operations: "create, read, update, delete",
-            include: "id"
+            include: "id, password",
+            //writable: "id",
+            readonly: "password"
         },["id","name","password"]);
 
         expect(p).toEqual({
             roles: ["user"],
             operations: ["create","read","update","delete"],
-            where: undefined
+            where: undefined,
+            include: ["id","password"],
+            writable: ["id"]
         });
     });
 
-    /*it("can canonicalize a conf",()=>{
+    it("can canonicalize a conf",()=>{
         let conf=`
             collections:
               test:
@@ -34,10 +38,10 @@ describe("quickmin conf util",()=>{
         expect(Object.keys(canonicalized.collections.test.fields).length).toEqual(2);
         //console.log(canonicalized.collections.test.policies);
         expect(canonicalized.collections.test.policies).toEqual([
-            { roles: [ 'admin' ], operations: [] },
-            { roles: [ 'admin', 'user' ], operations: [ 'read', 'update' ] }
+            { roles: [ 'admin' ], operations: [], where: undefined, include: [], exclude: [], readonly: [], writable: []},
+            { roles: [ 'admin', 'user' ], operations: [ 'read', 'update' ], where: undefined, include: [], exclude: [], readonly: [], writable: [] }
         ]);
-    });*/
+    });
 
     it("can parse an array or row",()=>{
         expect(parseArrayOrCsvRow(undefined)).toEqual([]);

@@ -33,30 +33,32 @@ export default class DataProvider {
     createFormData=(resource, data)=>{
         const formData=new FormData();
         for (let fid in data) {
-            let fieldData=data[fid];
+            if (this.collections[resource].isFieldWritable(fid)) {
+                let fieldData=data[fid];
 
-            //console.log("createFormData, resource="+resource);
-            //console.log("data: ",data);
+                //console.log("createFormData, resource="+resource);
+                //console.log("data: ",data);
 
-            if (fid!="id") {
-                if (this.collections[resource].fields[fid]) {
-                    let type=this.collections[resource].fields[fid].type;
-                    let processor=FIELD_TYPES[type].writeProcessor;
-                    if (processor)
-                        fieldData=processor(fieldData,this.conf);
+                if (fid!="id") {
+                    if (this.collections[resource].fields[fid]) {
+                        let type=this.collections[resource].fields[fid].type;
+                        let processor=FIELD_TYPES[type].writeProcessor;
+                        if (processor)
+                            fieldData=processor(fieldData,this.conf);
+                    }
                 }
+
+                if (!(fieldData instanceof File)) {
+                    if (fieldData)
+                        fieldData=JSON.stringify(fieldData)
+
+                    else
+                        fieldData=null;
+                }
+
+                formData.append(fid,fieldData);
+                //console.log("append done...");
             }
-
-            if (!(fieldData instanceof File)) {
-                if (fieldData)
-                    fieldData=JSON.stringify(fieldData)
-
-                else
-                    fieldData=null;
-            }
-
-            formData.append(fid,fieldData);
-            //console.log("append done...");
         }
 
         return formData;

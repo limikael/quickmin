@@ -1,21 +1,46 @@
 import {parse as parseYaml} from "yaml";
 import {parse as parseXml} from "txml/txml";
-import {arrayify} from "../utils/js-util.js";
+import {arrayify, arrayDifference, arrayIntersection} from "../utils/js-util.js";
 
-export function canonicalizePolicy(policy, fields) {
+export function canonicalizePolicyForFields(policy, fields) {
     let {operations, roles, where,
         include, exclude, readonly, writable, ...extra}=policy;
+
+    if (!fields)
+        throw new Error("got no fields");
 
     if (Object.keys(extra).length)
         throw new Error("Unknown params in policy def: "+String(Object.keys(extra)));
 
-    Object.keys(policy).forEach(key=>delete policy[key]);
+    include=parseArrayOrCsvRow(include);
+    exclude=parseArrayOrCsvRow(exclude);
+    readonly=parseArrayOrCsvRow(readonly);
+    writable=parseArrayOrCsvRow(writable);
+
+    let readFields=include;
+    if (!readFields.length)
+        readFields=[...fields];
+
+    readFields=arrayDifference(readFields,exclude);
+
+    let writeFields=[...readFields];
+    if (readonly.length)
+        writeFields=arrayDifference(writeFields,readonly);
+
+    if (writable.length)
+        writeFields=arrayIntersection(writeFields,writable);
+
+    operations=parseArrayOrCsvRow(operations);
+    if (!operations.length)
+        operations=["create","read","update","delete"];
 
     return ({
         roles: parseArrayOrCsvRow(roles),
-        operations: parseArrayOrCsvRow(operations),
+        operations: operations,
         where: where,
-    });
+        include: readFields,
+        writable: writeFields,
+    })
 }
 
 export function quickminGetClientMethod(conf, name) {
@@ -34,12 +59,17 @@ export function parseArrayOrCsvRow(row) {
     return String(row).split(",").filter(s=>s!=="").map(s=>s.trim());
 }
 
-/*function canonicalizePolicy(policy) {
+function canonicalizePolicyInPlace(policy) {
 	policy.roles=parseArrayOrCsvRow(policy.roles);
 	policy.operations=parseArrayOrCsvRow(policy.operations);
     if (!policy.operations.length)
         policy.operations=["create","read","update","delete"];
-}*/
+
+    policy.include=parseArrayOrCsvRow(policy.include);
+    policy.exclude=parseArrayOrCsvRow(policy.exclude);
+    policy.readonly=parseArrayOrCsvRow(policy.readonly);
+    policy.writable=parseArrayOrCsvRow(policy.writable);
+}
 
 function canonicalizeCollectionConf(collectionConf) {
 	if (typeof collectionConf.fields=="string") {
@@ -66,10 +96,7 @@ function canonicalizeCollectionConf(collectionConf) {
         collectionConf.policies=[];
 
     for (let i=0; i<collectionConf.policies.length; i++)
-        canonicalizePolicy(collectionConf.policies[i]);
-
-    collectionConf.hideFor=parseArrayOrCsvRow(collectionConf.hideFor);
-    collectionConf.showFor=parseArrayOrCsvRow(collectionConf.showFor);
+        canonicalizePolicyInPlace(collectionConf.policies[i]);
 }
 
 export function quickminCanonicalizeConf(conf) {

@@ -82,6 +82,7 @@ export default function CollectionList({conf, collection}) {
             {globalActionItems}
             <FilterButton/>
             {collection.isWritable() &&
+                    collection.getActivePolicy().operations.includes("create") &&
                 <CreateButton/>
             }
         </div>
@@ -94,11 +95,10 @@ export default function CollectionList({conf, collection}) {
                 empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
-                {collection.listFields.map(fid=>{
-                    let f=collection.fields[fid];
+                {collection.getVisibleListFields().map(f=>{
                     let Comp=FIELD_TYPES[f.type].list;
                     return (
-                        <Comp source={fid} {...f}/>
+                        <Comp source={f.id} {...f}/>
                     );
                 })}
             </Datagrid>

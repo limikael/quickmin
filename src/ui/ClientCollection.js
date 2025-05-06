@@ -1,4 +1,4 @@
-import {arrayUnique} from "../utils/js-util.js";
+import {arrayUnique, arrayIntersection} from "../utils/js-util.js";
 import {matchCondition} from "./conf-util.js";
 
 export default class ClientCollection {
@@ -14,21 +14,26 @@ export default class ClientCollection {
 		return "/"+this.id;
 	}
 
+	getActivePolicy() {
+		for (let policy of this.policies)
+			if (policy.roles.includes(this.conf.role))
+				return policy;
+	}
+
 	isVisible() {
-	    if (!this.readAccess.includes(this.conf.role))
-	        return false;
+		let policy=this.getActivePolicy();
+		if (!policy)
+			return false;
 
-	    if (this.showFor.length && this.showFor.includes(this.conf.role))
-	        return true;
-
-	    if (this.hideFor.length && this.hideFor.includes(this.conf.role))
-	        return false;
-
-		return true;
+		return (policy.operations.includes("read"));
 	}
 
 	isWritable() {
-	    return this.access.includes(this.conf.role);
+		let policy=this.getActivePolicy();
+		if (!policy)
+			return false;
+
+		return (policy.operations.includes("update"));
 	}
 
 	getTabs() {
@@ -71,5 +76,27 @@ export default class ClientCollection {
 	            return true;
 
 	    return false;
+	}
+
+	getVisibleListFields() {
+		let listFields=arrayIntersection(
+			this.listFields,
+			this.getActivePolicy().include
+		);
+
+		return listFields.map(f=>this.fields[f]);
+	}
+
+	getVisibleFields() {
+		let visibleFields=arrayIntersection(
+			Object.keys(this.fields),
+			this.getActivePolicy().include
+		);
+
+		return visibleFields.map(f=>this.fields[f]);
+	}
+
+	isFieldWritable(fid) {
+		return this.getActivePolicy().writable.includes(fid);
 	}
 }
