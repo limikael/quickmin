@@ -23,9 +23,7 @@ collections:
     - roles: admin
     - roles: user
       operations: read
-    - roles: user
-      where:
-        id: $uid
+      exclude: google_auth,facebook_auth
     fields:
       <Text id="name" username listable default="micke"/>
       <Boolean id="nice" notnull default="true"/>
@@ -40,12 +38,10 @@ collections:
     category: content
     icon: text_snippet
     policies:
+    - roles: admin
     - roles: user
       where:
         author: $uid
-    - roles: admin
-    - roles: user
-      operations: read
     actions:
     - name: test action
       method: testMethod

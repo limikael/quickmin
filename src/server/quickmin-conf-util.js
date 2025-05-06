@@ -2,6 +2,22 @@ import {parse as parseYaml} from "yaml";
 import {parse as parseXml} from "txml/txml";
 import {arrayify} from "../utils/js-util.js";
 
+export function canonicalizePolicy(policy, fields) {
+    let {operations, roles, where,
+        include, exclude, readonly, writable, ...extra}=policy;
+
+    if (Object.keys(extra).length)
+        throw new Error("Unknown params in policy def: "+String(Object.keys(extra)));
+
+    Object.keys(policy).forEach(key=>delete policy[key]);
+
+    return ({
+        roles: parseArrayOrCsvRow(roles),
+        operations: parseArrayOrCsvRow(operations),
+        where: where,
+    });
+}
+
 export function quickminGetClientMethod(conf, name) {
     for (let clientModule of conf.clientModules)
         if (clientModule[name])
@@ -18,12 +34,12 @@ export function parseArrayOrCsvRow(row) {
     return String(row).split(",").filter(s=>s!=="").map(s=>s.trim());
 }
 
-function canonicalizePolicy(policy) {
+/*function canonicalizePolicy(policy) {
 	policy.roles=parseArrayOrCsvRow(policy.roles);
 	policy.operations=parseArrayOrCsvRow(policy.operations);
     if (!policy.operations.length)
         policy.operations=["create","read","update","delete"];
-}
+}*/
 
 function canonicalizeCollectionConf(collectionConf) {
 	if (typeof collectionConf.fields=="string") {
