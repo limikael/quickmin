@@ -95,6 +95,11 @@ function canonicalizeCollectionConf(collectionConf) {
     if (!collectionConf.policies)
         collectionConf.policies=[];
 
+    if (!collectionConf.policies.length)
+        collectionConf.policies.push({
+            roles: ["admin"]
+        });
+
     for (let i=0; i<collectionConf.policies.length; i++)
         canonicalizePolicyInPlace(collectionConf.policies[i]);
 }

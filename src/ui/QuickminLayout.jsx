@@ -68,7 +68,8 @@ export default function QuickminLayout({conf, ...props}) {
     let renderedCategories=[];
     for (let collection of conf.getVisibleCollections()) {
         if (collection.category) {
-            if (!renderedCategories.includes(collection.category)) {
+            if (!renderedCategories.includes(collection.category)
+                    && collection.category!="hidden") {
                 renderedCategories.push(collection.category);
                 menuItems.push(
                     <CategoryMenuItems
