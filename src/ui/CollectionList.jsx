@@ -49,8 +49,7 @@ export default function CollectionList({conf, collection}) {
     }
 
     let filters=[];
-    for (let fid in collection.fields) {
-        let f=collection.fields[fid];
+    for (let f of collection.getVisibleFields()) {
         if (f.filter) {
             if (!FIELD_TYPES[f.type].filter)
                 throw new Error("Can't filter on that");
@@ -61,7 +60,7 @@ export default function CollectionList({conf, collection}) {
 
             let Comp=FIELD_TYPES[f.type].filter;
             filters.push(
-                 <Comp source={fid} {...f} alwaysOn={alwaysOn}/>,
+                 <Comp source={f.id} {...f} alwaysOn={alwaysOn}/>,
             );
         }
     }
