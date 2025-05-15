@@ -1,42 +1,5 @@
 import {useEffect, useState, useMemo, useRef, useCallback, useLayoutEffect} from "preact/compat";
-
-export function useAsyncMemo(fn, deps) {
-	let [val,setVal]=useState();
-	let queueRef=useRef();
-	let runningRef=useRef(false);
-
-	useEffect(()=>{
-		(async ()=>{
-			if (runningRef.current) {
-				queueRef.current=fn;
-				return;
-			}
-
-			queueRef.current=fn;
-			while (queueRef.current) {
-				let f=queueRef.current;
-				queueRef.current=null;
-				runningRef.current=true;
-				try {
-					setVal(undefined);
-					let res=await f();
-					if (!queueRef.current)
-						setVal(res);
-				}
-
-				catch (e) {
-					console.error(e);
-					if (!queueRef.current)
-						setVal(e);
-				}
-
-				runningRef.current=false;
-			}
-		})();
-	},deps);
-
-	return val;
-}
+import {isPromise} from "./js-util.js";
 
 export function useEventListener(o, ev, fn) {
 	useLayoutEffect(()=>{
@@ -60,15 +23,94 @@ export function useForceUpdate() {
     },[]);
 }
 
-export function useIsValueChanged(val) {
+export function useIsChanged(val) {
 	let ref=useRef();
-	if (val==ref.current)
+	if (val===ref.current)
 		return false;
 
 	ref.current=val;
 	return true;
 }
 
-export function useIsValueChangedJson(val) {
-	return useIsValueChanged(JSON.stringify(val));
+export function useIsFirstRun() {
+	let ref=useRef();
+
+	if (ref.current)
+		return false;
+
+	ref.current=true;
+	return true;
 }
+
+export function useIsStale(val) {
+	let changed=useIsChanged(val);
+	let firstRun=useIsFirstRun();
+
+	return (changed || firstRun);
+}
+
+export function useAsyncMemo(fn, deps) {
+	let ref=useRef({});
+	let stale=useIsStale(JSON.stringify(deps));
+	let forceUpdate=useForceUpdate();
+
+	function checkError(valueOrError) {
+		if (valueOrError instanceof Error)
+			throw valueOrError;
+
+		return valueOrError;
+	}
+
+	//console.log("stale: "+stale);
+
+	if (!stale && !ref.current.again) {
+		return checkError(ref.current.value);
+	}
+
+	if (ref.current.running) {
+		ref.current.again=true;
+		return checkError(ref.current.value);
+	}
+
+	ref.current.value=undefined;
+	ref.current.again=false;
+	ref.current.running=true;
+	let fnRet=fn();
+
+	if (isPromise(fnRet)) {
+		fnRet.then(res=>{
+			ref.current.running=false;
+			if (!ref.current.again)
+				ref.current.value=res;
+
+			forceUpdate();
+		})
+		.catch(e=>{
+			ref.current.running=false;
+
+			if (!(e instanceof Error))
+				e=new Error(e);
+
+			if (!ref.current.again)
+				ref.current.value=e;
+
+			forceUpdate();
+		});
+	}
+
+	else {
+		ref.current.value=fnRet;
+		ref.current.running=false;
+	}
+
+	return checkError(ref.current.value);
+}
+
+/*export function useIsValueChanged(val) {
+	let ref=useRef();
+	if (val==ref.current)
+		return false;
+
+	ref.current=val;
+	return true;
+}*/

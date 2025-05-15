@@ -60,7 +60,7 @@ export default function CollectionList({conf, collection}) {
 
             let Comp=FIELD_TYPES[f.type].filter;
             filters.push(
-                 <Comp source={f.id} {...f} alwaysOn={alwaysOn}/>,
+                 <Comp source={f.id} {...f} alwaysOn={alwaysOn} conf={conf} purpose="filter"/>,
             );
         }
     }
@@ -97,7 +97,7 @@ export default function CollectionList({conf, collection}) {
                 {collection.getVisibleListFields().map(f=>{
                     let Comp=FIELD_TYPES[f.type].list;
                     return (
-                        <Comp source={f.id} {...f}/>
+                        <Comp source={f.id} {...f} conf={conf} purpose="list"/>
                     );
                 })}
             </Datagrid>

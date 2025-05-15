@@ -143,3 +143,7 @@ export function arrayUnique(a) {
 
 	return a.filter(onlyUnique);
 }
+
+export function isPromise(p) {
+	return (typeof p?.then=="function");
+}

@@ -1,7 +1,7 @@
 import {useRef, useLayoutEffect, useState, useMemo} from "react";
 import {jsonEq, jsonClone} from "../utils/js-util.js";
 import {jsonSchemaFix} from "../utils/json-schema-util.js";
-import {useIsValueChangedJson} from "../utils/react-util.jsx";
+import {useIsChanged} from "../utils/react-util.jsx";
 
 function jsonEditorIsError(jsonEditor) {
     try {
@@ -30,8 +30,8 @@ export function FixingJsonEditor({schema, onChange, onImmediateChange, value, na
     },[]);
 
     // If the schema changes, but not the value, use the committed value.
-    let schemaChange=useIsValueChangedJson(schema);
-    let valueChange=useIsValueChangedJson(value);
+    let schemaChange=useIsChanged(JSON.stringify(schema));
+    let valueChange=useIsChanged(JSON.stringify(value));
     if (schemaChange && !valueChange && commitedRef.current)
         value=commitedRef.current;
 

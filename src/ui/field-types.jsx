@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import {JsonInput} from "../controls/json-control.jsx";
+import {QuickminSelectField, QuickminSelectInput} from "../controls/select-control.jsx";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -230,10 +231,10 @@ export const FIELD_TYPES={
     },
 
     "select": {
-        list: SelectField,
-        edit: SelectInput,
-        filter: SelectInput,
-        confProcessor: processSelectConf
+        list: QuickminSelectField,
+        edit: QuickminSelectInput,
+        filter: QuickminSelectInput,
+        //confProcessor: processSelectConf
     },
 
     "reference": {

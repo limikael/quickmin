@@ -1,7 +1,6 @@
 import {Admin, Resource} from 'react-admin';
 import {useState, render} from "react";
 import {useQuickminConf} from "./ClientConf.js";
-//import {confGetCollections} from "./conf-util.js";
 import QuickminLogin from "./QuickminLogin.jsx";
 import QuickminDashboard from "./QuickminDashboard.jsx";
 import QuickminLayout from "./QuickminLayout.jsx";
@@ -11,7 +10,7 @@ import CollectionEditor from "./CollectionEditor.jsx";
 function QuickminAdmin({api, onload}) {
     let [onloadCalled,setOnloadCalled]=useState();
     let conf=useQuickminConf(api);
-    console.log("render qm, loading="+conf.isLoading()+" role="+conf.role);
+    //console.log("render qm, loading="+conf.isLoading()+" role="+conf.role);
 
     if (conf.isLoading())
         return;

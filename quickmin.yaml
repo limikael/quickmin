@@ -49,7 +49,7 @@ collections:
       <Image id="image" tab="image" listable/>
       <File id="file" tab="image" listable/>
       <Reference id="author" reference="users" listable tab="author"/>
-      <Select id="status" choices="draft,published" listable tab="publication" filter/>
+      <Select id="status" choices="draft,published" choices_cb="getChoices" dep="title"/>
       <Date id="published" listable condition='{"status":"published"}' tab="publication date"/>
       <DateTime id="updated" listable/>
       <Select id="jsontype" choices="person,thing,plant" default="person" section="JSON"/>

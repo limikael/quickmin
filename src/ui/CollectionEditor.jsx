@@ -103,7 +103,7 @@ function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
             f.defaultValue=f.default;
 
             fieldContent.push(
-                <Comp source={f.id} key={f.id} conf={conf} collection={collection} {...f}/>
+                <Comp source={f.id} key={f.id} conf={conf} collection={collection} {...f} purpose="edit"/>
             );
         }
     }

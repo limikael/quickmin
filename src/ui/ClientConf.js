@@ -102,6 +102,18 @@ export default class ClientConf extends EventTarget {
     getVisibleCollectionsByCategory(category) {
     	return this.getVisibleCollections().filter(c=>c.category==category);
     }
+
+    getClientMethod(name) {
+	    for (let clientModule of this.clientModules)
+	        if (clientModule[name])
+	            return clientModule[name]
+	}
+
+	getCallbackParams() {
+		return ({
+			qql: this.qql
+		});
+	}
 }
 
 export function useQuickminConf(apiUrl) {
