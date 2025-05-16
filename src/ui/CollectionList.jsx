@@ -49,7 +49,7 @@ export default function CollectionList({conf, collection}) {
     }
 
     let filters=[];
-    for (let f of collection.getVisibleFields()) {
+    for (let f of collection.getFields().getVisible()) {
         if (f.filter) {
             if (!FIELD_TYPES[f.type].filter)
                 throw new Error("Can't filter on that");
@@ -94,12 +94,9 @@ export default function CollectionList({conf, collection}) {
                 empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
-                {collection.getVisibleListFields().map(f=>{
-                    let Comp=FIELD_TYPES[f.type].list;
-                    return (
-                        <Comp source={f.id} {...f} conf={conf} purpose="list"/>
-                    );
-                })}
+                {collection.getFields().getListable().getVisible().map(f=>
+                    <f.ListComp source={f.id} {...f} conf={conf} purpose="list"/>
+                )}
             </Datagrid>
         </List>
     </>);

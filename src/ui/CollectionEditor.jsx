@@ -12,6 +12,7 @@ import {useWatch} from 'react-hook-form';
 import {matchCondition} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
+import {json5ParseObject} from "../utils/json5-util.js";
 
 function EditActionButton({action, actionState}) {
     let formState=useFormState();
@@ -30,7 +31,7 @@ function useWatchRecord(collection) {
     let conditionDeps=[];
     for (let field of Object.values(collection.fields)) {
         if (field.condition)
-            conditionDeps.push(...Object.keys(JSON.parse(field.condition)));
+            conditionDeps.push(...Object.keys(field.condition));
     }
 
     conditionDeps=arrayUnique(conditionDeps);
@@ -77,38 +78,28 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     );
 }
 
-function CollectionEditorFields({collection, conf, tab, section, watchRecord}) {
-    let fieldContent=[];
-    for (let f of collection.getVisibleFields()) {
-        f={...f};
+function CollectionEditorField({field}) {
+    let fieldProps={...field};
 
-        if (!collection.isWritable() ||
-                !collection.isFieldWritable(f.id))
-            f.disabled=true;
+    if (!field.isWritable())
+        fieldProps.disabled=true;
 
-        let matched=true;
-        if (f.condition)
-            matched=matchCondition(watchRecord,JSON.parse(f.condition));
+    fieldProps.defaultValue=field.default;
+    delete fieldProps.type;
 
-        if (f.tab!=tab)
-            matched=false;
+    return (
+        <field.EditComp
+                {...fieldProps}
+                source={field.id}
+                key={field.id}
+                purpose="edit"/>
+    );
+}
 
-        if (f.section!=section)
-            matched=false;
-
-        if (matched) {
-            let Comp=FIELD_TYPES[f.type].edit;
-            delete f.type;
-
-            f.defaultValue=f.default;
-
-            fieldContent.push(
-                <Comp source={f.id} key={f.id} conf={conf} collection={collection} {...f} purpose="edit"/>
-            );
-        }
-    }
-
-    return fieldContent;
+function CollectionEditorFields({fields}) {
+    return (fields.map(field=>
+        <CollectionEditorField field={field}/>
+    ));
 }
 
 function SectionHeader({section}) {
@@ -131,17 +122,13 @@ function SectionHeader({section}) {
     );
 }
 
-function CollectionEditorFieldsSections({collection, watchRecord, conf, tab}) {
+function CollectionEditorFieldsSections({fields}) {
     return (<>
-        {collection.getSectionsForTab(tab).map(section=>
+        {fields.getSections().map(section=>
             <>
                 <SectionHeader section={section}/>
                 <CollectionEditorFields
-                        collection={collection}
-                        watchRecord={watchRecord}
-                        conf={conf}
-                        tab={tab}
-                        section={section}/>
+                        fields={fields.getForSection(section)}/>
             </>
         )}
     </>);
@@ -159,42 +146,29 @@ function CollectionFormView({collection, mode, redirect, conf}) {
                 redirect={redirect}/>
     )
 
-    let tabs=collection.getTabs();
-    let visibleTabs=collection.getVisibleTabs(watchRecord);
-    if (tabs.length>0) {
-        return (
-            <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
-                {collection.hasUntabbed() &&
-                    <TabbedForm.Tab label={singular(collection.id)}>
-                        <CollectionEditorFieldsSections 
-                                watchRecord={watchRecord}
-                                collection={collection} 
-                                conf={conf}/>
-                    </TabbedForm.Tab>
-                }
-                {visibleTabs.map(tab=>
-                    <TabbedForm.Tab label={tab}>
-                        <CollectionEditorFieldsSections 
-                                watchRecord={watchRecord}
-                                collection={collection} 
-                                conf={conf} 
-                                tab={tab}/>
-                    </TabbedForm.Tab>
-                )}
-            </TabbedFormView>
-        );
-    }
+    let fields=collection.getFields().getVisible()
+        .getConditionMatchingRecord(watchRecord);
 
-    else {
+    if (mode=="create")
+        fields=fields.filter(f=>f.type!="referencemany");
+
+    if (!fields.hasTabs()) {
         return (
             <SimpleFormView toolbar={toolbar}>
-                <CollectionEditorFieldsSections
-                            watchRecord={watchRecord}
-                            collection={collection}
-                            conf={conf}/>
+                <CollectionEditorFieldsSections fields={fields}/>
             </SimpleFormView>
         );
     }
+
+    return (
+        <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
+            {fields.getTabs().map(tab=>
+                <TabbedForm.Tab label={tab?tab:singular(collection.id)}>
+                    <CollectionEditorFieldsSections fields={fields.getForTab(tab)}/>
+                </TabbedForm.Tab>
+            )}
+        </TabbedFormView>
+    );
 }
 
 export default function CollectionEditor({collection, mode, conf}) {
@@ -230,8 +204,20 @@ export default function CollectionEditor({collection, mode, conf}) {
             </>);
 
         case "create":
+            let referenceFields=collection.getFields().getVisible().filter(f=>f.type=="referencemany");
+
+            let createRedirect=redirect;
+
+            let url=window.location.toString();
+            const [hash, query]=url.split('#')[1].split('?');
+            const params=Object.fromEntries(new URLSearchParams(query));
+            console.log(params);
+
+            if (!params.redirect && referenceFields.length)
+                createRedirect=null;
+
             return (
-                <Create redirect={redirect}>
+                <Create redirect={createRedirect}>
                     <Form>
                         {content}
                     </Form>

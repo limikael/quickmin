@@ -21,6 +21,7 @@
     "dayjs": "^1.11.11",
     "fullstack-utils": "^1.0.8",
     "hono": "^4.3.11",
+    "json5": "^2.2.3",
     "jsrsasign": "^11.1.0",
     "jwt-decode": "^4.0.0",
     "minimatch": "^9.0.4",

@@ -30,7 +30,7 @@ collections:
       <AuthMethod id="google_auth" provider="google" listable/>
       <AuthMethod id="facebook_auth" provider="facebook" listable/>
       <Select id="role" choices="user,admin" role listable/>
-      <ReferenceMany id="posts" reference="posts" target="author"/>
+      <ReferenceMany id="posts" reference="posts" target="author" section="posts"/>
       <ReferenceMany id="pages" reference="pages" target="author"/>
 
   posts:
@@ -45,16 +45,18 @@ collections:
     - name: test action
       method: testMethod
     fields: |
-      <Text id="title" fullWidth listable/>
+      <Text id="title" fullWidth listable filter/>
       <Image id="image" tab="image" listable/>
       <File id="file" tab="image" listable/>
-      <Reference id="author" reference="users" listable tab="author"/>
-      <Select id="status" choices="draft,published" choices_cb="getChoices" dep="title"/>
+      <Reference id="author" reference="users" listable tab="author" filter/>
+      <Select id="status" choices="draft,published" dep="title"/>
       <Date id="published" listable condition='{"status":"published"}' tab="publication date"/>
       <DateTime id="updated" listable/>
       <Select id="jsontype" choices="person,thing,plant" default="person" section="JSON"/>
       <Json id="jsontest" schema_cb="getJsonTestSchema" dep="jsontype" section="JSON"/>
       <RichText id="content" fullWidth />
+
+# choices_cb="getChoices"
 
   my_posts:
     from: posts

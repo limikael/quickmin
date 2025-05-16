@@ -1,10 +1,27 @@
 import {arrayUnique, arrayIntersection} from "../utils/js-util.js";
 import {matchCondition} from "./conf-util.js";
+import ClientField from "./ClientField.js";
+import ClientFieldArray from "./ClientFieldArray.js";
+import FIELD_TYPES from "./field-types.jsx";
+import {json5ParseObject} from "../utils/json5-util.js";
 
 export default class ClientCollection {
 	constructor(data, conf) {
 		Object.assign(this,data);
 		this.conf=conf;
+
+	    let clientFields={}
+	    for (let k in this.fields) {
+	    	let clientField=new ClientField({
+	    		...this.fields[k],
+	    		FIELD_TYPES
+	    	});
+	    	clientField.conf=this.conf;
+	    	clientField.collection=this;
+	    	clientFields[k]=clientField;
+	    }
+
+	    this.fields=clientFields;
 	}
 
 	getPath() {
@@ -36,64 +53,8 @@ export default class ClientCollection {
 		return (policy.operations.includes("update"));
 	}
 
-	getTabs() {
-	    let tabs=[];
-	    for (let field of Object.values(this.fields)) {
-	        if (field.tab)
-	            tabs.push(field.tab);
-	    }
-
-	    return arrayUnique(tabs);
-	}
-
-	getSectionsForTab(tab) {
-	    let sections=[];
-	    for (let field of Object.values(this.fields)) {
-	        if (field.tab==tab)
-	            sections.push(field.section);
-	    }
-
-	    return arrayUnique(sections);
-	}
-
-	getVisibleTabs(watchRecord) {
-	    let tabs=[];
-	    for (let field of Object.values(this.fields)) {
-	        let matched=true;
-	        if (field.condition)
-	            matched=matchCondition(watchRecord,JSON.parse(field.condition));
-
-	        if (field.tab && matched)
-	            tabs.push(field.tab);
-	    }
-
-	    return arrayUnique(tabs);
-	}
-
-	hasUntabbed() {
-	    for (let field of Object.values(this.fields))
-	        if (!field.tab)
-	            return true;
-
-	    return false;
-	}
-
-	getVisibleListFields() {
-		let listFields=arrayIntersection(
-			this.listFields,
-			this.getActivePolicy().include
-		);
-
-		return listFields.map(f=>this.fields[f]);
-	}
-
-	getVisibleFields() {
-		let visibleFields=arrayIntersection(
-			Object.keys(this.fields),
-			this.getActivePolicy().include
-		);
-
-		return visibleFields.map(f=>this.fields[f]);
+	getFields() {
+		return ClientFieldArray.from(Object.values(this.fields));
 	}
 
 	isFieldWritable(fid) {
