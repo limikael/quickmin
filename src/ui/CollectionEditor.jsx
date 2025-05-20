@@ -34,6 +34,8 @@ function useWatchRecord(collection) {
             conditionDeps.push(...Object.keys(field.condition));
     }
 
+    conditionDeps.push("$policies");
+
     conditionDeps=arrayUnique(conditionDeps);
     let watch=useWatch({name: conditionDeps});
     let watchRecord=Object.fromEntries(
@@ -78,10 +80,13 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     );
 }
 
-function CollectionEditorField({field}) {
+function CollectionEditorField({field, policies}) {
     let fieldProps={...field};
 
     if (!field.isWritable())
+        fieldProps.disabled=true;
+
+    if (!field.hasPolicyOperation(policies,"update"))
         fieldProps.disabled=true;
 
     fieldProps.defaultValue=field.default;
@@ -96,9 +101,9 @@ function CollectionEditorField({field}) {
     );
 }
 
-function CollectionEditorFields({fields}) {
+function CollectionEditorFields({fields, policies}) {
     return (fields.map(field=>
-        <CollectionEditorField field={field}/>
+        <CollectionEditorField field={field} policies={policies}/>
     ));
 }
 
@@ -122,13 +127,14 @@ function SectionHeader({section}) {
     );
 }
 
-function CollectionEditorFieldsSections({fields}) {
+function CollectionEditorFieldsSections({fields, policies}) {
     return (<>
         {fields.getSections().map(section=>
             <>
                 <SectionHeader section={section}/>
                 <CollectionEditorFields
-                        fields={fields.getForSection(section)}/>
+                        fields={fields.getForSection(section)}
+                        policies={policies}/>
             </>
         )}
     </>);
@@ -136,7 +142,13 @@ function CollectionEditorFieldsSections({fields}) {
 
 function CollectionFormView({collection, mode, redirect, conf}) {
     let watchRecord=useWatchRecord(collection);
-    //console.log("watch record: ",watchRecord);
+    let policies=watchRecord.$policies;
+
+    //let formContext=useFormContext();
+    //let policies=formContext.getValues().$policies;
+
+    if (!policies)
+        return;
 
     let toolbar=(
         <CollectionToolbar
@@ -155,7 +167,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     if (!fields.hasTabs()) {
         return (
             <SimpleFormView toolbar={toolbar}>
-                <CollectionEditorFieldsSections fields={fields}/>
+                <CollectionEditorFieldsSections fields={fields} policies={policies}/>
             </SimpleFormView>
         );
     }
@@ -164,7 +176,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
         <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
             {fields.getTabs().map(tab=>
                 <TabbedForm.Tab label={tab?tab:singular(collection.id)}>
-                    <CollectionEditorFieldsSections fields={fields.getForTab(tab)}/>
+                    <CollectionEditorFieldsSections fields={fields.getForTab(tab)} policies={policies}/>
                 </TabbedForm.Tab>
             )}
         </TabbedFormView>
@@ -211,7 +223,7 @@ export default function CollectionEditor({collection, mode, conf}) {
             let url=window.location.toString();
             const [hash, query]=url.split('#')[1].split('?');
             const params=Object.fromEntries(new URLSearchParams(query));
-            console.log(params);
+            //console.log(params);
 
             if (!params.redirect && referenceFields.length)
                 createRedirect=null;

@@ -27,6 +27,17 @@ export default class ClientField {
 		return this.collection.getActivePolicy().writable.includes(this.id);
 	}
 
+	hasPolicyOperation(policies, operation) {
+		if (!policies)
+			return false;
+
+		for (let policy of policies)
+			if (policy.operations.includes(operation))
+				return true;
+
+		return false;
+	}
+
 	conditionMatchRecord(record) {
 		if (!this.condition)
 			return true;

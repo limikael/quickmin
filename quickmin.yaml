@@ -41,6 +41,10 @@ collections:
     - roles: admin
     - roles: user
       operations: read
+    - roles: user
+      operations: update
+      where:
+        author: $uid
     actions:
     - name: test action
       method: testMethod

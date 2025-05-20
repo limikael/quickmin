@@ -89,10 +89,12 @@ export default class DataProvider {
     }
 
     getOne=async (resource, params)=>{
-        //console.log("get one...");
-
-        let response=await this.simpleRestProvider.getOne(resource,params);
+        let url=`${this.apiUrl}/${resource}/${encodeURIComponent(params.id)}?includeRowPolicies=true`;
+        let response={data: (await this.httpClient(url)).json};
         response.data=this.processRead(resource,response.data);
+
+        //console.log(response.data);
+
     	return response;
     }
 

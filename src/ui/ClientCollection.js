@@ -37,6 +37,17 @@ export default class ClientCollection {
 				return policy;
 	}
 
+	getOperationPolicies(operation) {
+		let policies=[];
+
+		for (let policy of this.policies)
+			if (policy.roles.includes(this.conf.role) &&
+					policy.operations.includes(operation))
+				policies.push(policy);
+
+		return policies;
+	}
+
 	isVisible() {
 		let policy=this.getActivePolicy();
 		if (!policy)
@@ -46,11 +57,13 @@ export default class ClientCollection {
 	}
 
 	isWritable() {
-		let policy=this.getActivePolicy();
+		return (this.getOperationPolicies("update").length>0);
+
+		/*let policy=this.getActivePolicy();
 		if (!policy)
 			return false;
 
-		return (policy.operations.includes("update"));
+		return (policy.operations.includes("update"));*/
 	}
 
 	getFields() {
