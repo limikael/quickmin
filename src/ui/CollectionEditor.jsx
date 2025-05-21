@@ -5,7 +5,6 @@ import {Resource, List, Datagrid, Edit, SimpleForm, Create, Toolbar, SaveButton,
 import { useFormContext, useFormState } from 'react-hook-form';
 import FIELD_TYPES from "./field-types.jsx";
 import {jsonClone, arrayUnique, urlGetParams, makeNameFromSymbol} from "../utils/js-util.js";
-import {ActionDialog, useActionState} from "./actions.jsx";
 import {TextInput} from "react-admin";
 import {IconButton} from "@mui/material";
 import {useWatch} from 'react-hook-form';
@@ -13,19 +12,8 @@ import {matchCondition} from "./conf-util.js";
 import {singular} from "pluralize";
 import {SimpleFormView} from "../utils/ra-util.jsx";
 import {json5ParseObject} from "../utils/json5-util.js";
-
-function EditActionButton({action, actionState}) {
-    let formState=useFormState();
-
-    async function onClick() {
-        let id=formState.defaultValues.id;
-        await actionState.runAction(action,[id]);
-    }
-
-    return (
-        <Button label={action.name} onClick={onClick}/>
-    );
-}
+import {useModal} from "../utils/modal-state.jsx";
+import ActionFlow from "./ActionFlow.jsx";
 
 function useWatchRecord(collection) {
     let conditionDeps=[];
@@ -45,34 +33,25 @@ function useWatchRecord(collection) {
 
 function CollectionToolbar({conf, collection, mode, redirect}) {
     let refresh=useRefresh();
-    let actionState=useActionState(conf, refresh);
-
-    let toolbarItems=[];
-    toolbarItems.push(<SaveButton/>);
-
-    if (mode=="edit") {
-        for (let action of collection.actions) {
-            if (!action.global) {
-                toolbarItems.push(
-                    <EditActionButton 
-                            action={action}
-                            actionState={actionState}/>
-                );
-            }
-        }
-    }
-
-    toolbarItems.push(<div style="flex-grow: 1"></div>);
-    if (collection.type!="singleView"
-            && collection.isWritable()
-            && collection.getActivePolicy().operations.includes("delete"))
-        toolbarItems.push(<DeleteButton redirect={redirect}/>);
+    let {showModal, dismissModal}=useModal();
+    let formState=useFormState();
+    let actionFlow=new ActionFlow({showModal, dismissModal, refresh, formState});
 
     return (
         <Toolbar>
-            <ActionDialog actionState={actionState}/>
             <div class="RaToolbar-defaultToolbar">
-                {toolbarItems}
+                <SaveButton/>
+                {collection.getActions().getNonGlobal().map(action=>
+                    <Button 
+                            label={action.name}
+                            onClick={()=>action.run(actionFlow)}/>
+                )}
+                <div style="flex-grow: 1"></div>
+                {collection.type!="singleView" &&
+                        collection.isWritable() &&
+                        collection.getActivePolicy().operations.includes("delete") &&
+                    <DeleteButton redirect={redirect}/>
+                }
             </div>
         </Toolbar>
     );

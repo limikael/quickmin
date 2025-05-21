@@ -8,9 +8,23 @@ export async function getChoices({item, qql}) {
 	return pages;
 }
 
+export async function testGlobal({qql}) {
+	await qql({insertInto: "posts", set: {title: "Global create..."}});
+
+	return "testing global...";
+}
+
 export async function testMethod({id, qql}) {
-	await new Promise(r=>setTimeout(r,1000));
-	console.log("checking stuff: "+id);
+	//throw new Error("there is an error");
+
+	let item=await qql({oneFrom: "posts", where: {id: id}});
+
+	if (!item.views)
+		item.views=0;
+
+	item.views++;
+
+	await qql({update: "posts", set: {views: item.views}, where: {id: id}});
 }
 
 export function getJsonTestSchema({item}) {

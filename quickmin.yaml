@@ -44,8 +44,12 @@ collections:
     actions:
     - name: test action
       method: testMethod
+    - name: test global
+      method: testGlobal
+      scope: global
     fields: |
       <Text id="title" fullWidth listable filter/>
+      <Integer id="views" listable/>
       <Image id="image" tab="image" listable/>
       <File id="file" tab="image" listable/>
       <Reference id="author" reference="users" listable tab="author" filter/>
