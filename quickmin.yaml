@@ -44,6 +44,9 @@ collections:
     actions:
     - name: test action
       method: testMethod
+      helperText: This will increase the number of views...
+      options:
+        num: {type: "integer", helperText: "increase by"}
     - name: test global
       method: testGlobal
       scope: global

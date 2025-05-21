@@ -3,9 +3,28 @@ export default class ClientAction {
 		Object.assign(this,action);
 	}
 
+	getOptions() {
+		if (!this.options)
+			return [];
+
+		return Object.keys(this.options).map(k=>({id: k, ...this.options[k]}));
+	}
+
 	async run(actionFlow) {
 		try {
 			let method=this.conf.getClientMethod(this.method);
+
+			let params={};
+			if (this.options) {
+				params=await actionFlow.showOptionsModal({
+					title: this.name,
+					options: this.getOptions(),
+					helperText: this.helperText
+				});
+
+				if (!params)				
+					return;
+			}
 
 			//await actionFlow.showOptionsModal({title: this.name});
 
@@ -14,7 +33,8 @@ export default class ClientAction {
 
 			if (this.scope=="global") {
 				result=await method({
-					qql: this.conf.qql
+					qql: this.conf.qql,
+					...params
 				});
 			}
 
@@ -22,7 +42,8 @@ export default class ClientAction {
 				for (let id of actionFlow.getIds()) {
 					result=await method({
 						id: id,
-						qql: this.conf.qql
+						qql: this.conf.qql,
+						...params
 					});
 				}
 			}

@@ -190,7 +190,7 @@ export default function CollectionEditor({collection, mode, conf}) {
             let url=window.location.toString();
             const [hash, query]=url.split('#')[1].split('?');
             const params=Object.fromEntries(new URLSearchParams(query));
-            console.log(params);
+            //console.log(params);
 
             if (!params.redirect && referenceFields.length)
                 createRedirect=null;

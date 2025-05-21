@@ -14,7 +14,8 @@ export async function testGlobal({qql}) {
 	return "testing global...";
 }
 
-export async function testMethod({id, qql}) {
+export async function testMethod({id, qql, num}) {
+	//num=Number(num);
 	//throw new Error("there is an error");
 
 	let item=await qql({oneFrom: "posts", where: {id: id}});
@@ -22,9 +23,11 @@ export async function testMethod({id, qql}) {
 	if (!item.views)
 		item.views=0;
 
-	item.views++;
+	item.views+=num;
 
 	await qql({update: "posts", set: {views: item.views}, where: {id: id}});
+
+	return ("increased by: "+num);
 }
 
 export function getJsonTestSchema({item}) {
