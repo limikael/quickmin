@@ -19,6 +19,7 @@ import {TextOption} from "../controls/text-control.jsx";
 import {NumberOption} from "../controls/number-control.jsx";
 import {DateOption} from "../controls/date-control.jsx";
 import {FileOption} from "../controls/file-control.jsx";
+import {SelectOption} from "../controls/select-control.jsx";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -241,6 +242,7 @@ export const FIELD_TYPES={
         list: QuickminSelectField,
         edit: QuickminSelectInput,
         filter: QuickminSelectInput,
+        option: SelectOption,
         //confProcessor: processSelectConf
     },
 

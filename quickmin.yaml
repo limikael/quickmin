@@ -49,6 +49,7 @@ collections:
         num: {type: "integer", helperText: "increase by"}
         start_date: {type: "date", helperText: "start"}
         file: {type: "file", helperText: "upload file"}
+        sel: {type: "select", choices: "breakfast,lunch, dinner"}
     - name: test global
       method: testGlobal
       scope: global

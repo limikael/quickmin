@@ -14,11 +14,14 @@ export async function testGlobal({qql}) {
 	return "testing global...";
 }
 
-export async function testMethod({id, qql, start_date, num, file}) {
+export async function testMethod({id, qql, start_date, num, file, sel}) {
 	console.log("start date: "+start_date);
 	console.log("file: ",file);
-	console.log("data: ",await file.text());
 
+	if (file)
+		console.log("data: ",await file.text());
+
+	console.log("sel: ",sel);
 
 	let item=await qql({oneFrom: "posts", where: {id: id}});
 

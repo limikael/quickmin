@@ -22,7 +22,7 @@ function FlowDialog({title, children, onClose}) {
 	);
 }
 
-function Option({id, type, valuesState}) {
+function Option({id, type, valuesState, ...props}) {
 	let [values, setValues]=valuesState;
 
 	if (!type)
@@ -40,7 +40,7 @@ function Option({id, type, valuesState}) {
 	}
 
 	return (
-		<Comp label={id} value={values[id]} onChange={handleChange}/>
+		<Comp {...props} label={id} value={values[id]} onChange={handleChange}/>
 	);
 }
 
