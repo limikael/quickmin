@@ -12,8 +12,8 @@ function parseSelectChoices(field) {
     if (field.choices && Array.isArray(field.choices)) {
         return field.choices.map(s=>{
             return ({
-                id: s,
-                name: s.charAt(0).toUpperCase()+s.slice(1)
+                id: s.trim(),
+                name: makeNameFromSymbol(s)
             })
         });
     }
@@ -22,8 +22,8 @@ function parseSelectChoices(field) {
         let choices=field.choices.split(",")
         return choices.map(s=>{
             return ({
-                id: s,
-                name: s.charAt(0).toUpperCase()+s.slice(1)
+                id: s.trim(),
+                name: makeNameFromSymbol(s)
             })
         });
     }

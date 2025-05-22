@@ -99,7 +99,7 @@ export function makeNameFromSymbol(symbol) {
 	symbol=symbol.replaceAll("_"," ").replaceAll("-"," ");
 	symbol=symbol
 		.split(" ")
-		.map(s=>s.charAt(0).toUpperCase()+s.slice(1))
+		.map(s=>s.trim().charAt(0).toUpperCase()+s.trim().slice(1))
 		.join(" ");
 
 	return symbol;
