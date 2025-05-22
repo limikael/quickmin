@@ -8,6 +8,8 @@ import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
 import Button from '@mui/material/Button';
 import {useState} from "react";
+import {TextInput} from "react-admin";
+import FIELD_TYPES from "./field-types.jsx";
 
 function FlowDialog({title, children, onClose}) {
 	return (
@@ -23,33 +25,23 @@ function FlowDialog({title, children, onClose}) {
 function Option({id, type, valuesState}) {
 	let [values, setValues]=valuesState;
 
-	switch (type) {
-		case "integer":
-			return (
-				<TextField
-					value={values[id]}
-					onChange={ev=>setValues({...values, [id]: Number(ev.target.value)})}
-					margin="dense"
-					label={id}
-					fullWidth
-				/>
-			);
-			break;
+	if (!type)
+		type="text";
 
-		case "text":
-		default:
-			return (
-				<TextField
-					value={values[id]}
-					onChange={ev=>setValues({...values, [id]: ev.target.value})}
-					margin="dense"
-					label={id}
-					fullWidth
-				/>
-			);
-			break;
+	let Comp=FIELD_TYPES[type].option;
+	if (!Comp)
+		throw new Error("Can't be used as option: "+type);
+
+	function handleChange(eventOrValue) {
+		if (eventOrValue instanceof Event)
+			eventOrValue=eventOrValue.target.value;
+
+		setValues({...values, [id]: eventOrValue})
 	}
 
+	return (
+		<Comp label={id} value={values[id]} onChange={handleChange}/>
+	);
 }
 
 function OptionDialog({title, helperText, options, onClose}) {

@@ -14,9 +14,11 @@ export async function testGlobal({qql}) {
 	return "testing global...";
 }
 
-export async function testMethod({id, qql, num}) {
-	//num=Number(num);
-	//throw new Error("there is an error");
+export async function testMethod({id, qql, start_date, num, file}) {
+	console.log("start date: "+start_date);
+	console.log("file: ",file);
+	console.log("data: ",await file.text());
+
 
 	let item=await qql({oneFrom: "posts", where: {id: id}});
 
