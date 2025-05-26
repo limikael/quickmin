@@ -46,7 +46,7 @@ collections:
       method: testMethod
       helperText: This will increase the number of views...
       options:
-        num: {type: "integer", helperText: "increase by"}
+        num: {type: "integer", helperText: "increase by", default: 1}
         start_date: {type: "date", helperText: "start"}
         file: {type: "file", helperText: "upload file"}
         sel: {type: "select", choices: "breakfast,lunch, dinner"}

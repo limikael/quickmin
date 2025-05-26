@@ -45,7 +45,15 @@ function Option({id, type, valuesState, ...props}) {
 }
 
 function OptionDialog({title, helperText, options, onClose}) {
-	let [values, setValues]=useState({});
+	let [values, setValues]=useState(()=>{
+		let def={};
+
+		for (let option of options)
+			if (option.hasOwnProperty("default"))
+				def[option.id]=option.default;
+
+		return def;
+	});
 
 	return (
 		<FlowDialog title={title}>
