@@ -140,7 +140,7 @@ export default class ActionFlow {
 	                <DialogContentText>
 	                	{messageLines.map(l=>
 	                		<div>{l}</div>
-	                	)};
+	                	)}
 	                </DialogContentText>
 	            </DialogContent>
                 <DialogActions>
