@@ -85,11 +85,14 @@ collections:
     - roles: admin
     - roles: user
       operations: read
+    actions:
+    - name: get content
+      method: getPageContent
     fields:
       <Text id="slug" listable/>
       <Text id="title" fullWidth listable section="title and content"/>
       <Reference id="author" reference="users" listable/>
-      <RichText id="content" fullWidth section="title and content"/>
+      <Text id="content" fullWidth multiline section="title and content"/>
 
   profile:
     category: profile

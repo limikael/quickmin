@@ -1,3 +1,9 @@
+export async function getPageContent({id, qql}) {
+	let page=await qql({oneFrom: "pages", where: {id}});
+
+	return page.content;
+}
+
 export async function getChoices({item, qql}) {
 	await new Promise(r=>setTimeout(r,1000));
 

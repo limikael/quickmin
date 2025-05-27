@@ -132,11 +132,15 @@ export default class ActionFlow {
 	}
 
 	async showMessageModal({title, message}) {
+		let messageLines=message.split("\n");
+
 		return await this.showModal(
 			<FlowDialog title={title}>
 	            <DialogContent>
 	                <DialogContentText>
-	                	{message}
+	                	{messageLines.map(l=>
+	                		<div>{l}</div>
+	                	)};
 	                </DialogContentText>
 	            </DialogContent>
                 <DialogActions>
