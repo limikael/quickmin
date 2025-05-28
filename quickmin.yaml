@@ -27,8 +27,8 @@ collections:
     fields:
       <Text id="name" username listable default="micke"/>
       <Boolean id="nice" notnull default="true"/>
-      <AuthMethod id="google_auth" provider="google" listable/>
-      <AuthMethod id="facebook_auth" provider="facebook" listable/>
+      <AuthMethod id="google_auth" provider="google"/>
+      <AuthMethod id="facebook_auth" provider="facebook"/>
       <Select id="role" choices="user,admin" role listable/>
       <ReferenceMany id="posts" reference="posts" target="author" section="posts"/>
       <ReferenceMany id="pages" reference="pages" target="author"/>
@@ -66,8 +66,10 @@ collections:
     from: posts
     policies:
     - roles: user
-      operations: read,update
-      readonly: status
+      operations: read
+    - roles: user
+      operations: update
+      exclude: status
     where:
       author: $uid
 
@@ -91,7 +93,6 @@ collections:
     exclude: [posts,pages]
     policies:
     - roles: user
-      readonly: role
     where:
       id: $uid
 

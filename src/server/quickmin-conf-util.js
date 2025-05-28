@@ -4,7 +4,7 @@ import {arrayify, arrayDifference, arrayIntersection} from "../utils/js-util.js"
 
 export function canonicalizePolicyForFields(policy, fields) {
     let {operations, roles, where,
-        include, exclude, readonly, writable, ...extra}=policy;
+        include, exclude, ...extra}=policy;
 
     if (!fields)
         throw new Error("got no fields");
@@ -14,21 +14,12 @@ export function canonicalizePolicyForFields(policy, fields) {
 
     include=parseArrayOrCsvRow(include);
     exclude=parseArrayOrCsvRow(exclude);
-    readonly=parseArrayOrCsvRow(readonly);
-    writable=parseArrayOrCsvRow(writable);
 
-    let readFields=include;
-    if (!readFields.length)
-        readFields=[...fields];
+    let fieldNames=include;
+    if (!fieldNames.length)
+        fieldNames=[...fields];
 
-    readFields=arrayDifference(readFields,exclude);
-
-    let writeFields=[...readFields];
-    if (readonly.length)
-        writeFields=arrayDifference(writeFields,readonly);
-
-    if (writable.length)
-        writeFields=arrayIntersection(writeFields,writable);
+    fieldNames=arrayDifference(fieldNames,exclude);
 
     operations=parseArrayOrCsvRow(operations);
     if (!operations.length)
@@ -38,9 +29,8 @@ export function canonicalizePolicyForFields(policy, fields) {
         roles: parseArrayOrCsvRow(roles),
         operations: operations,
         where: where,
-        include: readFields,
-        writable: writeFields,
-    })
+        include: fieldNames
+    });
 }
 
 export function quickminGetClientMethod(conf, name) {
@@ -67,8 +57,6 @@ function canonicalizePolicyInPlace(policy) {
 
     policy.include=parseArrayOrCsvRow(policy.include);
     policy.exclude=parseArrayOrCsvRow(policy.exclude);
-    policy.readonly=parseArrayOrCsvRow(policy.readonly);
-    policy.writable=parseArrayOrCsvRow(policy.writable);
 }
 
 function canonicalizeCollectionConf(collectionConf) {

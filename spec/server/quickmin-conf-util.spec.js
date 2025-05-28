@@ -7,16 +7,13 @@ describe("quickmin conf util",()=>{
             roles: "user",
             operations: "create, read, update, delete",
             include: "id, password",
-            //writable: "id",
-            readonly: "password"
         },["id","name","password"]);
 
         expect(p).toEqual({
             roles: ["user"],
             operations: ["create","read","update","delete"],
             where: undefined,
-            include: ["id","password"],
-            writable: ["id"]
+            include: ["id","password"]
         });
     });
 
