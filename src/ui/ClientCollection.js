@@ -31,11 +31,11 @@ export default class ClientCollection {
 		return "/"+this.id;
 	}
 
-	getActivePolicy() {
+	/*getActivePolicy() {
 		for (let policy of this.policies)
 			if (policy.roles.includes(this.conf.role))
 				return policy;
-	}
+	}*/
 
 	getOperationPolicies(operation) {
 		let policies=[];
@@ -49,11 +49,13 @@ export default class ClientCollection {
 	}
 
 	isVisible() {
-		let policy=this.getActivePolicy();
+		return (this.getOperationPolicies("read").length>0);
+
+		/*let policy=this.getActivePolicy();
 		if (!policy)
 			return false;
 
-		return (policy.operations.includes("read"));
+		return (policy.operations.includes("read"));*/
 	}
 
 	isWritable() {
@@ -70,7 +72,7 @@ export default class ClientCollection {
 		return ClientFieldArray.from(Object.values(this.fields));
 	}
 
-	isFieldWritable(fid) {
+	/*isFieldWritable(fid) {
 		return this.getActivePolicy().writable.includes(fid);
-	}
+	}*/
 }

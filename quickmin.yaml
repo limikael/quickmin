@@ -24,6 +24,9 @@ collections:
     - roles: user
       operations: read
       exclude: google_auth,facebook_auth
+    - roles: user
+      operations: read,update
+      where: {id: "$uid"}
     fields:
       <Text id="name" username listable default="micke"/>
       <Boolean id="nice" notnull default="true"/>

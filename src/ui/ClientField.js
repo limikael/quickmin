@@ -16,15 +16,17 @@ export default class ClientField {
 		return this.collection.listFields.includes(this.id);
 	}
 
-	isVisible() {
+	/*isVisible() {
 		return this.collection.getActivePolicy().include.includes(this.id);
-	}
+	}*/
 
 	isWritable() {
-		if (!this.collection.isWritable())
+		return true;
+
+		/*if (!this.collection.isWritable())
 			return false;
 
-		return this.collection.getActivePolicy().writable.includes(this.id);
+		return this.collection.getActivePolicy().writable.includes(this.id);*/
 	}
 
 	hasPolicyOperation(policies, operation) {

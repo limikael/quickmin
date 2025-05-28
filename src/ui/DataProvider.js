@@ -33,7 +33,11 @@ export default class DataProvider {
     createFormData=(resource, data)=>{
         const formData=new FormData();
         for (let fid in data) {
-            if (this.collections[resource].isFieldWritable(fid)) {
+            //console.log(fid);
+            //console.log(this.collections[resource].fields[fid])
+            //if (this.collections[resource].isFieldWritable(fid)) {
+            if (this.collections[resource].fields[fid] &&
+                    this.collections[resource].fields[fid].isWritable()) {
                 let fieldData=data[fid];
 
                 //console.log("createFormData, resource="+resource);
@@ -89,7 +93,7 @@ export default class DataProvider {
     }
 
     getOne=async (resource, params)=>{
-        let url=`${this.apiUrl}/${resource}/${encodeURIComponent(params.id)}?includeRowPolicies=true`;
+        let url=`${this.apiUrl}/${resource}/${encodeURIComponent(params.id)}?includePolicyInfo=true&selectAllReadable=true`;
         let response={data: (await this.httpClient(url)).json};
         response.data=this.processRead(resource,response.data);
 

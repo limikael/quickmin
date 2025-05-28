@@ -34,7 +34,7 @@ function useWatchRecord(collection) {
             conditionDeps.push(...Object.keys(field.condition));
     }
 
-    conditionDeps.push("$policies");
+    conditionDeps.push("$policyInfo");
 
     conditionDeps=arrayUnique(conditionDeps);
     let watch=useWatch({name: conditionDeps});
@@ -45,7 +45,7 @@ function useWatchRecord(collection) {
     return watchRecord;
 }
 
-function CollectionToolbar({conf, collection, mode, redirect}) {
+function CollectionToolbar({conf, collection, mode, redirect, policyInfo}) {
     let refresh=useRefresh();
     let actionState=useActionState(conf, refresh);
 
@@ -67,7 +67,7 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     toolbarItems.push(<div style="flex-grow: 1"></div>);
     if (collection.type!="singleView"
             && collection.isWritable()
-            && collection.getActivePolicy().operations.includes("delete"))
+            && policyInfo.delete)
         toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
     return (
@@ -80,13 +80,13 @@ function CollectionToolbar({conf, collection, mode, redirect}) {
     );
 }
 
-function CollectionEditorField({field, policies}) {
+function CollectionEditorField({field, policyInfo}) {
     let fieldProps={...field};
 
     if (!field.isWritable())
         fieldProps.disabled=true;
 
-    if (!field.hasPolicyOperation(policies,"update"))
+    if (!policyInfo.updateFields.includes(field.id))
         fieldProps.disabled=true;
 
     fieldProps.defaultValue=field.default;
@@ -101,9 +101,9 @@ function CollectionEditorField({field, policies}) {
     );
 }
 
-function CollectionEditorFields({fields, policies}) {
+function CollectionEditorFields({fields, policyInfo}) {
     return (fields.map(field=>
-        <CollectionEditorField field={field} policies={policies}/>
+        <CollectionEditorField field={field} policyInfo={policyInfo}/>
     ));
 }
 
@@ -127,14 +127,14 @@ function SectionHeader({section}) {
     );
 }
 
-function CollectionEditorFieldsSections({fields, policies}) {
+function CollectionEditorFieldsSections({fields, policyInfo}) {
     return (<>
         {fields.getSections().map(section=>
             <>
                 <SectionHeader section={section}/>
                 <CollectionEditorFields
                         fields={fields.getForSection(section)}
-                        policies={policies}/>
+                        policyInfo={policyInfo}/>
             </>
         )}
     </>);
@@ -142,23 +142,26 @@ function CollectionEditorFieldsSections({fields, policies}) {
 
 function CollectionFormView({collection, mode, redirect, conf}) {
     let watchRecord=useWatchRecord(collection);
-    let policies=watchRecord.$policies;
+    let policyInfo=watchRecord.$policyInfo;
 
-    //let formContext=useFormContext();
-    //let policies=formContext.getValues().$policies;
+    //console.log(policyInfo);
 
-    if (!policies)
+    if (!policyInfo)
         return;
+
+    let policyFields=arrayUnique([...policyInfo.readFields,...policyInfo.updateFields]);
 
     let toolbar=(
         <CollectionToolbar
                 conf={conf}
                 collection={collection}
                 mode={mode}
-                redirect={redirect}/>
+                redirect={redirect}
+                policyInfo={policyInfo}/>
     )
 
-    let fields=collection.getFields().getVisible()
+    let fields=collection.getFields()
+        .filter(f=>policyFields.includes(f.id))
         .getConditionMatchingRecord(watchRecord);
 
     if (mode=="create")
@@ -167,7 +170,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     if (!fields.hasTabs()) {
         return (
             <SimpleFormView toolbar={toolbar}>
-                <CollectionEditorFieldsSections fields={fields} policies={policies}/>
+                <CollectionEditorFieldsSections fields={fields} policyInfo={policyInfo}/>
             </SimpleFormView>
         );
     }
@@ -176,7 +179,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
         <TabbedFormView toolbar={toolbar} syncWithLocation={false}>
             {fields.getTabs().map(tab=>
                 <TabbedForm.Tab label={tab?tab:singular(collection.id)}>
-                    <CollectionEditorFieldsSections fields={fields.getForTab(tab)} policies={policies}/>
+                    <CollectionEditorFieldsSections fields={fields.getForTab(tab)} policyInfo={policyInfo}/>
                 </TabbedForm.Tab>
             )}
         </TabbedFormView>

@@ -49,7 +49,7 @@ export default function CollectionList({conf, collection}) {
     }
 
     let filters=[];
-    for (let f of collection.getFields().getVisible()) {
+    for (let f of collection.getFields()/*.getVisible()*/) {
         if (f.filter) {
             if (!FIELD_TYPES[f.type].filter)
                 throw new Error("Can't filter on that");
@@ -81,7 +81,7 @@ export default function CollectionList({conf, collection}) {
             {globalActionItems}
             <FilterButton/>
             {collection.isWritable() &&
-                    collection.getActivePolicy().operations.includes("create") &&
+                    collection.getOperationPolicies("update").length>0 &&
                 <CreateButton/>
             }
         </div>
@@ -94,7 +94,7 @@ export default function CollectionList({conf, collection}) {
                 empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
-                {collection.getFields().getListable().getVisible().map(f=>
+                {collection.getFields().getListable()/*.getVisible()*/.map(f=>
                     <f.ListComp source={f.id} {...f} conf={conf} purpose="list"/>
                 )}
             </Datagrid>
