@@ -112,3 +112,15 @@ collections:
     fields:
       <Integer id="id" disabled notnull/>
       <Text id="name"/>
+
+  things:
+    category: things
+    fields:
+      <Text id="name"/>
+      <ReferenceMany id="subthings" reference="subthings" target="thing_id"/>
+
+  subthings:
+    category: things
+    fields:
+      <Reference id="thing_id" reference="things"/>
+      <Text id="name"/>

@@ -9,9 +9,16 @@ export function urlGetArgs(url) {
 	return splitPath(new URL(url).pathname);
 }
 
-export function urlGetParams(url) {
-	let u=new URL(url);
-	return Object.fromEntries(u.searchParams);
+export function urlGetParams(urlString,{afterHash}={}) {
+	let url=new URL(urlString);
+	let afterHashParams;
+
+	if (afterHash && url.toString().includes("#")) {
+        let [hash, query]=url.toString().split('#')[1].split('?');
+        afterHashParams=Object.fromEntries(new URLSearchParams(query));
+	}
+
+	return ({...Object.fromEntries(url.searchParams),...afterHashParams});
 }
 
 export function jsonEq(a,b) {

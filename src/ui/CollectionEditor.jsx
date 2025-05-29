@@ -168,7 +168,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     )
 
     let fields=collection.getFields()
-        .filter(f=>policyFields.includes(f.id))
+        /*.filter(f=>policyFields.includes(f.id))*/
         .getConditionMatchingRecord(watchRecord);
 
     if (mode=="create")
@@ -193,32 +193,36 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     );
 }
 
-export default function CollectionEditor({collection, mode, conf}) {
-    function redirect() {
-        if (collection.type=="singleView")
-            return `${collection.id}/single`;
-
-        let url=window.location.toString();
-        const [hash, query]=url.split('#')[1].split('?');
-        const params=Object.fromEntries(new URLSearchParams(query));
-        if (params.redirect)
-            return params.redirect;
-
-        return `${collection.id}`;
+function getRedirecter({collection, mode}) {
+    if (mode=="create" &&
+            collection.getFields().filter(f=>f.type=="referencemany").length) {
+        return;
     }
 
+    if (collection.type=="singleView")
+        return ()=>`${collection.id}/single`;
+
+    let params=urlGetParams(window.location,{afterHash: true});
+    if (params.redirect)
+        return ()=>params.redirect;
+
+    return ()=>collection.id;
+}
+
+export default function CollectionEditor({collection, mode, conf}) {
     let content=(
         <CollectionFormView
                 collection={collection}
                 mode={mode}
-                redirect={redirect}
+                redirect={getRedirecter({collection,mode})}
                 conf={conf}/>
     );
 
     switch (mode) {
         case "edit":
             return (<>
-                <Edit mutationMode="pessimistic" redirect={redirect}>
+                <Edit mutationMode="pessimistic"
+                        redirect={getRedirecter({collection,mode})}>
                     <Form>
                         {content}
                     </Form>
@@ -226,20 +230,8 @@ export default function CollectionEditor({collection, mode, conf}) {
             </>);
 
         case "create":
-            let referenceFields=collection.getFields()/*.getVisible()*/.filter(f=>f.type=="referencemany");
-
-            let createRedirect=redirect;
-
-            let url=window.location.toString();
-            const [hash, query]=url.split('#')[1].split('?');
-            const params=Object.fromEntries(new URLSearchParams(query));
-            //console.log(params);
-
-            if (!params.redirect && referenceFields.length)
-                createRedirect=null;
-
             return (
-                <Create redirect={createRedirect}>
+                <Create redirect={getRedirecter({collection,mode})}>
                     <Form>
                         {content}
                     </Form>
