@@ -29,7 +29,7 @@ export default class ClientField {
 		return this.collection.getActivePolicy().writable.includes(this.id);*/
 	}
 
-	hasPolicyOperation(policies, operation) {
+	/*hasPolicyOperation(policies, operation) {
 		if (!policies)
 			return false;
 
@@ -38,7 +38,7 @@ export default class ClientField {
 				return true;
 
 		return false;
-	}
+	}*/
 
 	conditionMatchRecord(record) {
 		if (!this.condition)

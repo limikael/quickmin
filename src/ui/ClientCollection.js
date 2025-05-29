@@ -31,13 +31,29 @@ export default class ClientCollection {
 		return "/"+this.id;
 	}
 
-	/*getActivePolicy() {
-		for (let policy of this.policies)
-			if (policy.roles.includes(this.conf.role))
-				return policy;
-	}*/
+	getActivePolicies() {
+		return this.policies.filter(p=>p.roles.includes(this.conf.role));
+	}
 
-	getOperationPolicies(operation) {
+	getActivePolicyOperations() {
+		let ops=[];
+
+		for (let activePolicy of this.getActivePolicies())
+			ops.push(...activePolicy.operations);
+
+		return arrayUnique(ops);
+	}
+
+	getCreateFields() {
+		let fields=[]
+		for (let policy of this.getActivePolicies())
+			if (policy.operations.includes("create"))
+				fields.push(...policy.include);
+
+		return arrayUnique(fields);
+	}
+
+	/*getOperationPolicies(operation) {
 		let policies=[];
 
 		for (let policy of this.policies)
@@ -50,29 +66,13 @@ export default class ClientCollection {
 
 	isVisible() {
 		return (this.getOperationPolicies("read").length>0);
-
-		/*let policy=this.getActivePolicy();
-		if (!policy)
-			return false;
-
-		return (policy.operations.includes("read"));*/
 	}
 
 	isWritable() {
 		return (this.getOperationPolicies("update").length>0);
-
-		/*let policy=this.getActivePolicy();
-		if (!policy)
-			return false;
-
-		return (policy.operations.includes("update"));*/
-	}
+	}*/
 
 	getFields() {
 		return ClientFieldArray.from(Object.values(this.fields));
 	}
-
-	/*isFieldWritable(fid) {
-		return this.getActivePolicy().writable.includes(fid);
-	}*/
 }

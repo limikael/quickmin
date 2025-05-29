@@ -96,7 +96,7 @@ export default class ClientConf extends EventTarget {
 	}
 
 	getVisibleCollections() {
-		return this.getCollections().filter(c=>c.isVisible());
+		return this.getCollections().filter(c=>c.getActivePolicyOperations().length>0);
 	}
 
     getVisibleCollectionsByCategory(category) {

@@ -45,7 +45,6 @@ collections:
     - roles: user
       operations: read
     - roles: user
-      operations: update
       where:
         author: $uid
     actions:
@@ -82,6 +81,9 @@ collections:
     icon: article
     policies:
     - roles: admin
+    - roles: user
+      where:
+        author: $uid
     - roles: user
       operations: read
     fields:

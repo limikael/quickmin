@@ -80,8 +80,7 @@ export default function CollectionList({conf, collection}) {
         <div style="white-space: nowrap; text-align: right">
             {globalActionItems}
             <FilterButton/>
-            {collection.isWritable() &&
-                    collection.getOperationPolicies("update").length>0 &&
+            {collection.getActivePolicyOperations().includes("create") &&
                 <CreateButton/>
             }
         </div>

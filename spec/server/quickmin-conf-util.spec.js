@@ -35,8 +35,8 @@ describe("quickmin conf util",()=>{
         expect(Object.keys(canonicalized.collections.test.fields).length).toEqual(2);
         //console.log(canonicalized.collections.test.policies);
         expect(canonicalized.collections.test.policies).toEqual([
-            { roles: [ 'admin' ], operations: ["create","read","update","delete"],  include: [], exclude: [], readonly: [], writable: []},
-            { roles: [ 'admin', 'user' ], operations: [ 'read', 'update' ],  include: [], exclude: [], readonly: [], writable: [] }
+            { roles: [ 'admin' ], operations: ["create","read","update","delete"],  include: [], exclude: []},
+            { roles: [ 'admin', 'user' ], operations: [ 'read', 'update' ],  include: [], exclude: []}
         ]);
     });
 

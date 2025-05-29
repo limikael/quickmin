@@ -66,7 +66,6 @@ function CollectionToolbar({conf, collection, mode, redirect, policyInfo}) {
 
     toolbarItems.push(<div style="flex-grow: 1"></div>);
     if (collection.type!="singleView"
-            && collection.isWritable()
             && policyInfo.delete)
         toolbarItems.push(<DeleteButton redirect={redirect}/>);
 
@@ -82,9 +81,6 @@ function CollectionToolbar({conf, collection, mode, redirect, policyInfo}) {
 
 function CollectionEditorField({field, policyInfo}) {
     let fieldProps={...field};
-
-    if (!field.isWritable())
-        fieldProps.disabled=true;
 
     if (!policyInfo.updateFields.includes(field.id))
         fieldProps.disabled=true;
@@ -142,9 +138,20 @@ function CollectionEditorFieldsSections({fields, policyInfo}) {
 
 function CollectionFormView({collection, mode, redirect, conf}) {
     let watchRecord=useWatchRecord(collection);
-    let policyInfo=watchRecord.$policyInfo;
+    let policyInfo;
 
-    //console.log(policyInfo);
+    switch (mode) {
+        case "edit":
+            policyInfo=watchRecord.$policyInfo;
+            break;
+
+        case "create":
+            policyInfo={
+                readFields: collection.getCreateFields(),
+                updateFields: collection.getCreateFields()
+            }
+            break;
+    }
 
     if (!policyInfo)
         return;
@@ -219,7 +226,7 @@ export default function CollectionEditor({collection, mode, conf}) {
             </>);
 
         case "create":
-            let referenceFields=collection.getFields().getVisible().filter(f=>f.type=="referencemany");
+            let referenceFields=collection.getFields()/*.getVisible()*/.filter(f=>f.type=="referencemany");
 
             let createRedirect=redirect;
 

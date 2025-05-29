@@ -5,10 +5,6 @@ export default class ClientFieldArray extends Array {
 		return this.filter(f=>f.isListable());
 	}
 
-	/*getVisible() {
-		return this.filter(f=>f.isVisible());
-	}*/
-
 	getForTab(tab) {
 		return this.filter(f=>f.tab==tab);
 	}
