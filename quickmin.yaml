@@ -115,8 +115,18 @@ collections:
 
   things:
     category: things
+    policies:
+    - roles: admin
+    - roles: user
+      operations: read,update,delete
+      exclude: subthings,only_for_admin
+    - roles: user
+      operations: create
+      exclude: subthings,only_for_admin,another
     fields:
       <Text id="name"/>
+      <Text id="another"/>
+      <Integer id="only_for_admin"/>
       <ReferenceMany id="subthings" reference="subthings" target="thing_id"/>
 
   subthings:

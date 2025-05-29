@@ -44,33 +44,31 @@ export default class ClientCollection {
 		return arrayUnique(ops);
 	}
 
-	getCreateFields() {
-		let fields=[]
-		for (let policy of this.getActivePolicies())
-			if (policy.operations.includes("create"))
-				fields.push(...policy.include);
+	getActiveOperationPolicies(operation) {
+		return this.getActivePolicies().filter(p=>p.operations.includes(operation));
+	}
+
+	getWideFieldSet(operation) {
+		let fields=[];
+		for (let policy of this.getActiveOperationPolicies(operation))
+			fields.push(...policy.include);
 
 		return arrayUnique(fields);
 	}
 
-	/*getOperationPolicies(operation) {
-		let policies=[];
+	getNarrowFieldSet(operation) {
+		let fieldNames;
 
-		for (let policy of this.policies)
-			if (policy.roles.includes(this.conf.role) &&
-					policy.operations.includes(operation))
-				policies.push(policy);
+		for (let policy of this.getActiveOperationPolicies(operation)) {
+			if (fieldNames)
+				fieldNames=arrayIntersection(fieldNames,policy.include);
 
-		return policies;
+			else
+				fieldNames=policy.include;
+		}
+
+		return fieldNames;
 	}
-
-	isVisible() {
-		return (this.getOperationPolicies("read").length>0);
-	}
-
-	isWritable() {
-		return (this.getOperationPolicies("update").length>0);
-	}*/
 
 	getFields() {
 		return ClientFieldArray.from(Object.values(this.fields));

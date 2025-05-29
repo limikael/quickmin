@@ -86,6 +86,9 @@ export default function CollectionList({conf, collection}) {
         </div>
     );
 
+    let listFields=collection.getFields().getListable();
+    listFields=listFields.filter(f=>collection.getNarrowFieldSet("read").includes(f.id));
+
     return (<>
         <ActionDialog actionState={actionState}/>
         <List hasCreate={true} exporter={false}
@@ -93,7 +96,7 @@ export default function CollectionList({conf, collection}) {
                 empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
-                {collection.getFields().getListable()/*.getVisible()*/.map(f=>
+                {listFields.map(f=>
                     <f.ListComp source={f.id} {...f} conf={conf} purpose="list"/>
                 )}
             </Datagrid>

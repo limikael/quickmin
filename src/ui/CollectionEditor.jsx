@@ -37,6 +37,8 @@ function useWatchRecord(collection) {
     conditionDeps.push("$policyInfo");
 
     conditionDeps=arrayUnique(conditionDeps);
+    //console.log("cond deps: ",conditionDeps);
+
     let watch=useWatch({name: conditionDeps});
     let watchRecord=Object.fromEntries(
         [...Array(conditionDeps.length).keys()].map(i=>[conditionDeps[i],watch[i]])
@@ -140,6 +142,8 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     let watchRecord=useWatchRecord(collection);
     let policyInfo;
 
+    //console.log("render collection form");
+
     switch (mode) {
         case "edit":
             policyInfo=watchRecord.$policyInfo;
@@ -147,8 +151,8 @@ function CollectionFormView({collection, mode, redirect, conf}) {
 
         case "create":
             policyInfo={
-                readFields: collection.getCreateFields(),
-                updateFields: collection.getCreateFields()
+                readFields: collection.getWideFieldSet("create"),
+                updateFields: collection.getWideFieldSet("create")
             }
             break;
     }
@@ -168,7 +172,7 @@ function CollectionFormView({collection, mode, redirect, conf}) {
     )
 
     let fields=collection.getFields()
-        /*.filter(f=>policyFields.includes(f.id))*/
+        .filter(f=>policyFields.includes(f.id) || (f.type=="referencemany" && collection.getWideFieldSet("read").includes(f.id)))
         .getConditionMatchingRecord(watchRecord);
 
     if (mode=="create")
@@ -194,8 +198,11 @@ function CollectionFormView({collection, mode, redirect, conf}) {
 }
 
 function getRedirecter({collection, mode}) {
+   // console.log("redirecter...");
+
     if (mode=="create" &&
             collection.getFields().filter(f=>f.type=="referencemany").length) {
+        //console.log("returning undefined");
         return;
     }
 
