@@ -124,9 +124,9 @@ collections:
       operations: create
       exclude: subthings,only_for_admin,another
     fields:
-      <Text id="name"/>
+      <Text id="name" filter/>
       <Text id="another"/>
-      <Integer id="only_for_admin"/>
+      <Text id="only_for_admin" filter/>
       <ReferenceMany id="subthings" reference="subthings" target="thing_id"/>
 
   subthings:

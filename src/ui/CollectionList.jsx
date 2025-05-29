@@ -49,20 +49,17 @@ export default function CollectionList({conf, collection}) {
     }
 
     let filters=[];
-    for (let f of collection.getFields()/*.getVisible()*/) {
-        if (f.filter) {
-            if (!FIELD_TYPES[f.type].filter)
-                throw new Error("Can't filter on that");
+    for (let f of collection.getFields().getInNarrowSet("read").getFilterable()) {
+        if (!f.FilterComp)
+            throw new Error("Can't filter on that");
 
-            let alwaysOn=true;
-            if (String(f.filter).includes("optional"))
-                alwaysOn=false;
+        let alwaysOn=true;
+        if (String(f.filter).includes("optional"))
+            alwaysOn=false;
 
-            let Comp=FIELD_TYPES[f.type].filter;
-            filters.push(
-                 <Comp source={f.id} {...f} alwaysOn={alwaysOn} conf={conf} purpose="filter"/>,
-            );
-        }
+        filters.push(
+             <f.FilterComp source={f.id} {...f} alwaysOn={alwaysOn} conf={conf} purpose="filter"/>,
+        );
     }
 
     let globalActionItems=[];
@@ -86,9 +83,6 @@ export default function CollectionList({conf, collection}) {
         </div>
     );
 
-    let listFields=collection.getFields().getListable();
-    listFields=listFields.filter(f=>collection.getNarrowFieldSet("read").includes(f.id));
-
     return (<>
         <ActionDialog actionState={actionState}/>
         <List hasCreate={true} exporter={false}
@@ -96,7 +90,7 @@ export default function CollectionList({conf, collection}) {
                 empty={false}>
             <Datagrid rowClick="edit" size="medium"
                     bulkActionButtons={<BulkActions/>}>
-                {listFields.map(f=>
+                {collection.getFields().getListable().getInNarrowSet("read").map(f=>
                     <f.ListComp source={f.id} {...f} conf={conf} purpose="list"/>
                 )}
             </Datagrid>

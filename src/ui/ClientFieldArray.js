@@ -32,4 +32,16 @@ export default class ClientFieldArray extends Array {
 	getConditionMatchingRecord(record) {
 		return this.filter(f=>f.conditionMatchRecord(record));
 	}
+
+	getInNarrowSet(operation) {
+    	return this.filter(f=>f.inNarrowSet(operation));
+	}
+
+	getInWideSet(operation) {
+    	return this.filter(f=>f.inWideSet(operation));
+	}
+
+	getFilterable() {
+		return this.filter(f=>f.filter);
+	}
 }

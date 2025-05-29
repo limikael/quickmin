@@ -7,6 +7,7 @@ export default class ClientField {
 
 		this.ListComp=this.FIELD_TYPES[this.type].list;
 		this.EditComp=this.FIELD_TYPES[this.type].edit;
+		this.FilterComp=this.FIELD_TYPES[this.type].filter;
 
 		if (this.condition && typeof this.condition=="string")
 			this.condition=json5ParseObject(this.condition);
@@ -16,29 +17,13 @@ export default class ClientField {
 		return this.collection.listFields.includes(this.id);
 	}
 
-	/*isVisible() {
-		return this.collection.getActivePolicy().include.includes(this.id);
-	}*/
-
-	isWritable() {
-		return true;
-
-		/*if (!this.collection.isWritable())
-			return false;
-
-		return this.collection.getActivePolicy().writable.includes(this.id);*/
+	inNarrowSet(operation) {
+		return this.collection.getNarrowFieldSet(operation).includes(this.id)
 	}
 
-	/*hasPolicyOperation(policies, operation) {
-		if (!policies)
-			return false;
-
-		for (let policy of policies)
-			if (policy.operations.includes(operation))
-				return true;
-
-		return false;
-	}*/
+	inWideSet(operation) {
+		return this.collection.getWideFieldSet(operation).includes(this.id)
+	}
 
 	conditionMatchRecord(record) {
 		if (!this.condition)
