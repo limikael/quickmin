@@ -50,8 +50,18 @@ collections:
     actions:
     - name: test action
       method: testMethod
+      helperText: This will increase the number of views...
+      options:
+        num: {type: "integer", helperText: "increase by", default: 1}
+        start_date: {type: "date", helperText: "start"}
+        file: {type: "file", helperText: "upload file"}
+        sel: {type: "select", choices: "breakfast,lunch, dinner"}
+    - name: test global
+      method: testGlobal
+      scope: global
     fields: |
       <Text id="title" fullWidth listable filter/>
+      <Integer id="views" listable/>
       <Image id="image" tab="image" listable/>
       <File id="file" tab="image" listable/>
       <Reference id="author" reference="users" listable tab="author" filter/>
@@ -86,11 +96,14 @@ collections:
         author: $uid
     - roles: user
       operations: read
+    actions:
+    - name: get content
+      method: getPageContent
     fields:
       <Text id="slug" listable/>
       <Text id="title" fullWidth listable section="title and content"/>
       <Reference id="author" reference="users" listable/>
-      <RichText id="content" fullWidth section="title and content"/>
+      <Text id="content" fullWidth multiline section="title and content"/>
 
   profile:
     category: profile

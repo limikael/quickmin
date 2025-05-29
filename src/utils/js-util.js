@@ -1,3 +1,28 @@
+export class ResolvablePromise extends Promise {
+	constructor(cb = () => {}) {
+        let resolveClosure = null;
+        let rejectClosure = null;
+
+		super((resolve,reject)=>{
+            resolveClosure = resolve;
+            rejectClosure = reject;
+
+			return cb(resolve, reject);
+		});
+
+        this.resolveClosure = resolveClosure;
+        this.rejectClosure = rejectClosure;
+ 	}
+
+	resolve=(result)=>{
+		this.resolveClosure(result);
+	}
+
+	reject=(reason)=>{
+		this.rejectClosure(reason);
+	}
+}
+
 export function splitPath(pathname) {
 	if (pathname===undefined)
 		throw new Error("Undefined pathname");
@@ -81,7 +106,7 @@ export function makeNameFromSymbol(symbol) {
 	symbol=symbol.replaceAll("_"," ").replaceAll("-"," ");
 	symbol=symbol
 		.split(" ")
-		.map(s=>s.charAt(0).toUpperCase()+s.slice(1))
+		.map(s=>s.trim().charAt(0).toUpperCase()+s.trim().slice(1))
 		.join(" ");
 
 	return symbol;

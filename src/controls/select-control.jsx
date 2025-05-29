@@ -1,13 +1,19 @@
 import {SelectInput, SelectField} from "react-admin";
 import {useDepRecord} from "../utils/ra-util.jsx";
 import {useAsyncMemo} from "../utils/react-util.jsx";
+import MuiSelect from "@mui/material/Select";
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import {useId} from "react";
+import {makeNameFromSymbol} from "../utils/js-util.js";
 
 function parseSelectChoices(field) {
     if (field.choices && Array.isArray(field.choices)) {
         return field.choices.map(s=>{
             return ({
-                id: s,
-                name: s.charAt(0).toUpperCase()+s.slice(1)
+                id: s.trim(),
+                name: makeNameFromSymbol(s)
             })
         });
     }
@@ -16,14 +22,14 @@ function parseSelectChoices(field) {
         let choices=field.choices.split(",")
         return choices.map(s=>{
             return ({
-                id: s,
-                name: s.charAt(0).toUpperCase()+s.slice(1)
+                id: s.trim(),
+                name: makeNameFromSymbol(s)
             })
         });
     }
 
     else {
-        choices=[];
+        let choices=[];
         for (let child of field.children) {
             choices.push({
                 id: child.attributes.id,
@@ -69,4 +75,33 @@ export function QuickminSelectField(props) {
 
 	props={...props, choices: parseSelectChoices(props)};
 	return (<SelectField {...props}/>);
+}
+
+export function SelectOption({label, value, onChange, choices}) {
+    label=makeNameFromSymbol(label);
+
+    let id=useId();
+    let labelId="options-select-"+id;
+
+    if (!value)
+        value="";
+
+    let optionArray=parseSelectChoices({choices});
+
+    return (
+        <FormControl fullWidth margin="dense">
+            <InputLabel id={labelId}>{label}</InputLabel>
+            <MuiSelect
+                    fullWidth
+                    label={label}
+                    labelId={labelId}
+                    value={value}
+                    onChange={onChange}>
+                <MenuItem value=""></MenuItem>
+                {optionArray.map(o=>
+                    <MenuItem value={o.id}>{o.name}</MenuItem>
+                )}
+            </MuiSelect>
+        </FormControl>
+    );
 }

@@ -1,3 +1,9 @@
+export async function getPageContent({id, qql}) {
+	let page=await qql({oneFrom: "pages", where: {id}});
+
+	return page.content;
+}
+
 export async function getChoices({item, qql}) {
 	await new Promise(r=>setTimeout(r,1000));
 
@@ -8,9 +14,31 @@ export async function getChoices({item, qql}) {
 	return pages;
 }
 
-export async function testMethod({id, qql}) {
-	await new Promise(r=>setTimeout(r,1000));
-	console.log("checking stuff: "+id);
+export async function testGlobal({qql}) {
+	await qql({insertInto: "posts", set: {title: "Global create..."}});
+
+	return "testing global...";
+}
+
+export async function testMethod({id, qql, start_date, num, file, sel}) {
+	console.log("start date: "+start_date);
+	console.log("file: ",file);
+
+	if (file)
+		console.log("data: ",await file.text());
+
+	console.log("sel: ",sel);
+
+	let item=await qql({oneFrom: "posts", where: {id: id}});
+
+	if (!item.views)
+		item.views=0;
+
+	item.views+=num;
+
+	await qql({update: "posts", set: {views: item.views}, where: {id: id}});
+
+	return ("increased by: "+num);
 }
 
 export function getJsonTestSchema({item}) {

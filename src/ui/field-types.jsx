@@ -15,6 +15,11 @@ import utc from "dayjs/plugin/utc.js";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import {JsonInput} from "../controls/json-control.jsx";
 import {QuickminSelectField, QuickminSelectInput} from "../controls/select-control.jsx";
+import {TextOption} from "../controls/text-control.jsx";
+import {NumberOption} from "../controls/number-control.jsx";
+import {DateOption} from "../controls/date-control.jsx";
+import {FileOption} from "../controls/file-control.jsx";
+import {SelectOption} from "../controls/select-control.jsx";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -169,7 +174,8 @@ export const FIELD_TYPES={
     "text": {
         list: TextField,
         edit: TextInput,
-        filter: TextInput
+        filter: TextInput,
+        option: TextOption
     },
 
     "json": {
@@ -180,6 +186,7 @@ export const FIELD_TYPES={
     "integer": {
         list: NumberField,
         edit: NumberInput,
+        option: NumberOption
     },
 
     "real": {
@@ -206,6 +213,7 @@ export const FIELD_TYPES={
     "date": {
         list: DateField,
         edit: DateInput,
+        option: DateOption,
     },
 
     "datetime": {
@@ -234,6 +242,7 @@ export const FIELD_TYPES={
         list: QuickminSelectField,
         edit: QuickminSelectInput,
         filter: QuickminSelectInput,
+        option: SelectOption,
         //confProcessor: processSelectConf
     },
 
@@ -279,6 +288,7 @@ export const FIELD_TYPES={
     "file": {
         list: QuickminFileField,
         edit: QuickminFileInput,
+        option: FileOption,
         readProcessor(data, conf) {
             if (!data)
                 return;

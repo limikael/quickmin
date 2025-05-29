@@ -1,7 +1,9 @@
 import {arrayUnique, arrayIntersection} from "../utils/js-util.js";
 import {matchCondition} from "./conf-util.js";
 import ClientField from "./ClientField.js";
+import ClientAction from "./ClientAction.js";
 import ClientFieldArray from "./ClientFieldArray.js";
+import ClientActionArray from "./ClientActionArray.js";
 import FIELD_TYPES from "./field-types.jsx";
 import {json5ParseObject} from "../utils/json5-util.js";
 
@@ -22,6 +24,17 @@ export default class ClientCollection {
 	    }
 
 	    this.fields=clientFields;
+
+	    let clientActions=[];
+	    for (let action of this.actions) {
+	    	clientActions.push(new ClientAction({
+	    		collection: this,
+	    		conf: this.conf,
+	    		...action
+	    	}))
+	    }
+
+	    this.actions=ClientActionArray.from(clientActions);
 	}
 
 	getPath() {
@@ -72,5 +85,9 @@ export default class ClientCollection {
 
 	getFields() {
 		return ClientFieldArray.from(Object.values(this.fields));
+	}
+
+	getActions() {
+		return this.actions;
 	}
 }
