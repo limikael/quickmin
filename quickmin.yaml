@@ -131,15 +131,22 @@ collections:
     policies:
     - roles: admin
     - roles: user
-      operations: read,update,delete
-      exclude: subthings,only_for_admin
+      operations: read
+      exclude: subthings
     - roles: user
-      operations: create
-      exclude: subthings,only_for_admin,another
+      operations: update,delete
+      include: name,another,lockable_info
+      where:
+        locked: false
+    - roles: user
+      operations: update,create
+      include: name,another
+
     fields:
       <Text id="name" filter/>
       <Text id="another"/>
-      <Text id="only_for_admin" filter/>
+      <Text id="lockable_info" filter/>
+      <Boolean id="locked" default="false" notnull/>
       <ReferenceMany id="subthings" reference="subthings" target="thing_id"/>
 
   subthings:

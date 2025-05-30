@@ -30,24 +30,19 @@ export default class DataProvider {
         return data;
     }
 
-    createFormData=(resource, data)=>{
+    createFormData=(resource, data, fieldNames)=>{
+        console.log(data);
+
         const formData=new FormData();
         for (let fid in data) {
-            if (this.collections[resource].fields[fid] &&
-                    this.collections[resource].fields[fid].isWritable()) {
+            if (fieldNames.includes(fid)) {
+                console.log("fid: "+fid);
                 let fieldData=data[fid];
 
-                //console.log("createFormData, resource="+resource);
-                //console.log("data: ",data);
-
-                if (fid!="id") {
-                    if (this.collections[resource].fields[fid]) {
-                        let type=this.collections[resource].fields[fid].type;
-                        let processor=FIELD_TYPES[type].writeProcessor;
-                        if (processor)
-                            fieldData=processor(fieldData,this.conf);
-                    }
-                }
+                let type=this.collections[resource].fields[fid].type;
+                let processor=FIELD_TYPES[type].writeProcessor;
+                if (processor)
+                    fieldData=processor(fieldData,this.conf);
 
                 if (!(fieldData instanceof File)) {
                     if (fieldData)
@@ -110,7 +105,10 @@ export default class DataProvider {
     }
 
     create=async (resource, params)=>{
-        let formData=this.createFormData(resource,params.data)
+        let createFields=this.collections[resource].getWideFieldSet("create");
+        createFields=createFields.filter(f=>f!="id");
+
+        let formData=this.createFormData(resource,params.data,createFields);
         let url=`${this.apiUrl}/${resource}`;
         let response=await this.httpClient(url,{
             method: 'POST',
@@ -123,7 +121,13 @@ export default class DataProvider {
     }
 
     update=async (resource, params)=>{
-        let formData=this.createFormData(resource,params.data)
+        let updateFields=params.data.$policyInfo.updateFields;
+        updateFields=updateFields.filter(f=>f!="id");
+
+        let data={...params.data};
+        delete data.$policyInfo;
+
+        let formData=this.createFormData(resource,data,updateFields);
         let url=`${this.apiUrl}/${resource}/${params.id}`;
         let response=await this.httpClient(url,{
             method: 'PUT',

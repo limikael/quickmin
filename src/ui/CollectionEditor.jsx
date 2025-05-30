@@ -45,7 +45,8 @@ function CollectionToolbar({conf, collection, mode, redirect, policyInfo}) {
         <Toolbar>
             <div class="RaToolbar-defaultToolbar">
                 <SaveButton/>
-                {collection.getActions().getNonGlobal().map(action=>
+                {mode=="edit" &&
+                        collection.getActions().getNonGlobal().map(action=>
                     <Button 
                             label={action.name}
                             onClick={()=>action.run(actionFlow)}/>
@@ -180,8 +181,7 @@ function getRedirecter({collection, mode}) {
    // console.log("redirecter...");
 
     if (mode=="create" &&
-            collection.getFields().filter(f=>f.type=="referencemany").length) {
-        //console.log("returning undefined");
+            collection.getFields().getInWideSet("create").filter(f=>f.type=="referencemany").length) {
         return;
     }
 
