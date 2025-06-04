@@ -45,7 +45,7 @@ export default class DataProvider {
                     fieldData=processor(fieldData,this.conf);
 
                 if (!(fieldData instanceof File)) {
-                    if (fieldData)
+                    if (fieldData!==undefined)
                         fieldData=JSON.stringify(fieldData)
 
                     else
