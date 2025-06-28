@@ -14,7 +14,6 @@ import {nodeStorageDriver} from "../storage/node-storage.js";
 import {localNodeBundle} from "../export/local-node-bundle.js";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
-import {moduleAlias} from "../utils/esbuild-util.js";
 import {QuickminApi} from "quickmin-api";
 import {parse as parseYaml} from "yaml";
 import {DeclaredError} from "../utils/js-util.js";
@@ -107,42 +106,8 @@ let command=options._[0];
 if (!command)
     command="serve";
 
-async function makeUi() {
-    let outfile=path.join(options.uidir,"quickmin-bundle.js");
-    console.log("Creating client bundle: "+outfile);
-
-    let inlineImportPlugin=(await import("esbuild-plugin-inline-import")).default;
-
-    let esbuild=await import("esbuild");
-    await esbuild.build({
-        absWorkingDir: __dirname,
-        entryPoints: [path.join(__dirname,"../ui/QuickminAdmin.jsx")],
-        outfile: outfile,
-        //sourcemap: true,
-        bundle: true,
-        format: "esm",
-        inject: [path.join(__dirname,"../utils/preact-shim.js")],
-        jsxFactory: "h",
-        jsxFragment: "Fragment",
-        minify: options.minify,
-        plugins: [
-            moduleAlias({
-                "react": "preact/compat",
-                "react-dom": "preact/compat",
-                "react/jsx-runtime": "preact/jsx-runtime"
-            }),
-            inlineImportPlugin()
-        ],
-    });
-}
-
 await checkDeclaredError(async ()=>{
     switch (command) {
-        case "makeui":
-            await makeUi();
-            process.exit();
-            break;
-
         case "init":
             if (fs.existsSync(options.conf))
                 throw new DeclaredError("Already exists: "+options.conf);

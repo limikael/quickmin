@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - sqlite3
+
+overrides:
+  quickmin-api: link:../quickmin-api
+  qql: link:../qql

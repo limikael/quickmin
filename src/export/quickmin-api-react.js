@@ -1,1 +1,0 @@
-export * from "quickmin-api/react";

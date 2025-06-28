@@ -26,6 +26,7 @@ export class R2Storage {
 
         const headers = new Headers();
         object.writeHttpMetadata(headers);
+
         //headers.set('etag', object.httpEtag.replaceAll('"',""));
         headers.set('etag', object.httpEtag);
         headers.set("Access-Control-Allow-Origin","*");

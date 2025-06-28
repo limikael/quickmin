@@ -110,6 +110,9 @@ export class QuickminServer {
         if (!this.qqlDriver)
             throw new Error("No database driver configured.");
 
+        if (this.conf.storageDriver)
+            this.storage=this.conf.storageDriver;
+
         if (this.isStorageUsed() && !this.storage)
             throw new Error("There are fields using storage, but no storage driver.");
 
@@ -157,7 +160,17 @@ export class QuickminServer {
                 return fieldId;
     }
 
-    handleRequest=async (req)=>{
+    handleRequest=async (requestOrEvent)=>{
+        let req;
+        if (requestOrEvent instanceof Request)
+            req=requestOrEvent;
+
+        else if (requestOrEvent.request instanceof Request)
+            req=requestOrEvent.request;
+
+        else 
+            throw new Error("Didn't get a request");
+
         try {
             return await this.safeHandleRequest(req);
         }
@@ -541,7 +554,7 @@ export class QuickminServer {
         return this.getRoleByUserId(this.getUserIdByRequest(req));
     }
 
-    async sync({dryRun, force, test, risky}) {
+    async sync({dryRun, force, test, risky}={}) {
         if (!this.qql)
             throw new Error("Can't migrate, no qql driver configured.");
 
