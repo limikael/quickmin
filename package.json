@@ -73,6 +73,7 @@
     "./dsn-db": "./src/db/dsn-db.js",
     "./d1-db": "./src/db/d1-db.js",
     "./wrangler-db": "./src/db/wrangler-db.js",
-    "./qql": "./src/export/qql.js"
+    "./qql": "./src/export/qql.js",
+    "./qql-wrangler-driver": "./src/export/qql-wrangler-driver.js"
   }
 }
