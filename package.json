@@ -1,6 +1,6 @@
 {
   "name": "quickmin",
-  "version": "0.0.106",
+  "version": "0.0.108",
   "type": "module",
   "license": "GPL-3.0-only",
   "bin": {
@@ -27,6 +27,7 @@
     "minimatch": "^9.0.4",
     "path-browserify": "^1.0.1",
     "qql": "^1.0.32",
+    "quickmin-api": "^1.0.9",
     "txml": "^5.1.1",
     "url-join": "^5.0.0",
     "yaml": "^2.4.2",
