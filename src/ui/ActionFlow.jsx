@@ -132,15 +132,25 @@ export default class ActionFlow {
 	}
 
 	async showMessageModal({title, message}) {
-		let messageLines=message.split("\n");
+		let content;
+
+		if (typeof message=="string") {
+			content=message.split("\n").map(l=>
+	            <div>{l}</div>
+        	)
+        }
+
+        else if (message && message["content-type"]=="text/html") {
+        	content=<div dangerouslySetInnerHTML={{ __html: message.body}} />
+        }
+
+//		let messageLines=message.split("\n");
 
 		return await this.showModal(
 			<FlowDialog title={title}>
 	            <DialogContent>
 	                <DialogContentText>
-	                	{messageLines.map(l=>
-	                		<div>{l}</div>
-	                	)}
+	                	{content}
 	                </DialogContentText>
 	            </DialogContent>
                 <DialogActions>
