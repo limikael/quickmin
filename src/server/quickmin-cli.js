@@ -14,7 +14,7 @@ import {nodeStorageDriver} from "../storage/node-storage.js";
 import {localNodeBundle} from "../export/local-node-bundle.js";
 import urlJoin from 'url-join';
 import {googleAuthDriver} from "../auth/google-auth.js";
-import {QuickminApi} from "quickmin-api";
+import {QuickminApi} from "../export/quickmin-api.js";
 import {parse as parseYaml} from "yaml";
 import {DeclaredError} from "../utils/js-util.js";
 import {checkDeclaredError} from "../utils/node-util.js";

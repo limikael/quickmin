@@ -44,7 +44,8 @@ export class QuickminServer {
         }
 
         if (!this.conf.cookie)
-            this.conf.cookie="qmtoken";
+            throw new Error("Cookie needs to be provided!!!");
+            //this.conf.cookie="qmtoken";
 
         if (!this.conf.apiPath)
             this.conf.apiPath="";

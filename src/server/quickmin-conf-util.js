@@ -107,6 +107,9 @@ export function quickminCanonicalizeConf(conf) {
     for (let collectionId in conf.collections)
     	canonicalizeCollectionConf(conf.collections[collectionId]);
 
+    if (!conf.cookie)
+        conf.cookie="qmtoken";
+
     //console.log(conf.collections);
     return conf;
 }

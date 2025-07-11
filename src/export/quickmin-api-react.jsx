@@ -46,6 +46,8 @@ class QuickminUserState extends EventTarget {
 	}
 
 	logout() {
+		console.log("logout!!!");
+
 		// FIX HERE!!!!
 		window.document.cookie=this.quickminCookieName+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 		this.currentUser=null;
