@@ -27,6 +27,8 @@ export class QuickminApi {
 	}
 
 	async getCurrentUser() {
+		console.log("getting current user...");
+
 		let response=await this.fetch(urlJoin(this.url,"_getCurrentUser"));
 		let reply=await response.json();
 

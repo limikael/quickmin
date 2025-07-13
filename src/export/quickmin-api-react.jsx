@@ -1,81 +1,165 @@
 export * from "qql/react";
 
-import {createContext, useContext} from "react";
+import {createContext, useContext, useRef} from "react";
 import {QuickminApi} from "./quickmin-api.js"
 import {useConstructor, useEventUpdate} from "../utils/react-util.jsx";
 import {QqlProvider} from "qql/react";
 import urlJoin from "url-join";
+import {parseCookie, clearCookie, responseAssert} from "../utils/js-util.js";
 
-let QuickminApiContext=createContext();
-
-export function QuickminProvider({fetch, url, initialUser, quickminCookieName, children}) {
-	return (
-		<QuickminApiProvider fetch={fetch} url={url}>
-			<QuickminUserProvider initialUser={initialUser} quickminCookieName={quickminCookieName}>
-				<QqlProvider fetch={fetch} url={urlJoin(url,"_qql")}>
-					{children}
-				</QqlProvider>
-			</QuickminUserProvider>
-		</QuickminApiProvider>
-	)
-}
-
-export function QuickminApiProvider({fetch, url, apiKey, headers, children}) {
-	let api=new QuickminApi({fetch, url, apiKey, headers});
-
-	return (
-		<QuickminApiContext.Provider value={api}>
-			{children}
-		</QuickminApiContext.Provider>
-	);
-}
-
-export function useQuickminApi() {
-	return useContext(QuickminApiContext);
-}
-
-class QuickminUserState extends EventTarget {
-	constructor(initialUser, quickminCookieName) {
+class QuickminState extends EventTarget {
+	constructor({fetch, url, initialUser, quickminCookieName, apiKey, headers, authProviderInfo, children}) {
 		super();
 
 		if (!quickminCookieName)
 			throw new Error("No quickmin cookie name provided!");
 
+		this.fetch=fetch;
+		this.url=url;
+		this.api=new QuickminApi({fetch, url, apiKey, headers});
 		this.currentUser=initialUser;
 		this.quickminCookieName=quickminCookieName;
+		this.authProviderInfo=authProviderInfo;
+
+		if (globalThis.window) {
+			let cookies=parseCookie(globalThis.window.document.cookie);
+			if (cookies.quickmin_login_error) {
+				clearCookie("quickmin_login_error");
+				this.loginError=new Error(cookies.quickmin_login_error);
+			}
+		}
 	}
 
 	logout() {
 		console.log("logout!!!");
 
-		// FIX HERE!!!!
-		window.document.cookie=this.quickminCookieName+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		clearCookie(this.quickminCookieName);
+
 		this.currentUser=null;
 		this.dispatchEvent(new Event("change"));
 	}
+
+	popLoginError() {
+		let e=this.loginError;
+		this.loginError=undefined;
+		return e;
+	}
+
+	async uploadFile(file) {
+		return await this.api.uploadFile(file);
+	}
+
+	async getAuthUrls(referer, state={}) {
+		return await this.api.getAuthUrls(referer, state={});
+	}
+
+	getAuthProviderByName(providerName) {
+		for (let provider of this.authProviderInfo)
+			if (provider.name==providerName)
+				return provider;
+	}
+
+	async loginByProvider(providerName) {
+		let provider=this.getAuthProviderByName(providerName);
+		let loginUrl=new URL(provider.loginUrl);
+
+		loginUrl.searchParams.set("state",JSON.stringify({
+			provider: provider.name,
+			referer: window.location.toString()
+		}));
+
+		window.location=loginUrl;
+	}
+
+	async login(args) {
+		if (!args)
+			return await this.loginByProvider(this.authProviderInfo[0].name);
+
+		if (typeof args=="string")
+			return await this.loginByProvider(args);
+
+		try {
+			let response=await this.api.fetch(urlJoin(this.api.url,"_login"),{
+				method: "post",
+				body: JSON.stringify({
+					username: args.username,
+					password: args.password
+				})
+			});
+			await responseAssert(response);
+			let responseBody=await response.json();
+			if (!responseBody.user)
+				throw new Error("Can't login with this user");
+
+			window.document.cookie=this.quickminCookieName+"="+responseBody.token+"; path=/";
+			this.currentUser=responseBody.user;
+			this.dispatchEvent(new Event("change"));
+		}
+
+		catch (e) {
+			this.loginError=e;
+			this.dispatchEvent(new Event("change"));
+		}
+	}
 }
 
-let QuickminUserContext=createContext();
+let QuickminContext=createContext();
 
-export function QuickminUserProvider({initialUser, quickminCookieName, children}) {
-	let quickminUserState=useConstructor(()=>new QuickminUserState(initialUser,quickminCookieName));
+export function QuickminProvider({children, ...props}) {
+	let quickminState=useConstructor(()=>new QuickminState(props));
 
-	return (
-		<QuickminUserContext.Provider value={quickminUserState}>
-			{children}
-		</QuickminUserContext.Provider>
+	return(
+		<QuickminContext.Provider value={quickminState}>
+			<QqlProvider
+					fetch={quickminState.fetch} 
+					url={urlJoin(quickminState.url,"_qql")}>
+				{children}
+			</QqlProvider>
+		</QuickminContext.Provider>
 	);
 }
 
-export function useQuickminUser() {
-	let quickminUserState=useContext(QuickminUserContext);
-	useEventUpdate(quickminUserState,"change");
+export function useQuickmin() {
+	let quickmin=useContext(QuickminContext);
+	useEventUpdate(quickmin,"change");
 
-	return quickminUserState.currentUser;
+	return quickmin;	
+}
+
+export function useQuickminApi() {
+	return useQuickmin();
+}
+
+export function useQuickminUser() {
+	let quickmin=useQuickmin();
+	return quickmin.currentUser;
+}
+
+export function useUser() {
+	return useQuickminUser();
 }
 
 export function useQuickminLogout() {
-	let quickminUserState=useContext(QuickminUserContext);
+	let quickmin=useQuickmin();
+	return (()=>quickmin.logout());
+}
 
-	return (()=>quickminUserState.logout());
+export function useLogout() {
+	return useQuickminLogout();
+}
+
+export function useAuthProviders() {
+	let quickmin=useQuickmin();
+	return quickmin.authProviderInfo;
+}
+
+export function useLogin({onError}={}) {
+	let successCalled=useRef();
+	let quickmin=useQuickmin();
+
+	let e=quickmin.popLoginError();
+	if (e && onError)
+		onError(e);
+
+	return (args=>quickmin.login(args));
 }

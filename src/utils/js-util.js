@@ -64,6 +64,16 @@ export function getFileExt(fn) {
 	return fn.slice(fn.lastIndexOf("."));
 }
 
+export async function responseAssert(response) {
+	if (response.status>=200 && response.status<300)
+		return;
+
+	let e=new Error(await response.text());
+	e.status=response.status;
+
+	throw e;
+}
+
 export async function fetchEx(url, options={}) {
 	if (options.query) {
 		url=new URL(url);
@@ -124,6 +134,10 @@ export function parseCookie(str) {
 				return acc;
 		    }, {})
 	)
+}
+
+export function clearCookie(name) {
+	globalThis.window.document.cookie=name+"=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
 export function arrayDifference(a, b) {

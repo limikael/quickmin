@@ -4,6 +4,10 @@ export class EmailAuth {
 	constructor(server) {
 		this.server=server;
 	}
+
+	getLoginUrl() {
+		
+	}
 }
 
 export function emailAuthDriver(server) {

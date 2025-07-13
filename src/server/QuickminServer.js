@@ -14,6 +14,7 @@ import packageInfo from "../build/package-info.js";
 import {Qql, QqlRestServer, QqlServer} from "qql";
 import {quickminCanonicalizeConf, quickminMergeConf} from "./quickmin-conf-util.js";
 import path from "path-browserify";
+import OAUTH_ERRORS from "../utils/oauth-errors.js";
 
 export {quickminCanonicalizeConf, quickminMergeConf};
 
@@ -288,12 +289,34 @@ export class QuickminServer {
 
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
             let reqUrl=new URL(req.url);
-            //console.log("redirect state: ",JSON.parse(reqUrl.searchParams.get("state")));
-
             let {provider,referer}=JSON.parse(reqUrl.searchParams.get("state"));
-            let loginToken=await this.authMethods[provider].process(reqUrl);
+            if (!provider || !referer)
+                throw new Error("Expected provider and referer in oauth state");
 
-            return await this.getLoginRedirectResponse(referer,provider,loginToken);
+            try {
+                if (reqUrl.searchParams.get("error")) {
+                    let e=reqUrl.searchParams.get("error");
+                    if (OAUTH_ERRORS[e])
+                        throw new Error(OAUTH_ERRORS[e]);
+
+                    throw new Error(e);
+                }
+
+                let loginToken=await this.authMethods[provider].process(reqUrl);
+                return await this.getLoginRedirectResponse(referer,provider,loginToken);
+            }
+
+            catch (e) {
+                let refererUrl=new URL(referer);
+                let headers=new Headers();
+                headers.set("set-cookie","quickmin_login_error="+encodeURIComponent(e.message)+"; path=/");
+                headers.set("location",refererUrl);
+
+                return new Response("Moved",{
+                    status: 302,
+                    headers: headers
+                });
+            }
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_authUrls"])) {
@@ -339,7 +362,31 @@ export class QuickminServer {
             }
 
             else {
-                return new Response("Bad credentials",{status: 403});
+                let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+                let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+
+                let userRecord=await this.qql.query({
+                    oneFrom: this.authCollection,
+                    where: {
+                        [usernameField]: body.username
+                    }
+                });
+
+                if (!userRecord)
+                    return new Response("User not found.",{status: 403});
+
+                let payload={
+                    userId: userRecord.id,
+                    role: userRecord[roleField],
+                    userName: userRecord[usernameField],
+                };
+
+                console.log("login payload",payload);
+                let token=jwtSign(payload,this.conf.jwtSecret);
+                return Response.json({
+                    token: token,
+                    user: userRecord
+                });
             }
         }
 
@@ -407,14 +454,8 @@ export class QuickminServer {
             where: q
         });
         if (!userRecord) {
-            if (!this.signupRole) {
-                let headers=new Headers();
-                headers.set("location",referer);
-                return new Response("Moved",{
-                    status: 302,
-                    headers: headers
-                });
-            }
+            if (!this.signupRole)
+                throw new Error("User not found.");
 
             let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
             let q={};
@@ -441,7 +482,8 @@ export class QuickminServer {
 
         let headers=new Headers();
         headers.set("location",referer);
-        headers.set("set-cookie",this.conf.cookie+"="+token+"; path=/");
+        headers.append("set-cookie",this.conf.cookie+"="+token+"; path=/");
+
         /*headers.set("access-control-expose-headers","Set-Cookie");
         headers.set("Access-Control-Allow-Credentials",true);
         headers.set("Access-Control-Allow-Origin","http://localhost:3000");*/
@@ -450,6 +492,26 @@ export class QuickminServer {
             status: 302,
             headers: headers
         });
+    }
+
+    getAuthProviderInfo(referer) {
+        let u=new URL(referer);
+        let reurl=urlJoin(u.origin,this.conf.apiPath,"_oauthRedirect");
+
+        let methodInfo=[];
+
+        for (let methodName in this.authMethods) {
+            let method=this.authMethods[methodName];
+            let loginUrl=method.getLoginUrl(reurl);
+            if (loginUrl) {
+                methodInfo.push({
+                    name: methodName, 
+                    loginUrl: loginUrl
+                });
+            }
+        }
+
+        return methodInfo;
     }
 
     async getAuthUrls(referer, state={}) {
