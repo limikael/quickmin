@@ -158,6 +158,8 @@ export class QuickminServer {
     }
 
     getTaggedCollectionField(collectionId, tag, value) {
+        //console.log("tagged collection field "+collectionId);
+
         for (let fieldId in this.collections[collectionId].fields)
             if (this.collections[collectionId].fields[fieldId][tag]==value)
                 return fieldId;
@@ -337,16 +339,18 @@ export class QuickminServer {
             for (let cid in this.collections)
                 collectionsSchema[cid]=this.collections[cid].getSchema();
 
-            let authCollectionSchema=collectionsSchema[this.authCollection];
-            if (this.getTaggedCollectionField(this.authCollection,"password",true)) {
-                authCollectionSchema.actions=[...authCollectionSchema.actions,{
-                    name: "Change Password",
-                    builtin: "changePassword",
-                    options: {
-                        password: {type: "text", label: "New Password", password: true},
-                        repeat_password: {type: "text", label: "Repeat New Password", password: true}
-                    }
-                }];
+            if (this.authCollection) {
+                let authCollectionSchema=collectionsSchema[this.authCollection];
+                if (this.getTaggedCollectionField(this.authCollection,"password",true)) {
+                    authCollectionSchema.actions=[...authCollectionSchema.actions,{
+                        name: "Change Password",
+                        builtin: "changePassword",
+                        options: {
+                            password: {type: "text", label: "New Password", password: true},
+                            repeat_password: {type: "text", label: "Repeat New Password", password: true}
+                        }
+                    }];
+                }
             }
 
             return Response.json({
