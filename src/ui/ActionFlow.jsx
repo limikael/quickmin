@@ -22,7 +22,7 @@ function FlowDialog({title, children, onClose}) {
 	);
 }
 
-function Option({id, type, valuesState, ...props}) {
+function Option({id, type, valuesState, label, ...props}) {
 	let [values, setValues]=valuesState;
 
 	if (!type)
@@ -39,8 +39,11 @@ function Option({id, type, valuesState, ...props}) {
 		setValues({...values, [id]: eventOrValue})
 	}
 
+	if (!label)
+		label=id;
+
 	return (
-		<Comp {...props} label={id} value={values[id]} onChange={handleChange}/>
+		<Comp {...props} label={label} value={values[id]} onChange={handleChange}/>
 	);
 }
 
@@ -143,8 +146,6 @@ export default class ActionFlow {
         else if (message && message["content-type"]=="text/html") {
         	content=<div dangerouslySetInnerHTML={{ __html: message.body}} />
         }
-
-//		let messageLines=message.split("\n");
 
 		return await this.showModal(
 			<FlowDialog title={title}>

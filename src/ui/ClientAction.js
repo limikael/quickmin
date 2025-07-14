@@ -1,3 +1,5 @@
+import * as BUILTIN_CLIENT_METHODS from "./builtin-client-methods.js";
+
 export default class ClientAction {
 	constructor(action) {
 		Object.assign(this,action);
@@ -12,7 +14,13 @@ export default class ClientAction {
 
 	async run(actionFlow) {
 		try {
-			let method=this.conf.getClientMethod(this.method);
+			let method;
+
+			if (this.builtin)
+				method=BUILTIN_CLIENT_METHODS[this.builtin];
+
+			else
+				method=this.conf.getClientMethod(this.method);
 
 			let params={};
 			if (this.options) {
@@ -33,6 +41,7 @@ export default class ClientAction {
 
 			if (this.scope=="global") {
 				result=await method({
+					conf: this.conf,
 					qql: this.conf.qql,
 					...params
 				});
@@ -41,8 +50,9 @@ export default class ClientAction {
 			else {
 				for (let id of actionFlow.getIds()) {
 					result=await method({
-						id: id,
+						conf: this.conf,
 						qql: this.conf.qql,
+						id: id,
 						...params
 					});
 				}

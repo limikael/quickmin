@@ -15,6 +15,7 @@ import {Qql, QqlRestServer, QqlServer} from "qql";
 import {quickminCanonicalizeConf, quickminMergeConf} from "./quickmin-conf-util.js";
 import path from "path-browserify";
 import OAUTH_ERRORS from "../utils/oauth-errors.js";
+import {hashPassword, verifyPassword} from "../utils/crypto-util.js";
 
 export {quickminCanonicalizeConf, quickminMergeConf};
 
@@ -336,6 +337,18 @@ export class QuickminServer {
             for (let cid in this.collections)
                 collectionsSchema[cid]=this.collections[cid].getSchema();
 
+            let authCollectionSchema=collectionsSchema[this.authCollection];
+            if (this.getTaggedCollectionField(this.authCollection,"password",true)) {
+                authCollectionSchema.actions=[...authCollectionSchema.actions,{
+                    name: "Change Password",
+                    builtin: "changePassword",
+                    options: {
+                        password: {type: "text", label: "New Password", password: true},
+                        repeat_password: {type: "text", label: "Repeat New Password", password: true}
+                    }
+                }];
+            }
+
             return Response.json({
                 clientImports: this.conf.clientImports,
                 collections: collectionsSchema,
@@ -343,6 +356,29 @@ export class QuickminServer {
                 requireAuth: true, //this.requireAuth,
                 authUrls: await this.getAuthUrls(reUrl),
             });
+        }
+
+        else if (req.method=="POST" && jsonEq(argv,["_changePassword"])) {
+            let body=await req.json();
+            let envQql=this.qql.env({
+                role: await this.getRoleByRequest(req),
+                uid: await this.getUserIdByRequest(req)
+            });
+
+            let passwordField=this.getTaggedCollectionField(this.authCollection,"password",true);
+            if (!passwordField)
+                throw new Error("Password auth not enabled");
+
+            let hashedPassword=await this.hashPassword(body.password);
+
+            await envQql({
+                update: this.authCollection,
+                set: {
+                    [passwordField]: hashedPassword
+                }
+            });
+
+            return Response.json({success: true});
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_login"])) {
@@ -363,7 +399,11 @@ export class QuickminServer {
 
             else {
                 let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+                let passwordField=this.getTaggedCollectionField(this.authCollection,"password",true);
                 let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+
+                if (!passwordField)
+                    throw new Error("Password auth not enabled");
 
                 let userRecord=await this.qql.query({
                     oneFrom: this.authCollection,
@@ -375,13 +415,18 @@ export class QuickminServer {
                 if (!userRecord)
                     return new Response("User not found.",{status: 403});
 
+                //console.log("verify: ",body.password,userRecord[passwordField]);
+
+                if (!await this.verifyPassword(body.password,userRecord[passwordField]))
+                    return new Response("Check password.",{status: 403});
+
                 let payload={
                     userId: userRecord.id,
                     role: userRecord[roleField],
                     userName: userRecord[usernameField],
                 };
 
-                console.log("login payload",payload);
+                //console.log("login payload",payload);
                 let token=jwtSign(payload,this.conf.jwtSecret);
                 return Response.json({
                     token: token,
@@ -441,7 +486,7 @@ export class QuickminServer {
     }
 
     async getLoginRedirectResponse(referer, provider, loginToken) {
-        console.log("login: "+provider+":"+loginToken+" -> "+referer);
+        //console.log("login: "+provider+":"+loginToken+" -> "+referer);
 
         if (!this.authMethods[provider].fieldId)
             throw new Error("No AuthMethod field set up for provider: "+provider);
@@ -681,6 +726,14 @@ export class QuickminServer {
             missing: missing.length,
             dryRun: dryRun
         }
+    }
+
+    async hashPassword(password) {
+        return await hashPassword({password});
+    }
+
+    async verifyPassword(password, stored) {
+        return await verifyPassword({password, stored});
     }
 }
 

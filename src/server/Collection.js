@@ -105,28 +105,6 @@ export default class Collection {
         this.listFields=arrayIntersection(this.include,this.getCollection().listFields);
     }
 
-    /*getAccess() {
-        let policies=this.getCollection().policies;
-        let roles=[];
-        for (let policy of policies)
-            if (policy.operations.includes("create") ||
-                    policy.operations.includes("update") ||
-                    policy.operations.includes("delete"))
-                roles.push(...policy.roles);
-
-        return arrayUnique(roles);
-    }
-
-    getReadAccess() {
-        let policies=this.getCollection().policies;
-        let roles=[];
-        for (let policy of policies)
-            if (policy.operations.includes("read"))
-                roles.push(...policy.roles);
-
-        return arrayUnique(roles);
-    }*/
-
 	getSchema() {
         let schemaPolicies=this.policies.map(p=>
             canonicalizePolicyForFields(p,Object.keys(this.fields))
