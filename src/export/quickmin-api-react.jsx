@@ -7,7 +7,7 @@ import {QqlProvider} from "qql/react";
 import urlJoin from "url-join";
 import {parseCookie, clearCookie, responseAssert} from "../utils/js-util.js";
 
-class QuickminState extends EventTarget {
+export class QuickminState extends EventTarget {
 	constructor({fetch, url, initialUser, quickminCookieName, apiKey, headers, authProviderInfo, children}) {
 		super();
 
@@ -31,7 +31,7 @@ class QuickminState extends EventTarget {
 	}
 
 	logout() {
-		console.log("logout!!!");
+		//console.log("logout!!!");
 
 		clearCookie(this.quickminCookieName);
 
@@ -105,14 +105,20 @@ class QuickminState extends EventTarget {
 
 let QuickminContext=createContext();
 
-export function QuickminProvider({children, ...props}) {
-	let quickminState=useConstructor(()=>new QuickminState(props));
+export function QuickminProvider({children, quickminState, ...props}) {
+	let qm=useConstructor(()=>{
+		if (quickminState)
+			return quickminState;
+
+		//console.log("create qm provider"); 
+		return new QuickminState(props)
+	});
 
 	return(
-		<QuickminContext.Provider value={quickminState}>
+		<QuickminContext.Provider value={qm}>
 			<QqlProvider
-					fetch={quickminState.fetch} 
-					url={urlJoin(quickminState.url,"_qql")}>
+					fetch={qm.fetch} 
+					url={urlJoin(qm.url,"_qql")}>
 				{children}
 			</QqlProvider>
 		</QuickminContext.Provider>
