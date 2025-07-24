@@ -80,6 +80,13 @@ export class QuickminServer {
                         this.authCollection=cid;
                         this.authMethods[field.provider].fieldId=fid;
                     }
+
+                    if (field.username) {
+                        if (this.authCollection && this.authCollection!=cid)
+                            throw new Error("Only one collection can be used for auth.");
+
+                        this.authCollection=cid;
+                    }
                 }
             }
         }
