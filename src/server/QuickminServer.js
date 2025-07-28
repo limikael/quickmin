@@ -673,7 +673,7 @@ export class QuickminServer {
         return this.getRoleByUserId(this.getUserIdByRequest(req));
     }
 
-    async sync({dryRun, force, test, risky}={}) {
+    async sync({dryRun, force, test, risky, log}={}) {
         if (!this.qql)
             throw new Error("Can't migrate, no qql driver configured.");
 
@@ -681,7 +681,8 @@ export class QuickminServer {
             dryRun,
             force,
             test,
-            risky
+            risky,
+            log
         });
     }
 
