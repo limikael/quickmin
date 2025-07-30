@@ -15,7 +15,8 @@ export class GoogleAuth {
             clientSecret: this.server.conf.googleClientSecret,
             installUrl: "https://accounts.google.com/o/oauth2/auth",
             tokenUrl: "https://oauth2.googleapis.com/token",
-            scope: "https://www.googleapis.com/auth/userinfo.email"
+//            scope: "https://www.googleapis.com/auth/userinfo.email"
+            scope: "openid email profile"
         });
     }
 
@@ -38,7 +39,9 @@ export class GoogleAuth {
         let infoResponse=await fetch(infoUrl.toString());
         let tokenInfo=await infoResponse.json();
 
-        return tokenInfo.email;
+        //console.log(tokenInfo);
+
+        return tokenInfo; //.email;
 	}
 }
 

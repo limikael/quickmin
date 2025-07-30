@@ -46,7 +46,7 @@ export class FacebookAuth {
             throw new Error("got no email from facebook");
 
         //console.log("got token info: ",tokenInfo);
-        return tokenInfo.email;
+        return tokenInfo; //.email;
 	}
 }
 

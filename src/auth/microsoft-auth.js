@@ -40,7 +40,7 @@ export class MicrosoftAuth {
         let tokenInfo=await response.json();
 
         //console.log("got token info: ",tokenInfo);
-        return tokenInfo.mail;
+        return tokenInfo; //.mail;
 	}
 }
 

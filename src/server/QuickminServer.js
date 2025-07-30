@@ -297,7 +297,7 @@ export class QuickminServer {
             let jwtToken=reqUrl.searchParams.get("token");
             let {token, provider}=jwtVerify(jwtToken,this.conf.jwtSecret);
 
-            return await this.getLoginRedirectResponse(redirect,provider,token);
+            return await this.getLoginRedirectResponse(redirect,provider,{token});
         }
 
         else if (req.method=="GET" && jsonEq(argv,["_oauthRedirect"])) {
@@ -315,8 +315,8 @@ export class QuickminServer {
                     throw new Error(e);
                 }
 
-                let loginToken=await this.authMethods[provider].process(reqUrl);
-                return await this.getLoginRedirectResponse(referer,provider,loginToken);
+                let loginInfo=await this.authMethods[provider].process(reqUrl);
+                return await this.getLoginRedirectResponse(referer,provider,loginInfo);
             }
 
             catch (e) {
@@ -499,7 +499,17 @@ export class QuickminServer {
         }
     }
 
-    async getLoginRedirectResponse(referer, provider, loginToken) {
+    async getLoginRedirectResponse(referer, provider, loginInfo) {
+        let loginToken;
+        if (loginInfo.email)
+            loginToken=loginInfo.email;
+
+        else if (loginInfo.token)
+            loginToken=loginInfo.token;
+
+        else
+            throw new Error("Didn't get any login info");
+
         //console.log("login: "+provider+":"+loginToken+" -> "+referer);
 
         if (!this.authMethods[provider].fieldId)
@@ -525,6 +535,17 @@ export class QuickminServer {
                 insertInto: this.authCollection,
                 set: q,
                 return: "item"
+            });
+        }
+
+        let nameField=this.getTaggedCollectionField(this.authCollection,"name",true);
+        if (nameField && !userRecord[nameField] && loginInfo.name) {
+            //console.log("updating name: "+loginInfo.name);
+            await this.qql.query({
+                update: this.authCollection,
+                set: {
+                    [nameField]: loginInfo.name
+                }
             });
         }
 
