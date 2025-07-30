@@ -120,6 +120,9 @@ export class QuickminServer {
         if (!this.qqlDriver)
             throw new Error("No database driver configured.");
 
+        if (this.qqlDriver==="mock")
+            return;
+
         if (this.conf.storageDriver)
             this.storage=this.conf.storageDriver;
 
