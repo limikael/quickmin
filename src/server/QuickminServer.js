@@ -373,10 +373,11 @@ export class QuickminServer {
         }
 
         else if (req.method=="POST" && jsonEq(argv,["_changePassword"])) {
+            let user_id=await this.getUserIdByRequest(req);
             let body=await req.json();
             let envQql=this.qql.env({
                 role: await this.getRoleByRequest(req),
-                uid: await this.getUserIdByRequest(req)
+                uid: user_id
             });
 
             let passwordField=this.getTaggedCollectionField(this.authCollection,"password",true);
@@ -389,6 +390,9 @@ export class QuickminServer {
                 update: this.authCollection,
                 set: {
                     [passwordField]: hashedPassword
+                },
+                where: {
+                    id: user_id
                 }
             });
 
@@ -540,11 +544,17 @@ export class QuickminServer {
 
         let nameField=this.getTaggedCollectionField(this.authCollection,"displayname",true);
         if (nameField && !userRecord[nameField] && loginInfo.name) {
+            if (!userRecord.id)
+                throw new Error("No id in user record");
+
             //console.log("updating name: "+loginInfo.name);
             await this.qql.query({
                 update: this.authCollection,
                 set: {
                     [nameField]: loginInfo.name
+                },
+                where: {
+                    id: userRecord.id
                 }
             });
         }
