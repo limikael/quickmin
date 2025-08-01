@@ -538,7 +538,7 @@ export class QuickminServer {
             });
         }
 
-        let nameField=this.getTaggedCollectionField(this.authCollection,"name",true);
+        let nameField=this.getTaggedCollectionField(this.authCollection,"displayname",true);
         if (nameField && !userRecord[nameField] && loginInfo.name) {
             //console.log("updating name: "+loginInfo.name);
             await this.qql.query({
