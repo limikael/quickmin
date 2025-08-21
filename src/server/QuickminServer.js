@@ -392,7 +392,7 @@ export class QuickminServer {
                     [passwordField]: hashedPassword
                 },
                 where: {
-                    id: user_id
+                    id: body.id
                 }
             });
 

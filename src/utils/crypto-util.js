@@ -46,6 +46,9 @@ export async function verifyPassword({password, stored, secret}) {
     if (!secret)
         secret="";
 
+    if (!stored)
+        return false;
+
     const [saltHex, hashHex] = stored.split(":");
     const salt = new Uint8Array(saltHex.match(/.{2}/g).map(byte => parseInt(byte, 16)));
 
