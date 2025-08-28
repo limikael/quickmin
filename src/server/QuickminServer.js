@@ -781,6 +781,18 @@ export class QuickminServer {
     async verifyPassword(password, stored) {
         return await verifyPassword({password, stored});
     }
+
+    async getRequestQql(req) {
+        let user_id=await this.getUserIdByRequest(req);
+        if (!user_id)
+            throw new Error("Not logged in");
+        let envQql=this.qql.env({
+            role: await this.getRoleByRequest(req),
+            uid: user_id
+        });
+
+        return envQql;
+    }
 }
 
 export default QuickminServer;
