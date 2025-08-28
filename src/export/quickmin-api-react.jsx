@@ -81,10 +81,7 @@ export class QuickminState extends EventTarget {
 		try {
 			let response=await this.api.fetch(urlJoin(this.api.url,"_login"),{
 				method: "post",
-				body: JSON.stringify({
-					username: args.username,
-					password: args.password
-				})
+				body: JSON.stringify(args)
 			});
 			await responseAssert(response);
 			let responseBody=await response.json();

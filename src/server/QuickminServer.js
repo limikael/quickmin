@@ -415,6 +415,24 @@ export class QuickminServer {
                 });
             }
 
+            else if (body.token) {
+                let payload=jwtVerify(body.token,this.conf.jwtSecret);
+                let userRecord=await this.qql.query({
+                    oneFrom: this.authCollection,
+                    where: {
+                        id: payload.userId
+                    }
+                });
+
+                if (!userRecord)
+                    throw new Error("User not found");
+
+                return Response.json({
+                    token: body.token,
+                    user: userRecord
+                });
+            }
+
             else {
                 let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
                 let passwordField=this.getTaggedCollectionField(this.authCollection,"password",true);
@@ -680,6 +698,28 @@ export class QuickminServer {
         return userRecord;
     }
 
+    async getTokenByUserId(userId) {
+        let userRecord=await this.qql.query({
+            oneFrom: this.authCollection,
+            where: {
+                id: userId
+            }
+        });
+        if (!userRecord)
+            return;
+
+        let usernameField=this.getTaggedCollectionField(this.authCollection,"username",true);
+        let roleField=this.getTaggedCollectionField(this.authCollection,"role",true);
+        let payload={
+            userId: userRecord.id,
+            role: userRecord[roleField],
+            userName: userRecord[usernameField],
+        };
+
+        let token=jwtSign(payload,this.conf.jwtSecret);
+        return token;
+    }
+
     async getRoleByUserId(userId) {
         if (userId==-1)
             return "admin";
@@ -792,6 +832,10 @@ export class QuickminServer {
         });
 
         return envQql;
+    }
+
+    async decodeToken(jwtToken) {
+        return jwtVerify(jwtToken,this.conf.jwtSecret);
     }
 }
 
